@@ -1,4 +1,4 @@
-package com.vmware.ui.bifrost.bus;
+package com.vmware.bifrost.bus;
 
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
