@@ -8,3 +8,5 @@ tmp
 /typescript/typescript.iml
 /java/src/test/java-test.iml
 /java/src/main/java-main.iml
+.gradle
+/java/build
