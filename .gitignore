@@ -9,6 +9,4 @@ tmp
 .idea
 /bifrost/typings
 *.swp
-/ts
-/java
 /.gradle
