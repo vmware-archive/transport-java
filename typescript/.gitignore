@@ -1,7 +1,8 @@
-/node_modules
 workspace.xml
 dist
 aot-compiled
 tmp
 .idea
 *.swp
+/node_modules
+/.gradle
