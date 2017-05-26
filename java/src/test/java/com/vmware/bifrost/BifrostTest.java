@@ -1,4 +1,4 @@
-package com.vmware.ui.bifrost;
+package com.vmware.bifrost;
 
 import org.junit.Test;
 

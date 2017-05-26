@@ -1,4 +1,4 @@
-package com.vmware.ui.bifrost.bus;
+package com.vmware.bifrost.bus;
 
 import org.junit.Assert;
 import org.junit.Before;
