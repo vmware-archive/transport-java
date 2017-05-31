@@ -22,7 +22,7 @@ public class MessagebusService {
     private boolean dumpMonitor;
     private Logger logger;
 
-    MessagebusService () {
+    MessagebusService() {
 
         logger = LoggerFactory.getLogger(MessagebusService.class);
         this.channelMap = new HashMap<String, Channel>();
@@ -74,18 +74,13 @@ public class MessagebusService {
 
     public Observable<Message> getChannel(String channelName, String from) {
         return this.getChannelObject(channelName, from)
-                .getStreamObject()
-                .map(
-                        (Message m) -> {
-                            this.logger.info("ooooo bummy", m);
-                            return m;
-                        });
+                .getStreamObject();
     }
 
     public void send(String cname, Message message, String from) {
         // TEMPORARY - flag all messages without schema
         if (message.getSchema() == null) {
-            this.logger.warn("* No schema in message to " + cname, from);
+            //this.logger.warn("* No schema in message to " + cname, from);
         }
         MonitorObject mo;
 

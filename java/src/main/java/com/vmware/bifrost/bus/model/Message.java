@@ -3,11 +3,14 @@ package com.vmware.bifrost.bus.model;
 
 public class Message<T> {
 
-    private MessageType type;
-    private Class<T> payloadClass;
-    private Object payload;
-    private MessageSchema schema;
+    protected MessageType type;
+    protected Class<T> payloadClass;
+    protected Object payload;
+    protected MessageSchema schema;
 
+
+    public Message() {
+    }
 
     public Message(MessageType type, Object payload) {
         this.type = type;
@@ -62,6 +65,10 @@ public class Message<T> {
 
     public boolean isError() {
         return this.type == MessageType.MessageTypeError;
+    }
+
+    public String toString() {
+        return this.getPayload().toString();
     }
 
 }
