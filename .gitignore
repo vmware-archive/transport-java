@@ -10,3 +10,4 @@ tmp
 /java/src/main/java-main.iml
 .gradle
 /java/build
+.DS_Store
