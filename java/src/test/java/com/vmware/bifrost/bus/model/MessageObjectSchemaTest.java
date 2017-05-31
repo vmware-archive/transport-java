@@ -12,7 +12,7 @@ import static org.junit.Assert.*;
 /**
  * Copyright(c) VMware Inc. 2017
  */
-public class MessageSchemaTest {
+public class MessageObjectSchemaTest {
 
     private JsonSchema schema;
     private ObjectMapper mapper;

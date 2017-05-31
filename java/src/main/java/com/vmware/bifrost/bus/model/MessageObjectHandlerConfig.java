@@ -1,23 +1,25 @@
 package com.vmware.bifrost.bus.model;
 
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+
 /**
  * Copyright(c) VMware Inc. 2017
  */
-public class MessageHandlerConfig<T> extends Message<T> {
+public class MessageObjectHandlerConfig<T> extends MessageObject<T> {
 
     private String sendChannel;
     private String returnChannel;
     private boolean singleResponse;
 
-    MessageHandlerConfig() {
+    MessageObjectHandlerConfig() {
         super();
     }
 
-    public MessageHandlerConfig(MessageType type, Object payload) {
+    public MessageObjectHandlerConfig(MessageType type, Object payload) {
         super(type, payload);
     }
 
-    public MessageHandlerConfig(MessageType type, Object payload, MessageSchema schema) {
+    public MessageObjectHandlerConfig(MessageType type, Object payload, JsonSchema schema) {
         super(type, payload, schema);
     }
 

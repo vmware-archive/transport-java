@@ -1,6 +1,6 @@
 package com.vmware.bifrost.bus;
 
-import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageObject;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 
@@ -22,7 +22,7 @@ public class Channel {
     private Boolean closed;
     private Boolean galactic;
 
-   private Subject<Message> streamObject;
+   private Subject<MessageObject> streamObject;
 
 
     public Channel (String name) {
@@ -41,7 +41,7 @@ public class Channel {
         return name;
     }
 
-    public Subject<Message> getStreamObject() {
+    public Subject<MessageObject> getStreamObject() {
         return streamObject;
     }
 
@@ -49,8 +49,8 @@ public class Channel {
         return closed;
     }
 
-    public void send(Message message) {
-        streamObject.onNext(message);
+    public void send(MessageObject messageObject) {
+        streamObject.onNext(messageObject);
     }
 
     public void error(Error error) {

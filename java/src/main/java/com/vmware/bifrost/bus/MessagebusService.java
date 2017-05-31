@@ -1,5 +1,9 @@
 package com.vmware.bifrost.bus;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.vmware.bifrost.AbstractService;
 import com.vmware.bifrost.bus.model.*;
 import io.reactivex.subjects.Subject;
 import org.slf4j.Logger;
@@ -14,7 +18,7 @@ import java.util.Map;
  * Copyright(c) VMware Inc. 2017
  */
 
-public class MessagebusService {
+public class MessagebusService extends AbstractService {
 
     private Map<String, Channel> channelMap;
     private Channel monitorStream;
@@ -22,7 +26,15 @@ public class MessagebusService {
     private boolean dumpMonitor;
     private Logger logger;
 
-    MessagebusService() {
+    private JsonSchema schema;
+    private ObjectMapper mapper;
+    private JsonSchemaGenerator schemaGen;
+
+    MessagebusService() throws Exception {
+
+        this.mapper = new ObjectMapper();
+        this.schemaGen = new JsonSchemaGenerator(mapper);
+        this.schema = schemaGen.generateSchema(MessageSchema.class);
 
         logger = LoggerFactory.getLogger(MessagebusService.class);
         this.channelMap = new HashMap<String, Channel>();
@@ -46,7 +58,7 @@ public class MessagebusService {
         return this.channelMap;
     }
 
-    public Subject<Message> getMonitor() {
+    public Subject<MessageObject> getMonitor() {
         return this.monitorStream.getStreamObject();
     }
 
@@ -67,39 +79,63 @@ public class MessagebusService {
         }
 
         MonitorObject mo = new MonitorObject(MonitorType.MonitorNewChannel, cname, from, symbol);
-        this.monitorStream.send(new Message<MonitorObject>(MessageType.MessageTypeRequest, mo));
+        this.monitorStream.send(new MessageObject<MonitorObject>(MessageType.MessageTypeRequest, mo));
         channel.increment();
         return channel;
     }
 
-    public Observable<Message> getChannel(String channelName, String from) {
+    public Observable<MessageObject> getChannel(String channelName, String from) {
         return this.getChannelObject(channelName, from)
                 .getStreamObject();
     }
 
-    public void send(String cname, Message message, String from) {
+    public void send(String cname, MessageObject messageObject, String from) {
         // TEMPORARY - flag all messages without schema
-        if (message.getSchema() == null) {
-            //this.logger.warn("* No schema in message to " + cname, from);
+        if (messageObject.getSchema() == null) {
+            //this.logger.warn("* No schema in messageObject to " + cname, from);
         }
         MonitorObject mo;
 
         if (!this.channelMap.containsKey(cname)) {
-            mo = new MonitorObject(MonitorType.MonitorDropped, cname, from, message);
-            this.monitorStream.send(new Message<MonitorObject>(MessageType.MessageTypeRequest, mo));
+            mo = new MonitorObject(MonitorType.MonitorDropped, cname, from, messageObject);
+            this.monitorStream.send(new MessageObject<MonitorObject>(MessageType.MessageTypeRequest, mo));
             return;
         }
 
-        mo = new MonitorObject(MonitorType.MonitorData, cname, from, message);
-        this.monitorStream.send(new Message<MonitorObject>(MessageType.MessageTypeRequest, mo));
-        this.channelMap.get(cname).send(message);
+        mo = new MonitorObject(MonitorType.MonitorData, cname, from, messageObject);
+        this.monitorStream.send(new MessageObject<MonitorObject>(MessageType.MessageTypeRequest, mo));
+        this.channelMap.get(cname).send(messageObject);
 
     }
 
-//    public void sendRequest(String cname, Object payload): boolean {
-//        let mh: MessageHandlerConfig = new MessageHandlerConfig(cname, payload, true, cname);
-//        this.send(mh.sendChannel, new Message().request(mh, schema), name);
-//    }
+    public void sendRequest(String cname, Object payload, JsonSchema schema) {
+
+        MessageObjectHandlerConfig config =
+                new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload, schema);
+        config.setSingleResponse(true);
+        config.setSendChannel(cname);
+        config.setReturnChannel(cname);
+        this.send(config.getSendChannel(), config, this.getName());
+
+    }
+
+    public void sendRequest(String cname, Object payload) {
+       this.sendRequest(cname, payload, this.schema);
+    }
+
+    public void sendResponse(String cname, Object payload, JsonSchema schema) {
+
+        MessageObjectHandlerConfig config =
+                new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload, schema);
+        config.setSingleResponse(true);
+        config.setSendChannel(cname);
+        config.setReturnChannel(cname);
+        this.send(config.getSendChannel(), config, this.getName());
+    }
+
+    public void sendResponse(String cname, Object payload) {
+        this.sendResponse(cname, payload, this.schema);
+    }
 
 
 }

@@ -12,7 +12,7 @@ public class MessageSchema<T> {
     protected Class type;
     protected String title;
     protected String description;
-    protected Supplier<T> payload;
+    protected Object payload;
     protected boolean isError;
 
 
@@ -47,11 +47,11 @@ public class MessageSchema<T> {
     }
 
     @JsonProperty(required = true)
-    public  Supplier<T> getPayload() {
+    public  Object getPayload() {
         return payload;
     }
 
-    public void setPayload(Supplier<T> payload) {
+    public void setPayload(Object payload) {
         this.payload = payload;
     }
 

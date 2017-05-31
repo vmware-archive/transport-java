@@ -1,74 +1,27 @@
 package com.vmware.bifrost.bus.model;
 
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
-public class Message<T> {
+/**
+ * Copyright(c) VMware Inc. 2017
+ */
+public interface Message<T> {
 
-    protected MessageType type;
-    protected Class<T> payloadClass;
-    protected Object payload;
-    protected MessageSchema schema;
+    public void setPayload(Object payload);
 
+    public Object getPayload();
 
-    public Message() {
-    }
+    public void setPayloadClass(Class<T> payloadClass);
 
-    public Message(MessageType type, Object payload) {
-        this.type = type;
-        this.payload = payload;
-        this.payloadClass = (Class<T>) payload.getClass();
-    }
+    public Class<T> getPayloadClass();
 
-    public Message(MessageType type, Object payload, MessageSchema schema) {
-        this(type, payload);
-        this.schema = schema;
-    }
+    public JsonSchema getSchema();
 
-    public void setPayloadClass(Class<T> payloadClass) {
-        this.payloadClass = payloadClass;
-    }
+    public void setSchema(JsonSchema schema);
 
-    public MessageSchema getSchema() {
-        return schema;
-    }
+    public boolean isRequest();
 
-    public void setSchema(MessageSchema schema) {
-        this.schema = schema;
-    }
+    public boolean isResponse();
 
-    public Class<T> getPayloadClass() {
-        return payloadClass;
-    }
-
-    public MessageType getType() {
-        return type;
-    }
-
-    public void setType(MessageType type) {
-        this.type = type;
-    }
-
-    public Object getPayload() {
-        return payload;
-    }
-
-    public void setPayload(Object payload) {
-        this.payload = payload;
-    }
-
-    public boolean isRequest() {
-        return this.type == MessageType.MessageTypeRequest;
-    }
-
-    public boolean isResponse() {
-        return this.type == MessageType.MessageTypeResponse;
-    }
-
-    public boolean isError() {
-        return this.type == MessageType.MessageTypeError;
-    }
-
-    public String toString() {
-        return this.getPayload().toString();
-    }
-
+    public boolean isError();
 }
