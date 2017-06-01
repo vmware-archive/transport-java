@@ -448,6 +448,56 @@ describe('Messagebus Service [messagebus.service]', () => {
             }
         );
 
+
+        it('request once with a different return channel',
+            (done) => {
+
+                const channel1 = '#test-channel1';
+                const channel2 = '#test-channel2';
+
+                bus.listenRequestOnce(channel1)
+                    .handle(
+                        (request: string) => {
+                            expect(request).toEqual('strawbarita');
+                            bus.sendResponse(channel2, 'margarita');
+                        }
+                    );
+
+                bus.requestOnce(channel1, 'strawbarita', channel2)
+                    .handle(
+                        (resp: string) => {
+                            expect(resp).toEqual('margarita');
+                            done();
+                        }
+                    );
+            }
+        );
+
+        it('request stream with a different return channel',
+            (done) => {
+
+                const channel1 = '#test-channel1';
+                const channel2 = '#test-channel2';
+
+                const handler1 = bus.listenRequestStream(channel1);
+                const sub1 = handler1.handle(
+                        (request: string) => {
+                            expect(request).toEqual('strawbarita');
+                            bus.sendResponse(channel2, 'margarita');
+                            sub1.unsubscribe();
+                        }
+                    );
+                const handler2 = bus.requestStream(channel1, 'strawbarita', channel2);
+                const sub2 = handler2.handle(
+                        (resp: string) => {
+                            expect(resp).toEqual('margarita');
+                            sub2.unsubscribe();
+                            done();
+                        }
+                    );
+            }
+        );
+
         it('respondStream() and requestStream()',
             (done) => {
 
