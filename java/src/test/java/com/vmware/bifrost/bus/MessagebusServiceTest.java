@@ -57,27 +57,44 @@ public class MessagebusServiceTest {
     @Test
     public void checkChannels() {
 
-        Observable<MessageObject> chan = this.bus.getChannel("#local-1", "test");
+        Observable<Message> chan = this.bus.getChannel("#local-1", "test");
 
         MessageObject test1 = new MessageObject(MessageType.MessageTypeRequest, "cakes");
-        MessageObject test2 = new MessageObject(MessageType.MessageTypeRequest, "biscuits");
+        MessageObject test2 = new MessageObject(MessageType.MessageTypeResponse, "biscuits");
 
+        TestObserver<Message> observer = chan.test();
 
-        TestObserver<MessageObject> observer = chan.test();
-
-
-        this.bus.send("#local-1", test1, "somewhere");
-        this.bus.send("#local-1", test2, "out there");
+        this.bus.send("#local-1", test1, "ping");
+        this.bus.send("#local-1", test2, "pong");
 
         observer.assertSubscribed();
         observer.assertValues(test1, test2);
+
+        chan = this.bus.getRequestChannel("#local-1", "test");
+        observer = chan.test();
+
+        this.bus.send("#local-1", test1, "ping");
+        this.bus.send("#local-1", test2, "pong");
+
+        observer.assertSubscribed();
+        observer.assertValues(test1);
+
+        chan = this.bus.getResponseChannel("#local-1", "test");
+        observer = chan.test();
+
+        this.bus.send("#local-1", test1, "ping");
+        this.bus.send("#local-1", test2, "pong");
+
+        observer.assertSubscribed();
+        observer.assertValues(test2);
+
 
     }
 
     @Test
     public void checkMessagePolymorphism() {
 
-        Observable<MessageObject> chan = this.bus.getChannel("#local-1", "test");
+        Observable<Message> chan = this.bus.getChannel("#local-1", "test");
 
         MessageObject test1 = new MessageObject<String>(MessageType.MessageTypeRequest, "cakes");
         MessageObjectHandlerConfig test2 = new MessageObjectHandlerConfig<String>(MessageType.MessageTypeRequest, "biscuits");
@@ -85,14 +102,14 @@ public class MessagebusServiceTest {
         test2.setReturnChannel("#local-2");
         test2.setSingleResponse(true);
 
-        TestObserver<MessageObject> observer = chan.test();
+        TestObserver<Message> observer = chan.test();
         this.bus.send("#local-1", test1, "somewhere");
         this.bus.send("#local-1", test2, "out there");
 
         observer.assertSubscribed();
         observer.assertValues(test1, test2);
 
-        for (MessageObject msg : observer.values()) {
+        for (Message msg : observer.values()) {
             try {
                 MessageObjectHandlerConfig config = (MessageObjectHandlerConfig) msg;
                 Assert.assertEquals(config.getClass(), MessageObjectHandlerConfig.class);
@@ -107,8 +124,8 @@ public class MessagebusServiceTest {
 
     @Test
     public void testSendRequest() {
-        Observable<MessageObject> chan = this.bus.getChannel("#local-channel", "test");
-        TestObserver<MessageObject> observer = chan.test();
+        Observable<Message> chan = this.bus.getChannel("#local-channel", "test");
+        TestObserver<Message> observer = chan.test();
 
         this.bus.sendRequest("#local-channel", "puppy!");
 
@@ -126,8 +143,8 @@ public class MessagebusServiceTest {
 
     @Test
     public void testSendResponse() {
-        Observable<MessageObject> chan = this.bus.getChannel("#local-channel", "test");
-        TestObserver<MessageObject> observer = chan.test();
+        Observable<Message> chan = this.bus.getChannel("#local-channel", "test");
+        TestObserver<Message> observer = chan.test();
 
         this.bus.sendResponse("#local-channel", "kitty!");
 
@@ -140,6 +157,50 @@ public class MessagebusServiceTest {
             Assert.assertEquals(msg.getPayload(), "kitty!");
             Assert.assertFalse(msg.isRequest());
             Assert.assertTrue(msg.isResponse());
+        }
+    }
+
+    @Test
+    public void testSendError() {
+        Observable<Message> chan = this.bus.getChannel("#local-channel", "test");
+        TestObserver<Message> observer = chan.test();
+
+        this.bus.sendError("#local-channel", "chickie!");
+
+        observer.assertSubscribed();
+
+        for (Message msg : observer.values()) {
+
+            Assert.assertEquals(msg.getClass(), MessageObjectHandlerConfig.class);
+            Assert.assertEquals(msg.getPayloadClass(), String.class);
+            Assert.assertEquals(msg.getPayload(), "chickie!");
+            Assert.assertFalse(msg.isRequest());
+            Assert.assertFalse(msg.isResponse());
+            Assert.assertTrue(msg.isError());
+
+        }
+    }
+
+    @Test
+    public void testErrorBus() {
+        Observable<Message> chan = this.bus.getChannel("#local-error", "test");
+        TestObserver<Message> observer = chan.test();
+
+        Error error = new Error("broke me glasses!");
+        this.bus.error("#local-error", error);
+
+        observer.assertSubscribed();
+        observer.assertError(error);
+
+        for (Message msg : observer.values()) {
+
+            Assert.assertEquals(msg.getClass(), MessageObject.class);
+            Assert.assertEquals(msg.getPayloadClass(), String.class);
+            Assert.assertEquals(msg.getPayload(), "broke me glasses!");
+            Assert.assertFalse(msg.isRequest());
+            Assert.assertFalse(msg.isResponse());
+            Assert.assertTrue(msg.isError());
+
         }
     }
 

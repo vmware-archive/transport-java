@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.vmware.bifrost.AbstractService;
 import com.vmware.bifrost.bus.model.*;
 import io.reactivex.subjects.Subject;
+import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.reactivex.Observable;
@@ -58,7 +59,7 @@ public class MessagebusService extends AbstractService {
         return this.channelMap;
     }
 
-    public Subject<MessageObject> getMonitor() {
+    public Subject<Message> getMonitor() {
         return this.monitorStream.getStreamObject();
     }
 
@@ -84,7 +85,7 @@ public class MessagebusService extends AbstractService {
         return channel;
     }
 
-    public Observable<MessageObject> getChannel(String channelName, String from) {
+    public Observable<Message> getChannel(String channelName, String from) {
         return this.getChannelObject(channelName, from)
                 .getStreamObject();
     }
@@ -120,7 +121,7 @@ public class MessagebusService extends AbstractService {
     }
 
     public void sendRequest(String cname, Object payload) {
-       this.sendRequest(cname, payload, this.schema);
+        this.sendRequest(cname, payload, this.schema);
     }
 
     public void sendResponse(String cname, Object payload, JsonSchema schema) {
@@ -136,6 +137,55 @@ public class MessagebusService extends AbstractService {
     public void sendResponse(String cname, Object payload) {
         this.sendResponse(cname, payload, this.schema);
     }
+
+    public void sendError(String cname, Object payload, JsonSchema schema) {
+
+        MessageObjectHandlerConfig config =
+                new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload, schema);
+        config.setSingleResponse(true);
+        config.setSendChannel(cname);
+        config.setReturnChannel(cname);
+        this.send(config.getSendChannel(), config, this.getName());
+    }
+
+    public void sendError(String cname, Object payload) {
+        this.sendError(cname, payload, this.schema);
+    }
+
+
+    public void error(String cname, Error error) {
+        if (!this.channelMap.containsKey(cname)) {
+            return;
+        }
+
+        MonitorObject mo = new MonitorObject(MonitorType.MonitorError, cname, "bus error", error);
+        this.monitorStream.send(new MessageObject(MessageType.MessageTypeError, mo, schema));
+        this.channelMap.get(cname).error(error);
+    }
+
+    public Observable<Message> getRequestChannel(String cname, String from) {
+        return this.getChannel(cname, from)
+                .filter(
+                        (Message message) -> {
+                            return (message.isRequest());
+                        }
+                );
+    }
+
+    public Observable<Message> getResponseChannel(String cname, String from) {
+        return this.getChannel(cname, from)
+                .filter(
+                        (Message message) -> {
+                            return (message.isResponse());
+                        }
+                );
+    }
+
+
+//    private MessageHandler createMessageHandler(MessageObjectHandlerConfig handlerConfig, boolean requestStream, String name) {
+//
+//
+//    }
 
 
 }
