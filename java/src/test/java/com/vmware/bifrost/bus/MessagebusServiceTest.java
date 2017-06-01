@@ -55,7 +55,7 @@ public class MessagebusServiceTest {
     }
 
     @Test
-    public void checkChannels() {
+    public void checkChannelFilters() {
 
         Observable<Message> chan = this.bus.getChannel("#local-1", "test");
 
@@ -88,6 +88,35 @@ public class MessagebusServiceTest {
         observer.assertSubscribed();
         observer.assertValues(test2);
 
+
+    }
+
+    @Test
+    public void checkChannelClosing() {
+        Observable<Message> chan1 = this.bus.getChannel("#local-channel", "test");
+        Observable<Message> chan2 = this.bus.getChannel("#local-channel", "test");
+        Channel chanRaw = this.bus.getChannelObject("#local-channel", "test");
+
+        TestObserver<Message> observer1 = chan1.test();
+        TestObserver<Message> observer2 = chan2.test();
+
+        observer1.assertSubscribed();
+        observer2.assertSubscribed();
+
+        Assert.assertEquals((int)chanRaw.getRefCount(), 3);
+
+        this.bus.close("#local-channel", "test");
+
+        Assert.assertEquals((int)chanRaw.getRefCount(), 2);
+
+        this.bus.close("#local-channel", "test");
+
+        Assert.assertEquals((int)chanRaw.getRefCount(), 1);
+
+        this.bus.close("#local-channel", "test");
+
+        observer1.assertComplete();
+        observer2.assertComplete();
 
     }
 

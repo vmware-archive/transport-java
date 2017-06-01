@@ -90,6 +90,47 @@ public class MessagebusService extends AbstractService {
                 .getStreamObject();
     }
 
+    public void close(String cname, String from) {
+        if (!this.channelMap.containsKey(cname)) {
+            return;
+        }
+
+        Channel channel = this.channelMap.get(cname);
+        channel.decrement();
+        MonitorObject mo = new MonitorObject(
+                MonitorType.MonitorCloseChannel, cname, from,
+                ' ' + channel.getRefCount());
+
+        this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
+
+        if (channel.getRefCount() == 0) {
+            this.complete(channel, from);
+        }
+    }
+
+    public void complete(Channel channel, String from) {
+
+        MonitorObject mo = new MonitorObject(MonitorType.MonitorCompleteChannel, channel.getName(), from);
+        this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
+        channel.complete();
+        this.destroy(channel, from);
+
+    }
+
+    public void complete(String cname, String from) {
+        Channel channel = this.getChannelObject(cname, from);
+        if(channel == null) {
+            return;
+        }
+        this.complete(channel, from);
+    }
+
+    private void destroy(Channel channel, String from) {
+        MonitorObject mo = new MonitorObject(MonitorType.MonitorDestroyChannel, channel.getName(), from);
+        this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
+        this.channelMap.remove(channel.getName());
+    }
+
     public void send(String cname, MessageObject messageObject, String from) {
         // TEMPORARY - flag all messages without schema
         if (messageObject.getSchema() == null) {

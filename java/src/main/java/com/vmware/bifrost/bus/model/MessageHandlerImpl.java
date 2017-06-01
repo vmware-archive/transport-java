@@ -15,9 +15,12 @@ public abstract class MessageHandlerImpl implements MessageHandler {
     private Subscription sub;
     private boolean requestStream;
     private MessagebusService bus;
+    private MessageObjectHandlerConfig config;
 
-    public MessageHandlerImpl(boolean requestStream, MessagebusService bus) {
+    public MessageHandlerImpl(
+            boolean requestStream, MessageObjectHandlerConfig config, MessagebusService bus) {
         this.requestStream = requestStream;
+        this.config = config;
         this.bus = bus;
     }
 
@@ -29,7 +32,7 @@ public abstract class MessageHandlerImpl implements MessageHandler {
     public Subscription handle(Consumer success, Consumer error) {
         //Channel chan = Observable<Message>;
         if(this.requestStream) {
-            //chan = this.bus.getR
+            //Observable<Message> chan = this.bus.getRequestChannel(this.config)
         }
         return null;
 
