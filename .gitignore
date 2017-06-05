@@ -1,13 +1,11 @@
 /node_modules
+*.iml
 workspace.xml
 dist
 aot-compiled
 tmp
 .idea
 *.swp
-/typescript/typescript.iml
-/java/src/test/java-test.iml
-/java/src/main/java-main.iml
 .gradle
 /java/build
 .DS_Store
