@@ -2,22 +2,20 @@ package com.vmware.bifrost.bus.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.function.Supplier;
-
 /**
  * Copyright(c) VMware Inc. 2017
  */
 public class MessageSchema<T> {
 
-    protected Class type;
+    protected Class<T> payloadType;
     protected String title;
     protected String description;
-    protected Object payload;
+    protected T payload;
     protected boolean isError;
 
 
-    public MessageSchema(Supplier<T> payload) {
-        type = MessageSchema.class;
+    public MessageSchema(T payload) {
+        this.payloadType =  (Class<T>) payload.getClass();
         this.payload = payload;
     }
 
@@ -30,12 +28,12 @@ public class MessageSchema<T> {
     }
 
     @JsonProperty(required = true)
-    public Class getType() {
-        return type;
+    public Class<T> getPayloadType() {
+        return payloadType;
     }
 
-    public void setType(Class type) {
-        this.type = type;
+    public void setPayloadType(Class payloadType) {
+        this.payloadType = payloadType;
     }
 
     public String getDescription() {
@@ -47,11 +45,11 @@ public class MessageSchema<T> {
     }
 
     @JsonProperty(required = true)
-    public  Object getPayload() {
+    public  T getPayload() {
         return payload;
     }
 
-    public void setPayload(Object payload) {
+    public void setPayload(T payload) {
         this.payload = payload;
     }
 

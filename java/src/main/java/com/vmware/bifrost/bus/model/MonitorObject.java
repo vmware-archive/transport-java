@@ -52,11 +52,11 @@ public class MonitorObject {
         this.data = data;
     }
 
-    public boolean isNewChannel () {
+    public boolean isNewChannel() {
         return this.type == MonitorType.MonitorNewChannel;
     }
 
-    public boolean hasData () {
-        return this.data == null;
+    public boolean hasData() {
+        return this.data != null;
     }
 }

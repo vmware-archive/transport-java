@@ -1,6 +1,7 @@
 package com.vmware.bifrost.bus.model;
 
 import com.vmware.bifrost.bus.MessagebusService;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.observers.TestObserver;
 import org.junit.Assert;
@@ -31,7 +32,6 @@ public class MessageHandlerImplTest {
             Assert.assertEquals(message.getPayloadClass(), String.class);
             Assert.assertEquals(message.getPayload(), "meeseeks");
             Assert.assertFalse(message.isError());
-            Assert.assertTrue(message.isResponse());
         };
     }
 
@@ -49,7 +49,7 @@ public class MessageHandlerImplTest {
         this.success = this.generateSuccess();
         this.error = this.generateError();
         this.bus = new MessagebusService();
-        logger = LoggerFactory.getLogger(this.getClass());
+        this.logger = LoggerFactory.getLogger(this.getClass());
         this.successCount = 0;
     }
 
@@ -61,7 +61,7 @@ public class MessageHandlerImplTest {
         this.config.setSendChannel(this.testChannelSend);
         this.config.setReturnChannel(this.testChannelSend);
 
-        TestObserver<Message> observer = configureHandler();
+        TestObserver<Message> observer = configureHandler(false);
 
 
         this.bus.sendResponse(this.testChannelSend, "meeseeks");
@@ -73,14 +73,14 @@ public class MessageHandlerImplTest {
     }
 
     @Test
-    public void testHandleStream() {
+    public void testHandleResponseStream() {
 
         this.config = new MessageObjectHandlerConfig();
         this.config.setSingleResponse(false);
         this.config.setSendChannel(this.testChannelSend);
         this.config.setReturnChannel(this.testChannelSend);
 
-        TestObserver<Message> observer = configureHandler();
+        TestObserver<Message> observer = configureHandler(false);
 
         this.bus.sendResponse(this.testChannelSend, "meeseeks");
         this.bus.sendResponse(this.testChannelSend, "meeseeks");
@@ -94,6 +94,80 @@ public class MessageHandlerImplTest {
     }
 
     @Test
+    public void testHandleStream() {
+
+        this.config = new MessageObjectHandlerConfig();
+        this.config.setSingleResponse(false);
+        this.config.setSendChannel(this.testChannelSend);
+        this.config.setReturnChannel(this.testChannelSend);
+
+        TestObserver<Message> observer = configureHandler(true);
+
+        this.bus.sendRequest(this.testChannelSend, "meeseeks");
+        this.bus.sendRequest(this.testChannelSend, "meeseeks");
+        this.bus.sendRequest(this.testChannelSend, "meeseeks");
+
+
+        observer.assertValueCount(0);
+        Assert.assertEquals(this.successCount, 3);
+        observer.dispose();
+        Assert.assertTrue(observer.isDisposed());
+    }
+
+    @Test
+    public void testNoHandlerClosing() {
+
+        this.config = new MessageObjectHandlerConfig();
+        this.config.setSingleResponse(false);
+        this.config.setSendChannel(this.testChannelSend);
+        this.config.setReturnChannel(this.testChannelSend);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+
+        this.bus.sendRequest(this.testChannelSend, "show me the");
+
+        observer.assertValueCount(0);
+        Assert.assertEquals(this.successCount, 0);
+
+        Assert.assertFalse(handler.isClosed());
+        handler.close();
+        Assert.assertFalse(handler.isClosed());
+
+    }
+
+
+    @Test
+    public void testNullHandlers() {
+
+        this.config = new MessageObjectHandlerConfig();
+        this.config.setSingleResponse(false);
+        this.config.setSendChannel(this.testChannelSend);
+        this.config.setReturnChannel(this.testChannelSend);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+
+        handler.handle(null, null);
+
+
+        this.bus.sendResponse(this.testChannelSend, "meeseeks");
+        this.bus.sendError(this.testChannelSend, "meeseeks");
+
+        handler.tick("meeseeks");
+        handler.tick("meeseeks");
+
+        observer.assertValueCount(4);
+
+        Assert.assertEquals(this.successCount, 0);
+        Assert.assertEquals(this.errorCount, 0);
+
+        handler.close();
+        Assert.assertTrue(handler.isClosed());
+
+    }
+
+    @Test
     public void testHelpers() {
 
         this.config = new MessageObjectHandlerConfig();
@@ -104,16 +178,106 @@ public class MessageHandlerImplTest {
 
         TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
 
-        handler.handle(this.success);
-
+        Disposable sub = handler.handle(this.success);
 
         this.bus.sendResponse(this.testChannelSend, "meeseeks");
         handler.tick("meeseeks");
+
+        observer.assertValueCount(2);
+
+        Assert.assertEquals(this.successCount, 2);
+        Assert.assertFalse(sub.isDisposed());
+        Assert.assertFalse(handler.isClosed());
+        handler.close();
+        Assert.assertTrue(handler.isClosed());
+        Assert.assertTrue(sub.isDisposed());
+
+    }
+
+    @Test
+    public void testHelpersCloseCheck() {
+
+        this.config = new MessageObjectHandlerConfig();
+        this.config.setSingleResponse(false);
+        this.config.setSendChannel(this.testChannelSend);
+        this.config.setReturnChannel(this.testChannelSend);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+
+        Disposable sub = handler.handle(null);
+
+        this.bus.sendResponse(this.testChannelSend, "meeseeks");
+
+        observer.assertValueCount(1);
+
+        Assert.assertEquals(this.successCount, 0);
+        Assert.assertFalse(sub.isDisposed());
+        Assert.assertFalse(handler.isClosed());
+        handler.close();
+        Assert.assertTrue(handler.isClosed());
+        Assert.assertTrue(sub.isDisposed());
+
+    }
+
+    @Test
+    public void testStreamSuccessAndErrorHandlers() {
+
+        this.config = new MessageObjectHandlerConfig();
+        this.config.setSingleResponse(false);
+        this.config.setSendChannel(this.testChannelSend);
+        this.config.setReturnChannel(this.testChannelSend);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+
+        handler.handle(this.success, this.error);
+
+
+        this.bus.sendResponse(this.testChannelSend, "meeseeks");
+        this.bus.sendError(this.testChannelSend, "this is heavy dude");
+
         handler.tick("meeseeks");
+        handler.tick("meeseeks");
+
+        this.bus.sendError(this.testChannelSend, "this is heavy dude");
+
+        observer.assertValueCount(5);
+
+        Assert.assertEquals(this.successCount, 3);
+        Assert.assertEquals(this.errorCount, 2);
+
+
+        handler.close();
+        Assert.assertTrue(handler.isClosed());
+
+    }
+
+    @Test
+    public void testSingleSuccessAndErrorHandlers() {
+
+        this.config = new MessageObjectHandlerConfig();
+        this.config.setSingleResponse(true);
+        this.config.setSendChannel(this.testChannelSend);
+        this.config.setReturnChannel(this.testChannelSend);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+
+        handler.handle(this.success, this.error);
+
+        this.bus.sendResponse(this.testChannelSend, "meeseeks");
+        this.bus.sendError(this.testChannelSend, "this is heavy dude");
+
+        handler.tick("meeseeks");
+        handler.tick("meeseeks");
+
+        this.bus.sendError(this.testChannelSend, "this is heavy dude");
 
         observer.assertValueCount(3);
 
-        Assert.assertEquals(this.successCount, 3);
+        Assert.assertEquals(this.successCount, 1);
+        Assert.assertEquals(this.errorCount, 0);
 
         handler.close();
         Assert.assertTrue(handler.isClosed());
@@ -142,8 +306,8 @@ public class MessageHandlerImplTest {
         Assert.assertEquals(this.errorCount, 1);
     }
 
-    private TestObserver<Message> configureHandler() {
-        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+    private TestObserver<Message> configureHandler(boolean requestStream) {
+        MessageHandler handler = new MessageHandlerImpl(requestStream, this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
 

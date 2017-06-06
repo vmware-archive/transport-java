@@ -2,7 +2,6 @@ package com.vmware.bifrost.bus.model;
 
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 
-@SuppressWarnings("unchecked")
 public class MessageObject<T> implements Message<T> {
 
     protected MessageType type;
@@ -17,11 +16,7 @@ public class MessageObject<T> implements Message<T> {
     public MessageObject(MessageType type, T payload) {
         this.type = type;
         this.payload = payload;
-        try {
-            this.payloadClass = (Class<T>) payload.getClass();
-        } catch (ClassCastException exp) {
-            this.payloadClass = null;
-        }
+        this.payloadClass = (Class<T>) payload.getClass();
     }
 
     public MessageObject(MessageType type, T payload, JsonSchema schema) {
@@ -85,7 +80,7 @@ public class MessageObject<T> implements Message<T> {
     }
 
     public String toString() {
-        return this.getPayload().toString();
+        return this.payload.toString();
     }
 
 }
