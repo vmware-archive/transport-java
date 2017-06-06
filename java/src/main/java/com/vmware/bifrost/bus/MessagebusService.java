@@ -208,7 +208,7 @@ public class MessagebusService extends AbstractService {
         return this.getChannel(cname, from)
                 .filter(
                         (Message message) -> {
-                            return (message.isRequest() || message.isError());
+                            return message.isRequest();
                         }
                 );
     }
@@ -217,7 +217,7 @@ public class MessagebusService extends AbstractService {
         return this.getChannel(cname, from)
                 .filter(
                         (Message message) -> {
-                            return (message.isResponse() || message.isError());
+                            return message.isResponse();
                         }
                 );
     }

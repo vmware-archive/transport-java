@@ -30,6 +30,7 @@ public class MessageObject<T> implements Message<T> {
     }
 
     public void setPayloadClass(Class<T> payloadClass) {
+
         this.payloadClass = payloadClass;
     }
 
@@ -38,38 +39,48 @@ public class MessageObject<T> implements Message<T> {
     }
 
     public void setSchema(JsonSchema schema) {
+
         this.schema = schema;
     }
 
     public Class<T> getPayloadClass() {
+
         return payloadClass;
     }
 
     public MessageType getType() {
+
         return type;
     }
 
     public void setType(MessageType type) {
+
         this.type = type;
     }
 
     public T getPayload() {
-        return (T)payload;
+
+        return payload;
     }
 
     public void setPayload(T payload) {
+
         this.payload = payload;
     }
 
     public boolean isRequest() {
-        return this.type == MessageType.MessageTypeRequest;
+
+        return (this.type == MessageType.MessageTypeRequest ||
+                this.type == MessageType.MessageTypeError);
     }
 
     public boolean isResponse() {
-        return this.type == MessageType.MessageTypeResponse;
+        return (this.type == MessageType.MessageTypeResponse ||
+                this.type == MessageType.MessageTypeError);
     }
 
     public boolean isError() {
+
         return this.type == MessageType.MessageTypeError;
     }
 

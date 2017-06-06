@@ -55,7 +55,7 @@ public class MessageResponderImpl<T> implements MessageResponder<T> {
 
     @Override
     public void tick(T payload) {
-        if (this.sub != null && !this.sub.isDisposed()) {
+        if (!this.config.isSingleResponse()) {
             this.bus.sendResponse(this.config.getReturnChannel(), payload);
         }
     }

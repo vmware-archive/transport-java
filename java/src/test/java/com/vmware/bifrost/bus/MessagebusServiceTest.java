@@ -204,8 +204,6 @@ public class MessagebusServiceTest {
             Assert.assertEquals(msg.getClass(), MessageObjectHandlerConfig.class);
             Assert.assertEquals(msg.getPayloadClass(), String.class);
             Assert.assertEquals(msg.getPayload(), "chickie!");
-            Assert.assertFalse(msg.isRequest());
-            Assert.assertFalse(msg.isResponse());
             Assert.assertTrue(msg.isError());
 
         }
