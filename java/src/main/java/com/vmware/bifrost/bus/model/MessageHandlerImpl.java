@@ -2,30 +2,24 @@ package com.vmware.bifrost.bus.model;
 
 import com.vmware.bifrost.bus.MessagebusService;
 import io.reactivex.Observable;
-import io.reactivex.Single;
-import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
-import io.reactivex.observers.DisposableObserver;
-import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-
-import java.util.function.Supplier;
-
 /**
  * Copyright(c) VMware Inc. 2017
  */
-public class MessageHandlerImpl implements MessageHandler {
+@SuppressWarnings("unchecked")
+public class MessageHandlerImpl<T> implements MessageHandler<T> {
 
-    private Subscription sub;
     private boolean requestStream;
     private MessagebusService bus;
     private MessageObjectHandlerConfig config;
     private Logger logger;
     private Observable<Message> channel;
+    private Disposable sub;
 
     public MessageHandlerImpl(
             boolean requestStream, MessageObjectHandlerConfig config, MessagebusService bus) {
@@ -46,57 +40,39 @@ public class MessageHandlerImpl implements MessageHandler {
         } else {
             this.channel = this.bus.getResponseChannel(this.config.getReturnChannel(), this.getClass().getName());
         }
-        Disposable sub;
         if(this.config.isSingleResponse()) {
             if(errorHandler != null) {
-                sub = this.channel.take(1).subscribe(successHandler, errorHandler);
+                this.sub = this.channel.take(1).subscribe(successHandler, errorHandler);
             } else {
-                sub = this.channel.take(1).subscribe(successHandler);
+                this.sub = this.channel.take(1).subscribe(successHandler);
             }
-            return sub;
         } else {
             if(errorHandler != null) {
-                return this.channel.subscribe(successHandler, errorHandler);
+                this.sub = this.channel.subscribe(successHandler, errorHandler);
             } else {
-                return this.channel.subscribe(successHandler);
+                this.sub = this.channel.subscribe(successHandler);
             }
         }
-
+        return sub;
     }
 
     @Override
-    public void tick(Supplier<Object> payload) {
-
+    public void tick(T payload) {
+        if(this.sub != null && !this.sub.isDisposed()) {
+            this.bus.sendResponse(this.config.getReturnChannel(), payload);
+        }
     }
 
     @Override
     public void close() {
-
+        if(this.sub != null && !this.sub.isDisposed()) {
+            this.sub.dispose();
+        }
     }
 
     @Override
     public boolean isClosed() {
-        return false;
+        return (this.sub != null && this.sub.isDisposed());
     }
 
-
-//    },
-//    tick: (payload: any): void => {
-//        if (_sub && !_sub.closed) {
-//            this.sendRequest(handlerConfig.returnChannel, payload);
-//        }
-//    },
-//    close: (): boolean => {
-//        if (!handlerConfig.singleResponse) {
-//            _sub.unsubscribe();
-//            _sub = null;
-//        }
-//        return true;
-//    },
-//    isClosed(): boolean {
-//        if (!_sub || _sub.closed) {
-//            return true;
-//        }
-//        return false;
-//    }
 }

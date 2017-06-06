@@ -1,8 +1,6 @@
 package com.vmware.bifrost.bus.model;
 
 import com.vmware.bifrost.bus.MessagebusService;
-import io.reactivex.Flowable;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.observers.TestObserver;
 import org.junit.Assert;
@@ -12,13 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-import java.util.function.Supplier;
-
-import static org.junit.Assert.*;
-
 /**
  * Copyright(c) VMware Inc. 2017
  */
+@SuppressWarnings("unchecked")
 public class MessageHandlerImplTest {
 
     Consumer<Message> success, error;
@@ -94,6 +89,34 @@ public class MessageHandlerImplTest {
 
         observer.assertValueCount(3);
         Assert.assertEquals(this.successCount, 3);
+        observer.dispose();
+        Assert.assertTrue(observer.isDisposed());
+    }
+
+    @Test public void testHelpers () {
+
+        this.config = new MessageObjectHandlerConfig();
+        this.config.setSingleResponse(false);
+        this.config.setSendChannel(this.testChannelSend);
+        this.config.setReturnChannel(this.testChannelSend);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+
+        handler.handle(this.success);
+
+
+        this.bus.sendResponse(this.testChannelSend, "meeseeks");
+        handler.tick("meeseeks");
+        handler.tick("meeseeks");
+
+        observer.assertValueCount(3);
+
+        Assert.assertEquals(this.successCount, 3);
+
+        handler.close();
+        Assert.assertTrue(handler.isClosed());
+
     }
 
     private TestObserver<Message> configureHandler() {
