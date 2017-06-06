@@ -7,14 +7,14 @@ public class MessageObject<T> implements Message<T> {
 
     protected MessageType type;
     protected Class<T> payloadClass;
-    protected Object payload;
+    protected T payload;
     protected JsonSchema schema;
 
 
     public MessageObject() {
     }
 
-    public MessageObject(MessageType type, Object payload) {
+    public MessageObject(MessageType type, T payload) {
         this.type = type;
         this.payload = payload;
         try {
@@ -24,7 +24,7 @@ public class MessageObject<T> implements Message<T> {
         }
     }
 
-    public MessageObject(MessageType type, Object payload, JsonSchema schema) {
+    public MessageObject(MessageType type, T payload, JsonSchema schema) {
         this(type, payload);
         this.schema = schema;
     }
@@ -53,11 +53,11 @@ public class MessageObject<T> implements Message<T> {
         this.type = type;
     }
 
-    public Object getPayload() {
-        return payload;
+    public T getPayload() {
+        return (T)payload;
     }
 
-    public void setPayload(Object payload) {
+    public void setPayload(T payload) {
         this.payload = payload;
     }
 

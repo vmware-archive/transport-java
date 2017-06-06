@@ -7,9 +7,9 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
  */
 public interface Message<T> {
 
-    public void setPayload(Object payload);
+    public void setPayload(T payload);
 
-    public Object getPayload();
+    public T getPayload();
 
     public void setPayloadClass(Class<T> payloadClass);
 

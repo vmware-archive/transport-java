@@ -31,7 +31,7 @@ public class MessagebusService extends AbstractService {
     private ObjectMapper mapper;
     private JsonSchemaGenerator schemaGen;
 
-    MessagebusService() throws Exception {
+    public MessagebusService() throws Exception {
 
         this.mapper = new ObjectMapper();
         this.schemaGen = new JsonSchemaGenerator(mapper);

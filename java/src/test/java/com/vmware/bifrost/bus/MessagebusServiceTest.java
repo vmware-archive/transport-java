@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Copyright(c) VMware Inc. 2017
  */
+@SuppressWarnings("unchecked")
 public class MessagebusServiceTest {
 
     private MessagebusService bus;

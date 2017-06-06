@@ -15,11 +15,11 @@ public class MessageObjectHandlerConfig<T> extends MessageObject<T> {
         super();
     }
 
-    public MessageObjectHandlerConfig(MessageType type, Object payload) {
+    public MessageObjectHandlerConfig(MessageType type, T payload) {
         super(type, payload);
     }
 
-    public MessageObjectHandlerConfig(MessageType type, Object payload, JsonSchema schema) {
+    public MessageObjectHandlerConfig(MessageType type, T payload, JsonSchema schema) {
         super(type, payload, schema);
     }
 
