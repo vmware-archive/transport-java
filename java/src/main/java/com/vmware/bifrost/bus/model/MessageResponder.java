@@ -1,15 +1,16 @@
 package com.vmware.bifrost.bus.model;
 
-import org.reactivestreams.Subscription;
+import io.reactivex.disposables.Disposable;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
  * Copyright(c) VMware Inc. 2017
  */
-public interface MessageResponder {
-    public Subscription generate(Supplier<Boolean> generateSuccessResponse, Supplier<Boolean> generateErrorResponse);
-    public void tick(Supplier<Boolean> payload);
-    public boolean close();
+public interface MessageResponder<T> {
+    public Disposable generate(Function<Message, T> generator);
+    public void tick(T payload);
+    public void close();
     public boolean isClosed();
 }

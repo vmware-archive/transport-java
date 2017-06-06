@@ -34,23 +34,41 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
         return this.handle(successHandler, null);
     }
 
-    public Disposable handle(Consumer<Message> successHandler, Consumer<Throwable> errorHandler) {
+    private Consumer<Message> createHandler(Consumer<Message> success) {
+        return this.createHandler(success, null);
+    }
+
+    private Consumer<Message> createHandler(Consumer<Message> success, Consumer<Message> failure) {
+        return (Message message) -> {
+            if (!message.isError()) {
+                if (success != null) {
+                    success.accept(message);
+                }
+            } else {
+                if (failure != null) {
+                    failure.accept(message);
+                }
+            }
+        };
+    }
+
+    public Disposable handle(Consumer<Message> successHandler, Consumer<Message> errorHandler) {
         if (this.requestStream) {
             this.channel = this.bus.getRequestChannel(this.config.getReturnChannel(), this.getClass().getName());
         } else {
             this.channel = this.bus.getResponseChannel(this.config.getReturnChannel(), this.getClass().getName());
         }
-        if(this.config.isSingleResponse()) {
-            if(errorHandler != null) {
-                this.sub = this.channel.take(1).subscribe(successHandler, errorHandler);
+        if (this.config.isSingleResponse()) {
+            if (errorHandler != null) {
+                this.sub = this.channel.take(1).subscribe(this.createHandler(successHandler, errorHandler));
             } else {
-                this.sub = this.channel.take(1).subscribe(successHandler);
+                this.sub = this.channel.take(1).subscribe(this.createHandler(successHandler));
             }
         } else {
-            if(errorHandler != null) {
-                this.sub = this.channel.subscribe(successHandler, errorHandler);
+            if (errorHandler != null) {
+                this.sub = this.channel.subscribe(this.createHandler(successHandler, errorHandler));
             } else {
-                this.sub = this.channel.subscribe(successHandler);
+                this.sub = this.channel.subscribe(this.createHandler(successHandler));
             }
         }
         return sub;
@@ -58,14 +76,14 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
 
     @Override
     public void tick(T payload) {
-        if(this.sub != null && !this.sub.isDisposed()) {
+        if (this.sub != null && !this.sub.isDisposed()) {
             this.bus.sendResponse(this.config.getReturnChannel(), payload);
         }
     }
 
     @Override
     public void close() {
-        if(this.sub != null && !this.sub.isDisposed()) {
+        if (this.sub != null && !this.sub.isDisposed()) {
             this.sub.dispose();
         }
     }

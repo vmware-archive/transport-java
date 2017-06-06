@@ -8,7 +8,7 @@ import io.reactivex.functions.Consumer;
  */
 public interface MessageHandler<T> {
     public Disposable handle(Consumer<Message> successHandler);
-    public Disposable handle(Consumer<Message> successHandler, Consumer<Throwable> errorHandler);
+    public Disposable handle(Consumer<Message> successHandler, Consumer<Message> errorHandler);
     public void tick(T payload);
     public void close();
     public boolean isClosed();

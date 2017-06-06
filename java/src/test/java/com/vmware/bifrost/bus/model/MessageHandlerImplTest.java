@@ -20,7 +20,7 @@ public class MessageHandlerImplTest {
     MessagebusService bus;
     MessageObjectHandlerConfig config;
     String testChannelSend = "#local-send";
-    String testChannelRecieve = "#local-recieve";
+    String testChannelReceive = "#local-return";
     Logger logger;
     int successCount = 0;
     int errorCount = 0;
@@ -39,8 +39,8 @@ public class MessageHandlerImplTest {
         return (Message message) -> {
             Assert.assertEquals(message.getPayloadClass(), String.class);
             Assert.assertTrue(message.isError());
-            Assert.assertTrue(message.isResponse());
-            Assert.assertEquals(message.getPayload(), "woah");
+            Assert.assertEquals(message.getPayload(), "this is heavy dude");
+            this.errorCount++;
         };
     }
 
@@ -93,7 +93,8 @@ public class MessageHandlerImplTest {
         Assert.assertTrue(observer.isDisposed());
     }
 
-    @Test public void testHelpers () {
+    @Test
+    public void testHelpers() {
 
         this.config = new MessageObjectHandlerConfig();
         this.config.setSingleResponse(false);
@@ -119,6 +120,28 @@ public class MessageHandlerImplTest {
 
     }
 
+    @Test
+    public void testErrorHandling() {
+
+        this.config = new MessageObjectHandlerConfig();
+        this.config.setSingleResponse(false);
+        this.config.setSendChannel(this.testChannelSend);
+        this.config.setReturnChannel(this.testChannelSend);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        observer.assertSubscribed();
+
+        handler.handle(this.success, this.error);
+
+        this.bus.sendError(this.testChannelSend, "this is heavy dude");
+
+        observer.assertValueCount(1);
+
+        Assert.assertEquals(this.successCount, 0);
+        Assert.assertEquals(this.errorCount, 1);
+    }
+
     private TestObserver<Message> configureHandler() {
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
@@ -127,7 +150,6 @@ public class MessageHandlerImplTest {
         observer.assertSubscribed();
 
         handler.handle(this.success);
-
 
         return observer;
     }
