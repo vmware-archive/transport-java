@@ -51,7 +51,9 @@ public class MessagebusServiceTest {
                 this.bus.getChannelObject("#fresh", this.getClass().getName()).getName(), "#fresh");
         Assert.assertEquals(this.bus.getChannelMap().size(), 2);
         Assert.assertNotNull(this.bus.getChannel("cats", this.getClass().getName()));
-
+        Assert.assertTrue(this.bus.isLoggingEnabled());
+        this.bus.enableMonitorDump(false);
+        Assert.assertFalse(this.bus.isLoggingEnabled());
 
     }
 
@@ -118,6 +120,8 @@ public class MessagebusServiceTest {
 
         observer1.assertComplete();
         observer2.assertComplete();
+
+        this.bus.close("#no-channel", "test");
 
     }
 
@@ -216,6 +220,7 @@ public class MessagebusServiceTest {
 
         Error error = new Error("broke me glasses!");
         this.bus.error("#local-error", error);
+        this.bus.error("#nochannel-error", error);
 
         observer.assertSubscribed();
         observer.assertError(error);
@@ -230,6 +235,28 @@ public class MessagebusServiceTest {
             Assert.assertTrue(msg.isError());
 
         }
+    }
+
+    @Test
+    public void testChannelCompletion() {
+        Channel chan = this.bus.getChannelObject("#local-channel", "test");
+        TestObserver<Message> observer = chan.getStreamObject().test();
+
+        observer.assertSubscribed();
+
+        this.bus.complete("#local-channel", "test");
+        Assert.assertTrue(chan.isClosed());
+
+        this.bus.sendResponse("#local-channel", "kitty!");
+        this.bus.sendResponse("#local-channel", "kitty2 ");
+        this.bus.sendResponse("#local-channel", "kitty3");
+
+        observer.assertValueCount(0);
+
+        Assert.assertTrue(chan.isClosed());
+
+        this.bus.complete("#nonexistent-channel", "test");
+
     }
 
 }

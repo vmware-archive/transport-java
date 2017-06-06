@@ -3,7 +3,6 @@ package com.vmware.bifrost.bus.model;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import com.vmware.bifrost.bus.Channel;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

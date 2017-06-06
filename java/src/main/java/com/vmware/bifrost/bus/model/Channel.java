@@ -1,7 +1,5 @@
-package com.vmware.bifrost.bus;
+package com.vmware.bifrost.bus.model;
 
-import com.vmware.bifrost.bus.model.Message;
-import com.vmware.bifrost.bus.model.MessageObject;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 

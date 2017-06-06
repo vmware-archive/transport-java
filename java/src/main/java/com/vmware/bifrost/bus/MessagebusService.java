@@ -6,7 +6,6 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.vmware.bifrost.AbstractService;
 import com.vmware.bifrost.bus.model.*;
 import io.reactivex.subjects.Subject;
-import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.reactivex.Observable;
@@ -51,9 +50,6 @@ public class MessagebusService extends AbstractService {
         return this.dumpMonitor;
     }
 
-    public void increment(String channelName) {
-        this.channelMap.get(channelName).increment();
-    }
 
     public Map<String, Channel> getChannelMap() {
         return this.channelMap;
@@ -119,9 +115,6 @@ public class MessagebusService extends AbstractService {
 
     public void complete(String cname, String from) {
         Channel channel = this.getChannelObject(cname, from);
-        if(channel == null) {
-            return;
-        }
         this.complete(channel, from);
     }
 
@@ -221,12 +214,5 @@ public class MessagebusService extends AbstractService {
                         }
                 );
     }
-
-
-//    private MessageHandler createMessageHandler(MessageObjectHandlerConfig handlerConfig, boolean requestStream, String name) {
-//
-//
-//    }
-
 
 }
