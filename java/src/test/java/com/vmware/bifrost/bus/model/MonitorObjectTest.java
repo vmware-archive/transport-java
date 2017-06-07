@@ -12,10 +12,10 @@ public class MonitorObjectTest {
     @Test
     public void testModel() {
         MonitorObject obj = new MonitorObject(MonitorType.MonitorNewChannel, "#chan","me","hello");
-        Assert.assertEquals(obj.getChannel(), "#chan");
-        Assert.assertEquals(obj.getFrom(), "me");
-        Assert.assertEquals(obj.getData(), "hello");
-        Assert.assertEquals(obj.getType(), MonitorType.MonitorNewChannel);
+        Assert.assertEquals("#chan", obj.getChannel());
+        Assert.assertEquals("me", obj.getFrom());
+        Assert.assertEquals("hello", obj.getData());
+        Assert.assertEquals(MonitorType.MonitorNewChannel, obj.getType());
         Assert.assertTrue(obj.isNewChannel());
         Assert.assertTrue(obj.hasData());
 
@@ -29,10 +29,10 @@ public class MonitorObjectTest {
         Assert.assertFalse(obj.hasData());
 
         obj.setChannel("#another");
-        Assert.assertEquals(obj.getChannel(), "#another");
+        Assert.assertEquals("#another", obj.getChannel());
 
         obj.setFrom("the-other-guy");
-        Assert.assertEquals(obj.getFrom(), "the-other-guy");
+        Assert.assertEquals("the-other-guy", obj.getFrom());
 
     }
 

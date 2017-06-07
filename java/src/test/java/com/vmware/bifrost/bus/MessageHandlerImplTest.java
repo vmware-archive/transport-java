@@ -33,17 +33,17 @@ public class MessageHandlerImplTest {
     private Consumer<Message> generateSuccess() {
         return (Message message) -> {
             this.successCount++;
-            Assert.assertEquals(message.getPayloadClass(), String.class);
-            Assert.assertEquals(message.getPayload(), "meeseeks");
+            Assert.assertEquals(String.class, message.getPayloadClass());
+            Assert.assertEquals("meeseeks", message.getPayload());
             Assert.assertFalse(message.isError());
         };
     }
 
     private Consumer<Message> generateError() {
         return (Message message) -> {
-            Assert.assertEquals(message.getPayloadClass(), String.class);
+            Assert.assertEquals(String.class, message.getPayloadClass());
             Assert.assertTrue(message.isError());
-            Assert.assertEquals(message.getPayload(), "this is heavy dude");
+            Assert.assertEquals("this is heavy dude", message.getPayload());
             this.errorCount++;
         };
     }
@@ -73,7 +73,7 @@ public class MessageHandlerImplTest {
         this.bus.sendResponse(this.testChannelSend, "meeseeks 3");
 
         observer.assertValueCount(3);
-        Assert.assertEquals(this.successCount, 1);
+        Assert.assertEquals(1, this.successCount);
     }
 
     @Test
@@ -92,7 +92,7 @@ public class MessageHandlerImplTest {
 
 
         observer.assertValueCount(3);
-        Assert.assertEquals(this.successCount, 3);
+        Assert.assertEquals(3, this.successCount);
         observer.dispose();
         Assert.assertTrue(observer.isDisposed());
     }
@@ -113,7 +113,7 @@ public class MessageHandlerImplTest {
 
 
         observer.assertValueCount(0);
-        Assert.assertEquals(this.successCount, 3);
+        Assert.assertEquals(3, this.successCount);
         observer.dispose();
         Assert.assertTrue(observer.isDisposed());
     }
@@ -132,7 +132,7 @@ public class MessageHandlerImplTest {
         this.bus.sendRequest(this.testChannelSend, "show me the");
 
         observer.assertValueCount(0);
-        Assert.assertEquals(this.successCount, 0);
+        Assert.assertEquals(0, this.successCount);
 
         Assert.assertFalse(handler.isClosed());
         handler.close();
@@ -165,8 +165,8 @@ public class MessageHandlerImplTest {
         observer.assertValueCount(1);
         observer2.assertValueCount(2);
 
-        Assert.assertEquals(this.successCount, 0);
-        Assert.assertEquals(this.errorCount, 0);
+        Assert.assertEquals(0, this.successCount);
+        Assert.assertEquals(0, this.errorCount);
 
         handler.close();
         Assert.assertTrue(handler.isClosed());
@@ -196,7 +196,7 @@ public class MessageHandlerImplTest {
         observer2.assertValueCount(3);
 
         // two requests were made, only one was a response to the handler.
-        Assert.assertEquals(this.successCount, 1);
+        Assert.assertEquals(1, this.successCount);
         Assert.assertFalse(sub.isDisposed());
         Assert.assertFalse(handler.isClosed());
         handler.close();
@@ -222,7 +222,7 @@ public class MessageHandlerImplTest {
 
         observer.assertValueCount(1);
 
-        Assert.assertEquals(this.successCount, 0);
+        Assert.assertEquals(0, this.successCount);
         Assert.assertFalse(sub.isDisposed());
         Assert.assertFalse(handler.isClosed());
         handler.close();
@@ -259,8 +259,8 @@ public class MessageHandlerImplTest {
         observer2.assertValueCount(2);
         observer3.assertValueCount(2);
 
-        Assert.assertEquals(this.successCount, 1);
-        Assert.assertEquals(this.errorCount, 2);
+        Assert.assertEquals(1, this.successCount);
+        Assert.assertEquals(2, this.errorCount);
 
         handler.close();
         Assert.assertTrue(handler.isClosed());
@@ -290,8 +290,8 @@ public class MessageHandlerImplTest {
 
         observer.assertValueCount(1);
 
-        Assert.assertEquals(this.successCount, 1);
-        Assert.assertEquals(this.errorCount, 1);
+        Assert.assertEquals(1, this.successCount);
+        Assert.assertEquals(1, this.errorCount);
 
         handler.close();
         Assert.assertTrue(handler.isClosed());
@@ -316,8 +316,8 @@ public class MessageHandlerImplTest {
 
         observer.assertValueCount(1);
 
-        Assert.assertEquals(this.successCount, 0);
-        Assert.assertEquals(this.errorCount, 1);
+        Assert.assertEquals(0, this.successCount);
+        Assert.assertEquals(1, this.errorCount);
     }
 
     private TestObserver<Message> configureHandler(boolean requestStream) {

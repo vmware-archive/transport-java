@@ -31,7 +31,7 @@ public class MessageObjectSchemaTest {
     public void checkSchema() throws Exception {
 
         Assert.assertNotNull(this.schema);
-        Assert.assertEquals(this.schema.isObjectSchema(), true);
+        Assert.assertEquals(true, this.schema.isObjectSchema());
 
 
         //System.out.println(this.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(schema));

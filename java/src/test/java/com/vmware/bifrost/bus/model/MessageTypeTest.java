@@ -11,7 +11,7 @@ public class MessageTypeTest {
 
     @Test
     public void testModel() {
-        Assert.assertEquals(MessageType.values().length, 3);
+        Assert.assertEquals(3, MessageType.values().length);
         Assert.assertEquals(MessageType.valueOf("MessageTypeError"), MessageType.MessageTypeError);
         Assert.assertEquals(MessageType.valueOf("MessageTypeResponse"), MessageType.MessageTypeResponse);
         Assert.assertEquals(MessageType.valueOf("MessageTypeRequest"), MessageType.MessageTypeRequest);

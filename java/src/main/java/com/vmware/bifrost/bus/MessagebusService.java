@@ -115,9 +115,9 @@ public class MessagebusService extends AbstractService {
 
     }
 
-    public void complete(String cname, String from) {
-        Channel channel = this.getChannelObject(cname, from);
-        this.complete(channel, from);
+    public void complete(String channel, String from) {
+        Channel chan = this.getChannelObject(channel, from);
+        this.complete(chan, from);
     }
 
     private void destroy(Channel channel, String from) {
@@ -126,95 +126,95 @@ public class MessagebusService extends AbstractService {
         this.channelMap.remove(channel.getName());
     }
 
-    public void send(String cname, MessageObject messageObject, String from) {
+    public void send(String channel, MessageObject messageObject, String from) {
         // TEMPORARY - flag all messages without schema
         if (messageObject.getSchema() == null) {
             //this.logger.warn("* No schema in messageObject to " + cname, from);
         }
         MonitorObject mo;
 
-        if (!this.channelMap.containsKey(cname)) {
-            mo = new MonitorObject(MonitorType.MonitorDropped, cname, from, messageObject);
-            this.monitorStream.send(new MessageObject<MonitorObject>(MessageType.MessageTypeRequest, mo));
+        if (!this.channelMap.containsKey(channel)) {
+            mo = new MonitorObject(MonitorType.MonitorDropped, channel, from, messageObject);
+            this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
             return;
         }
 
-        mo = new MonitorObject(MonitorType.MonitorData, cname, from, messageObject);
-        this.monitorStream.send(new MessageObject<MonitorObject>(MessageType.MessageTypeRequest, mo));
-        this.channelMap.get(cname).send(messageObject);
+        mo = new MonitorObject(MonitorType.MonitorData, channel, from, messageObject);
+        this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
+        this.channelMap.get(channel).send(messageObject);
 
     }
 
-    public void sendRequest(String cname, Object payload, JsonSchema schema) {
+    public void sendRequest(String channel, Object payload, JsonSchema schema) {
 
         MessageObjectHandlerConfig config =
                 new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload, schema);
         config.setSingleResponse(true);
-        config.setSendChannel(cname);
-        config.setReturnChannel(cname);
+        config.setSendChannel(channel);
+        config.setReturnChannel(channel);
         this.send(config.getSendChannel(), config, this.getName());
 
     }
 
-    public void sendRequest(String cname, Object payload) {
-        this.sendRequest(cname, payload, this.schema);
+    public void sendRequest(String channel, Object payload) {
+        this.sendRequest(channel, payload, this.schema);
     }
 
-    public void sendResponse(String cname, Object payload, JsonSchema schema) {
+    public void sendResponse(String channel, Object payload, JsonSchema schema) {
 
         MessageObjectHandlerConfig config =
                 new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload, schema);
         config.setSingleResponse(true);
-        config.setSendChannel(cname);
-        config.setReturnChannel(cname);
+        config.setSendChannel(channel);
+        config.setReturnChannel(channel);
         this.send(config.getSendChannel(), config, this.getName());
     }
 
-    public void sendResponse(String cname, Object payload) {
-        this.sendResponse(cname, payload, this.schema);
+    public void sendResponse(String channel, Object payload) {
+        this.sendResponse(channel, payload, this.schema);
     }
 
-    public void sendError(String cname, Object payload, JsonSchema schema) {
+    public void sendError(String channel, Object payload, JsonSchema schema) {
 
         MessageObjectHandlerConfig config =
                 new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload, schema);
         config.setSingleResponse(true);
-        config.setSendChannel(cname);
-        config.setReturnChannel(cname);
+        config.setSendChannel(channel);
+        config.setReturnChannel(channel);
         this.send(config.getSendChannel(), config, this.getName());
     }
 
-    public void sendError(String cname, Object payload) {
-        this.sendError(cname, payload, this.schema);
+    public void sendError(String channel, Object payload) {
+        this.sendError(channel, payload, this.schema);
     }
 
 
-    public void error(String cname, Error error) {
-        if (!this.channelMap.containsKey(cname)) {
+    public void error(String channel, Error error) {
+        if (!this.channelMap.containsKey(channel)) {
             return;
         }
 
-        MonitorObject mo = new MonitorObject(MonitorType.MonitorError, cname, "bus error", error);
+        MonitorObject mo = new MonitorObject(MonitorType.MonitorError, channel, "bus error", error);
         this.monitorStream.send(new MessageObject(MessageType.MessageTypeError, mo, schema));
-        this.channelMap.get(cname).error(error);
+        this.channelMap.get(channel).error(error);
     }
 
-    public Observable<Message> getRequestChannel(String cname, String from) {
-        return this.getChannel(cname, from)
+    public Observable<Message> getRequestChannel(String channel, String from) {
+        return this.getChannel(channel, from)
                 .filter(
                         (Message message) -> message.isRequest()
                 );
     }
 
-    public Observable<Message> getResponseChannel(String cname, String from) {
-        return this.getChannel(cname, from)
+    public Observable<Message> getResponseChannel(String channel, String from) {
+        return this.getChannel(channel, from)
                 .filter(
                         (Message message) -> message.isResponse()
                 );
     }
 
-    public Observable<Message> getErrorChannel(String cname, String from) {
-        return this.getChannel(cname, from)
+    public Observable<Message> getErrorChannel(String channel, String from) {
+        return this.getChannel(channel, from)
                 .filter(
                         (Message message) -> message.isError()
                 );

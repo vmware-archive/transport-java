@@ -32,8 +32,8 @@ public class MessageResponderImplTest {
 
     private Function<Message, String> generateResponse() {
         return (Message message) -> {
-            Assert.assertEquals(message.getPayloadClass(), String.class);
-            Assert.assertEquals(message.getPayload(), "show me the");
+            Assert.assertEquals(String.class, message.getPayloadClass());
+            Assert.assertEquals("show me the",message.getPayload());
             Assert.assertFalse(message.isError());
             Assert.assertTrue(message.isRequest());
             this.responseCount++;
@@ -43,8 +43,7 @@ public class MessageResponderImplTest {
 
     private Function<Message, String> generateErrorResponse() {
         return (Message message) -> {
-            Assert.assertEquals(message.getPayloadClass(), String.class);
-            Assert.assertEquals(message.getPayload(), "show me the");
+            Assert.assertEquals("show me the", message.getPayload());
             Assert.assertTrue(message.isError());
             Assert.assertTrue(message.isResponse());
             this.responseCount++;
@@ -74,7 +73,7 @@ public class MessageResponderImplTest {
         this.bus.sendRequest(this.testChannelSend, "show me the");
 
         observer.assertValueCount(0);
-        Assert.assertEquals(this.responseCount, 0);
+        Assert.assertEquals(0, this.responseCount);
 
         Assert.assertFalse(handler.isClosed());
         handler.close();
@@ -98,7 +97,7 @@ public class MessageResponderImplTest {
         this.bus.sendRequest(this.testChannelSend, "show me the");
 
         observer.assertValueCount(1);
-        Assert.assertEquals(this.responseCount, 1);
+        Assert.assertEquals(1, this.responseCount);
 
         for (Message msg : observer.values()) {
             Assert.assertEquals(msg.getPayloadClass(), String.class);
@@ -126,7 +125,7 @@ public class MessageResponderImplTest {
         handler.tick("money");
 
         observer.assertValueCount(4);
-        Assert.assertEquals(this.responseCount, 1);
+        Assert.assertEquals(1, this.responseCount);
 
         for (Message msg : observer.values()) {
             Assert.assertEquals(msg.getPayloadClass(), String.class);
@@ -160,7 +159,7 @@ public class MessageResponderImplTest {
         this.bus.sendRequest(this.testChannelSend, "show me the");
 
         observer.assertValueCount(0);
-        Assert.assertEquals(this.responseCount, 0);
+        Assert.assertEquals(0, this.responseCount);
 
 
     }
@@ -181,7 +180,7 @@ public class MessageResponderImplTest {
         this.bus.sendError(this.testChannelSend, "show me the");
 
         observer.assertValueCount(0);
-        Assert.assertEquals(this.responseCount, 0);
+        Assert.assertEquals(0, this.responseCount);
 
     }
 
@@ -205,7 +204,7 @@ public class MessageResponderImplTest {
 
         observer.assertValueCount(0);
         observer2.assertValueCount(1);
-        Assert.assertEquals(this.responseCount, 0);
+        Assert.assertEquals(0, this.responseCount);
 
         for (Message msg : observer2.values()) {
             Assert.assertEquals(msg.getPayloadClass(), String.class);
@@ -238,7 +237,7 @@ public class MessageResponderImplTest {
         for (Message msg : observer.values()) {
             Assert.assertEquals(msg.getPayloadClass(), String.class);
             Assert.assertFalse(msg.isError());
-            Assert.assertEquals(msg.getPayload(), "money");
+            Assert.assertEquals("money", msg.getPayload());
         }
         Assert.assertTrue(sub.isDisposed());
     }

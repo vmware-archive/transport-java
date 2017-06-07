@@ -34,33 +34,33 @@ public class MessageObjectTest {
     public void createBasicMessage() {
 
         MessageObject<String> messageObject = new MessageObject<>(MessageType.MessageTypeRequest, "#test-me");
-        Assert.assertEquals(messageObject.getPayloadClass(), String.class);
-        Assert.assertEquals(messageObject.getPayload(), "#test-me");
+        Assert.assertEquals(String.class, messageObject.getPayloadClass());
+        Assert.assertEquals("#test-me", messageObject.getPayload());
 
         MessageObject<Channel> messageObject2 = new MessageObject<>(MessageType.MessageTypeRequest, new Channel("#magic-shoes"));
-        Assert.assertEquals(messageObject2.getPayloadClass(), Channel.class);
-        Assert.assertEquals(messageObject2.getPayload().getName(), "#magic-shoes");
+        Assert.assertEquals(Channel.class, messageObject2.getPayloadClass());
+        Assert.assertEquals("#magic-shoes", messageObject2.getPayload().getName());
     }
 
     @Test
     public void testMessageProperties() {
         MessageObject messageObject = new MessageObject(MessageType.MessageTypeRequest, "park life");
-        Assert.assertEquals(messageObject.getPayloadClass(), String.class);
-        Assert.assertNotEquals(messageObject.getPayloadClass(), Integer.class);
-        Assert.assertEquals(messageObject.toString(), "park life");
+        Assert.assertEquals(String.class, messageObject.getPayloadClass());
+        Assert.assertNotEquals(Integer.class, messageObject.getPayloadClass());
+        Assert.assertEquals("park life", messageObject.toString());
 
         messageObject.setPayload(new Long(1234567));
         messageObject.setPayloadClass(Long.class);
 
-        Assert.assertNotEquals(messageObject.getPayloadClass(), String.class);
-        Assert.assertEquals(messageObject.getPayloadClass(), Long.class);
-        Assert.assertEquals(messageObject.getType(), MessageType.MessageTypeRequest);
+        Assert.assertNotEquals(String.class, messageObject.getPayloadClass());
+        Assert.assertEquals(Long.class, messageObject.getPayloadClass());
+        Assert.assertEquals(MessageType.MessageTypeRequest, messageObject.getType());
 
         messageObject.setType(MessageType.MessageTypeResponse);
 
-        Assert.assertEquals(messageObject.getType(), MessageType.MessageTypeResponse);
+        Assert.assertEquals(MessageType.MessageTypeResponse, messageObject.getType());
         Assert.assertNotNull(this.schema);
-        Assert.assertEquals(this.schema.isObjectSchema(), true);
+        Assert.assertEquals(true, this.schema.isObjectSchema());
         Assert.assertNull(messageObject.getSchema());
 
         messageObject.setSchema(this.schema);

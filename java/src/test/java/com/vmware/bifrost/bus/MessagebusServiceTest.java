@@ -48,9 +48,8 @@ public class MessagebusServiceTest {
     public void checkGetters() {
         Assert.assertNotNull(this.bus.getMonitor());
         Assert.assertNotNull(this.bus.getChannelMap());
-        Assert.assertEquals(this.bus.getChannelMap().size(), 1);
-        Assert.assertEquals(
-                this.bus.getChannelObject("#fresh", this.getClass().getName()).getName(), "#fresh");
+        Assert.assertEquals(1, this.bus.getChannelMap().size());
+        Assert.assertEquals("#fresh", this.bus.getChannelObject("#fresh", this.getClass().getName()).getName());
         Assert.assertEquals(this.bus.getChannelMap().size(), 2);
         Assert.assertNotNull(this.bus.getChannel("cats", this.getClass().getName()));
         Assert.assertTrue(this.bus.isLoggingEnabled());
@@ -108,15 +107,15 @@ public class MessagebusServiceTest {
         observer1.assertSubscribed();
         observer2.assertSubscribed();
 
-        Assert.assertEquals((int) chanRaw.getRefCount(), 3);
+        Assert.assertEquals(3, (int) chanRaw.getRefCount());
 
         this.bus.close("#local-channel", "test");
 
-        Assert.assertEquals((int) chanRaw.getRefCount(), 2);
+        Assert.assertEquals(2, (int) chanRaw.getRefCount());
 
         this.bus.close("#local-channel", "test");
 
-        Assert.assertEquals((int) chanRaw.getRefCount(), 1);
+        Assert.assertEquals(1, (int) chanRaw.getRefCount());
 
         this.bus.close("#local-channel", "test");
 
@@ -132,8 +131,8 @@ public class MessagebusServiceTest {
 
         Observable<Message> chan = this.bus.getChannel("#local-1", "test");
 
-        MessageObject test1 = new MessageObject<String>(MessageType.MessageTypeRequest, "cakes");
-        MessageObjectHandlerConfig test2 = new MessageObjectHandlerConfig<String>(MessageType.MessageTypeRequest, "biscuits");
+        MessageObject<String> test1 = new MessageObject<>(MessageType.MessageTypeRequest, "cakes");
+        MessageObjectHandlerConfig<String> test2 = new MessageObjectHandlerConfig<>(MessageType.MessageTypeRequest, "biscuits");
         test2.setSendChannel("#local-2");
         test2.setReturnChannel("#local-2");
         test2.setSingleResponse(true);
@@ -149,10 +148,10 @@ public class MessagebusServiceTest {
             try {
                 MessageObjectHandlerConfig config = (MessageObjectHandlerConfig) msg;
                 Assert.assertEquals(config.getClass(), MessageObjectHandlerConfig.class);
-                Assert.assertEquals(config.getPayload(), "biscuits");
+                Assert.assertEquals("biscuits", config.getPayload());
             } catch (ClassCastException exp) {
                 Assert.assertEquals(msg.getClass(), MessageObject.class);
-                Assert.assertEquals(msg.getPayload(), "cakes");
+                Assert.assertEquals("cakes", msg.getPayload());
             }
 
         }
@@ -171,7 +170,7 @@ public class MessagebusServiceTest {
 
             Assert.assertEquals(msg.getClass(), MessageObjectHandlerConfig.class);
             Assert.assertEquals(msg.getPayloadClass(), String.class);
-            Assert.assertEquals(msg.getPayload(), "puppy!");
+            Assert.assertEquals("puppy!", msg.getPayload());
             Assert.assertTrue(msg.isRequest());
             Assert.assertFalse(msg.isResponse());
         }
@@ -190,7 +189,7 @@ public class MessagebusServiceTest {
 
             Assert.assertEquals(msg.getClass(), MessageObjectHandlerConfig.class);
             Assert.assertEquals(msg.getPayloadClass(), String.class);
-            Assert.assertEquals(msg.getPayload(), "kitty!");
+            Assert.assertEquals("kitty!", msg.getPayload());
             Assert.assertFalse(msg.isRequest());
             Assert.assertTrue(msg.isResponse());
         }
@@ -209,7 +208,7 @@ public class MessagebusServiceTest {
 
             Assert.assertEquals(msg.getClass(), MessageObjectHandlerConfig.class);
             Assert.assertEquals(msg.getPayloadClass(), String.class);
-            Assert.assertEquals(msg.getPayload(), "chickie!");
+            Assert.assertEquals("chickie!", msg.getPayload());
             Assert.assertTrue(msg.isError());
 
         }
@@ -276,7 +275,7 @@ public class MessagebusServiceTest {
         responder.generate(
                 (Message message) -> {
                     this.counter++;
-                    Assert.assertEquals(message.getPayload(), "woof woof");
+                    Assert.assertEquals("woof woof", message.getPayload());
                     Assert.assertEquals(message.getPayloadClass(), String.class);
                     Assert.assertTrue(message.isRequest());
                     return "meow meow " + this.counter;
@@ -287,7 +286,7 @@ public class MessagebusServiceTest {
                 chan,
                 "woof woof",
                 (Message message) -> {
-                    Assert.assertEquals(message.getPayload(), "meow meow 1");
+                    Assert.assertEquals("meow meow 1", message.getPayload());
                     Assert.assertEquals(message.getPayloadClass(), String.class);
                     Assert.assertTrue(message.isResponse());
                 }
@@ -310,7 +309,7 @@ public class MessagebusServiceTest {
 
         responder.generate(
                 (Message message) -> {
-                    Assert.assertEquals(message.getPayload(), "what pups?");
+                    Assert.assertEquals("what pups?", message.getPayload());
                     Assert.assertEquals(message.getPayloadClass(), String.class);
                     Assert.assertTrue(message.isRequest());
                     return "chickie and fox";
@@ -322,7 +321,7 @@ public class MessagebusServiceTest {
                 "what pups?",
                 chanret,
                 (Message message) -> {
-                    Assert.assertEquals(message.getPayload(), "chickie and fox");
+                    Assert.assertEquals("chickie and fox", message.getPayload());
                     Assert.assertEquals(message.getPayloadClass(), String.class);
                     Assert.assertTrue(message.isResponse());
                 }
@@ -344,7 +343,7 @@ public class MessagebusServiceTest {
 
         responder.generate(
                 (Message message) -> {
-                    Assert.assertEquals(message.getPayload(), "and who else?");
+                    Assert.assertEquals("and who else?", message.getPayload());
                     Assert.assertEquals(message.getPayloadClass(), String.class);
                     Assert.assertTrue(message.isRequest());
                     return "maggie too!";
@@ -356,13 +355,13 @@ public class MessagebusServiceTest {
                 "and who else?",
                 chan,
                 (Message message) -> {
-                    Assert.assertEquals(message.getPayload(), "maggie too!");
+                    Assert.assertEquals("maggie too!", message.getPayload());
                     Assert.assertEquals(message.getPayloadClass(), String.class);
                     Assert.assertTrue(message.isResponse());
                     Assert.assertFalse(message.isError());
                 },
                 (Message message) -> {
-                    Assert.assertEquals(message.getPayload(), "ouch!");
+                    Assert.assertEquals("ouch!", message.getPayload());
                     Assert.assertEquals(message.getPayloadClass(), String.class);
                     Assert.assertTrue(message.isError());
                 }

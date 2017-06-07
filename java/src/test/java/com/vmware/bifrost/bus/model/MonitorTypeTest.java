@@ -11,7 +11,7 @@ public class MonitorTypeTest {
 
     @Test
     public void testModel() {
-        Assert.assertEquals(MonitorType.values().length, 7);
+        Assert.assertEquals(7, MonitorType.values().length);
         Assert.assertEquals(MonitorType.valueOf("MonitorCloseChannel"), MonitorType.MonitorCloseChannel);
         Assert.assertEquals(MonitorType.valueOf("MonitorCompleteChannel"), MonitorType.MonitorCompleteChannel);
         Assert.assertEquals(MonitorType.valueOf("MonitorDestroyChannel"), MonitorType.MonitorDestroyChannel);
