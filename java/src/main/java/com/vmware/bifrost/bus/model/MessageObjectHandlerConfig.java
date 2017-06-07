@@ -11,7 +11,7 @@ public class MessageObjectHandlerConfig<T> extends MessageObject<T> {
     private String returnChannel;
     private boolean singleResponse;
 
-    MessageObjectHandlerConfig() {
+    public MessageObjectHandlerConfig() {
         super();
     }
 

@@ -65,13 +65,11 @@ public class MessageObject<T> implements Message<T> {
 
     public boolean isRequest() {
 
-        return (this.type == MessageType.MessageTypeRequest ||
-                this.type == MessageType.MessageTypeError);
+        return this.type == MessageType.MessageTypeRequest;
     }
 
     public boolean isResponse() {
-        return (this.type == MessageType.MessageTypeResponse ||
-                this.type == MessageType.MessageTypeError);
+        return this.type == MessageType.MessageTypeResponse;
     }
 
     public boolean isError() {

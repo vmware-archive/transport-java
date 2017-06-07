@@ -5,6 +5,8 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.vmware.bifrost.AbstractService;
 import com.vmware.bifrost.bus.model.*;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.subjects.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -200,19 +202,130 @@ public class MessagebusService extends AbstractService {
     public Observable<Message> getRequestChannel(String cname, String from) {
         return this.getChannel(cname, from)
                 .filter(
-                        (Message message) -> {
-                            return message.isRequest();
-                        }
+                        (Message message) -> message.isRequest()
                 );
     }
 
     public Observable<Message> getResponseChannel(String cname, String from) {
         return this.getChannel(cname, from)
                 .filter(
-                        (Message message) -> {
-                            return message.isResponse();
-                        }
+                        (Message message) -> message.isResponse()
                 );
     }
+
+    public Observable<Message> getErrorChannel(String cname, String from) {
+        return this.getChannel(cname, from)
+                .filter(
+                        (Message message) -> message.isError()
+                );
+    }
+
+    public BusTransaction requestOnce(String sendChannel,
+                                      Object payload,
+                                      String returnChannel,
+                                      Consumer<Message> successHandler,
+                                      Consumer<Message> errorHandler) {
+        return this.requestOnce(sendChannel, payload,
+                returnChannel, null, this.getName(), successHandler, errorHandler);
+    }
+
+
+    public BusTransaction requestOnce(String sendChannel,
+                                      Object payload,
+                                      String returnChannel,
+                                      Consumer<Message> successHandler) {
+        return this.requestOnce(sendChannel, payload,
+                returnChannel, null, this.getName(), successHandler, null);
+    }
+
+    public BusTransaction requestOnce(String sendChannel,
+                                      Object payload,
+                                      Consumer<Message> successHandler) {
+        return this.requestOnce(sendChannel, payload,
+                sendChannel, null, this.getName(), successHandler, null);
+    }
+
+    public BusTransaction requestOnce(String sendChannel,
+                                      Object payload,
+                                      String returnChannel,
+                                      JsonSchema schema,
+                                      String from,
+                                      Consumer<Message> successHandler,
+                                      Consumer<Message> errorHandler) {
+
+        MessageObjectHandlerConfig config
+                = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
+
+        config.setSingleResponse(true);
+        config.setReturnChannel(returnChannel);
+        config.setSendChannel(sendChannel);
+        config.setSchema(schema);
+
+        MessageHandler messageHandler = this.createMessageHandler(config, false, from);
+        Disposable sub = messageHandler.handle(successHandler, errorHandler);
+        this.send(config.getSendChannel(), config, from);
+
+        BusTransaction transaction = new BusHandlerTransaction(sub, messageHandler);
+        return transaction;
+    }
+
+
+    public BusTransaction requestStream(String sendChannel,
+                                      Object payload,
+                                      String returnChannel,
+                                      JsonSchema schema,
+                                      String from,
+                                      Consumer<Message> successHandler,
+                                      Consumer<Message> errorHandler) {
+
+        MessageObjectHandlerConfig config
+                = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
+
+        config.setSingleResponse(false);
+        config.setReturnChannel(returnChannel);
+        config.setSendChannel(sendChannel);
+        config.setSchema(schema);
+
+        MessageHandler messageHandler = this.createMessageHandler(config, false, from);
+        Disposable sub = messageHandler.handle(successHandler, errorHandler);
+        this.send(config.getSendChannel(), config, from);
+
+        BusTransaction transaction = new BusHandlerTransaction(sub, messageHandler);
+        return transaction;
+    }
+
+
+    public BusTransaction requestStream(String sendChannel,
+                                      Object payload,
+                                      String returnChannel,
+                                      Consumer<Message> successHandler,
+                                      Consumer<Message> errorHandler) {
+        return this.requestStream(sendChannel, payload,
+                returnChannel, null, this.getName(), successHandler, errorHandler);
+    }
+
+
+    public BusTransaction requestStream(String sendChannel,
+                                      Object payload,
+                                      String returnChannel,
+                                      Consumer<Message> successHandler) {
+        return this.requestStream(sendChannel, payload,
+                returnChannel, null, this.getName(), successHandler, null);
+    }
+
+    public BusTransaction requestStream(String sendChannel,
+                                      Object payload,
+                                      Consumer<Message> successHandler) {
+        return this.requestStream(sendChannel, payload,
+                sendChannel, null, this.getName(), successHandler, null);
+    }
+
+
+
+
+    private MessageHandler createMessageHandler(MessageObjectHandlerConfig config, boolean requestStream, String from) {
+        return new MessageHandlerImpl(requestStream, config, this);
+    }
+
 
 }

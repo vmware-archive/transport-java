@@ -1,6 +1,10 @@
-package com.vmware.bifrost.bus.model;
+package com.vmware.bifrost.bus;
 
+import com.vmware.bifrost.bus.MessageResponder;
+import com.vmware.bifrost.bus.MessageResponderImpl;
 import com.vmware.bifrost.bus.MessagebusService;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.observers.TestObserver;
 import org.junit.Assert;
@@ -10,9 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.function.Function;
-import java.util.function.Supplier;
-
-import static org.junit.Assert.*;
 
 /**
  * Copyright(c) VMware Inc. 2017
@@ -179,7 +180,7 @@ public class MessageResponderImplTest {
 
         this.bus.sendError(this.testChannelSend, "show me the");
 
-        observer.assertValueCount(1);
+        observer.assertValueCount(0);
         Assert.assertEquals(this.responseCount, 0);
 
     }
@@ -193,27 +194,23 @@ public class MessageResponderImplTest {
 
         TestObserver<Message> observer = this.bus.getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
+
+        TestObserver<Message> observer2 = this.bus.getErrorChannel(
+                this.testChannelSend, this.getClass().getName()).test();
         observer.assertSubscribed();
 
         handler.generate(this.generateErrorResponse());
 
         this.bus.sendError(this.testChannelSend, "show me the");
 
-        observer.assertValueCount(2);
-        Assert.assertEquals(this.responseCount, 1);
+        observer.assertValueCount(0);
+        observer2.assertValueCount(1);
+        Assert.assertEquals(this.responseCount, 0);
 
-        int x = 0;
-        for (Message msg : observer.values()) {
+        for (Message msg : observer2.values()) {
             Assert.assertEquals(msg.getPayloadClass(), String.class);
             Assert.assertTrue(msg.isError());
-            if(x == 0) {
-                Assert.assertEquals(msg.getPayload(), "show me the");
-                x++;
-            }
-            if(x == 0) {
-                Assert.assertEquals(msg.getPayload(), "way to go home");
-                x++;
-            }
+            Assert.assertEquals("show me the", msg.getPayload());
         }
     }
 

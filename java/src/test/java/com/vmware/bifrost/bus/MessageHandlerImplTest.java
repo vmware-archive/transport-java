@@ -1,6 +1,10 @@
-package com.vmware.bifrost.bus.model;
+package com.vmware.bifrost.bus;
 
+import com.vmware.bifrost.bus.MessageHandler;
+import com.vmware.bifrost.bus.MessageHandlerImpl;
 import com.vmware.bifrost.bus.MessagebusService;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.observers.TestObserver;
@@ -147,6 +151,7 @@ public class MessageHandlerImplTest {
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer2 = this.bus.getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
 
         handler.handle(null, null);
 
@@ -154,10 +159,11 @@ public class MessageHandlerImplTest {
         this.bus.sendResponse(this.testChannelSend, "meeseeks");
         this.bus.sendError(this.testChannelSend, "meeseeks");
 
-        handler.tick("meeseeks");
-        handler.tick("meeseeks");
+        handler.tick("chickie");
+        handler.tick("fox");
 
-        observer.assertValueCount(4);
+        observer.assertValueCount(1);
+        observer2.assertValueCount(2);
 
         Assert.assertEquals(this.successCount, 0);
         Assert.assertEquals(this.errorCount, 0);
@@ -177,15 +183,20 @@ public class MessageHandlerImplTest {
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer2 = this.bus.getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
 
         Disposable sub = handler.handle(this.success);
 
         this.bus.sendResponse(this.testChannelSend, "meeseeks");
-        handler.tick("meeseeks");
+        handler.tick("pot");
+        handler.tick("kettle");
+        handler.tick("black");
 
-        observer.assertValueCount(2);
+        observer.assertValueCount(1);
+        observer2.assertValueCount(3);
 
-        Assert.assertEquals(this.successCount, 2);
+        // two requests were made, only one was a response to the handler.
+        Assert.assertEquals(this.successCount, 1);
         Assert.assertFalse(sub.isDisposed());
         Assert.assertFalse(handler.isClosed());
         handler.close();
@@ -230,6 +241,8 @@ public class MessageHandlerImplTest {
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer2 = this.bus.getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer3 = this.bus.getErrorChannel(this.testChannelSend, this.getClass().getName()).test();
 
         handler.handle(this.success, this.error);
 
@@ -237,16 +250,17 @@ public class MessageHandlerImplTest {
         this.bus.sendResponse(this.testChannelSend, "meeseeks");
         this.bus.sendError(this.testChannelSend, "this is heavy dude");
 
-        handler.tick("meeseeks");
-        handler.tick("meeseeks");
+        handler.tick("gobble");
+        handler.tick("wobble");
 
         this.bus.sendError(this.testChannelSend, "this is heavy dude");
 
-        observer.assertValueCount(5);
+        observer.assertValueCount(1);
+        observer2.assertValueCount(2);
+        observer3.assertValueCount(2);
 
-        Assert.assertEquals(this.successCount, 3);
+        Assert.assertEquals(this.successCount, 1);
         Assert.assertEquals(this.errorCount, 2);
-
 
         handler.close();
         Assert.assertTrue(handler.isClosed());
@@ -274,10 +288,10 @@ public class MessageHandlerImplTest {
 
         this.bus.sendError(this.testChannelSend, "this is heavy dude");
 
-        observer.assertValueCount(3);
+        observer.assertValueCount(1);
 
         Assert.assertEquals(this.successCount, 1);
-        Assert.assertEquals(this.errorCount, 0);
+        Assert.assertEquals(this.errorCount, 1);
 
         handler.close();
         Assert.assertTrue(handler.isClosed());
@@ -293,7 +307,7 @@ public class MessageHandlerImplTest {
         this.config.setReturnChannel(this.testChannelSend);
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer = this.bus.getErrorChannel(this.testChannelSend, this.getClass().getName()).test();
         observer.assertSubscribed();
 
         handler.handle(this.success, this.error);

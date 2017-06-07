@@ -1,6 +1,7 @@
-package com.vmware.bifrost.bus.model;
+package com.vmware.bifrost.bus;
 
-import com.vmware.bifrost.bus.MessagebusService;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -19,7 +20,9 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
     private MessageObjectHandlerConfig config;
     private Logger logger;
     private Observable<Message> channel;
+    private Observable<Message> errors;
     private Disposable sub;
+    private Disposable errorSub;
 
     public MessageHandlerImpl(
             boolean requestStream, MessageObjectHandlerConfig config, MessagebusService bus) {
@@ -34,20 +37,10 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
         return this.handle(successHandler, null);
     }
 
-    private Consumer<Message> createHandler(Consumer<Message> success) {
-        return this.createHandler(success, null);
-    }
-
-    private Consumer<Message> createHandler(Consumer<Message> success, Consumer<Message> failure) {
+    private Consumer<Message> createHandler(Consumer<Message> consumer) {
         return (Message message) -> {
-            if (!message.isError()) {
-                if (success != null) {
-                    success.accept(message);
-                }
-            } else {
-                if (failure != null) {
-                    failure.accept(message);
-                }
+            if (consumer != null) {
+                consumer.accept(message);
             }
         };
     }
@@ -58,26 +51,21 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
         } else {
             this.channel = this.bus.getResponseChannel(this.config.getReturnChannel(), this.getClass().getName());
         }
+        this.errors = this.bus.getErrorChannel(this.config.getReturnChannel(), this.getClass().getName());
         if (this.config.isSingleResponse()) {
-            if (errorHandler != null) {
-                this.sub = this.channel.take(1).subscribe(this.createHandler(successHandler, errorHandler));
-            } else {
                 this.sub = this.channel.take(1).subscribe(this.createHandler(successHandler));
-            }
+                this.errorSub = this.errors.take(1).subscribe(this.createHandler(errorHandler));
         } else {
-            if (errorHandler != null) {
-                this.sub = this.channel.subscribe(this.createHandler(successHandler, errorHandler));
-            } else {
                 this.sub = this.channel.subscribe(this.createHandler(successHandler));
-            }
+                this.errorSub = this.errors.subscribe(this.createHandler(errorHandler));
         }
-        return sub;
+        return this.sub;
     }
 
     @Override
     public void tick(T payload) {
         if (this.sub != null && !this.sub.isDisposed()) {
-            this.bus.sendResponse(this.config.getReturnChannel(), payload);
+            this.bus.sendRequest(this.config.getSendChannel(), payload);
         }
     }
 
@@ -85,6 +73,9 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
     public void close() {
         if (this.sub != null && !this.sub.isDisposed()) {
             this.sub.dispose();
+        }
+        if (this.errorSub != null && !this.errorSub.isDisposed()) {
+            this.errorSub.dispose();
         }
     }
 

@@ -1,5 +1,6 @@
-package com.vmware.bifrost.bus.model;
+package com.vmware.bifrost.bus;
 
+import com.vmware.bifrost.bus.model.Message;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
