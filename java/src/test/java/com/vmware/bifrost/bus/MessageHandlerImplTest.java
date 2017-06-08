@@ -232,6 +232,24 @@ public class MessageHandlerImplTest {
     }
 
     @Test
+    public void testTickNoHandler() {
+
+        this.config = new MessageObjectHandlerConfig();
+        this.config.setSingleResponse(false);
+        this.config.setSendChannel(this.testChannelSend);
+        this.config.setReturnChannel(this.testChannelSend);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
+
+        handler.tick("tickle");
+        observer.assertValueCount(0);
+
+        Assert.assertEquals(0, this.successCount);
+
+    }
+
+    @Test
     public void testStreamSuccessAndErrorHandlers() {
 
         this.config = new MessageObjectHandlerConfig();
