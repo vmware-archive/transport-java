@@ -286,14 +286,13 @@ public class MessagebusService extends AbstractService {
         config.setSendChannel(sendChannel);
         config.setSchema(schema);
 
-        MessageHandler messageHandler = this.createMessageHandler(config, false, from);
+        MessageHandler messageHandler = this.createMessageHandler(config, false);
         Disposable sub = messageHandler.handle(successHandler, errorHandler);
         this.send(config.getSendChannel(), config, from);
 
         BusTransaction transaction = new BusHandlerTransaction(sub, messageHandler);
         return transaction;
     }
-
 
     public BusTransaction requestStream(String sendChannel,
                                       Object payload,
@@ -303,7 +302,6 @@ public class MessagebusService extends AbstractService {
         return this.requestStream(sendChannel, payload,
                 returnChannel, null, this.getName(), successHandler, errorHandler);
     }
-
 
     public BusTransaction requestStream(String sendChannel,
                                       Object payload,
@@ -321,10 +319,36 @@ public class MessagebusService extends AbstractService {
     }
 
 
-
-
-    private MessageHandler createMessageHandler(MessageObjectHandlerConfig config, boolean requestStream, String from) {
+    private MessageHandler createMessageHandler(MessageObjectHandlerConfig config, boolean requestStream) {
         return new MessageHandlerImpl(requestStream, config, this);
+    }
+
+    private MessageHandler createMessageResponder(MessageObjectHandlerConfig config, boolean requestStream) {
+        return new MessageHandlerImpl(requestStream, config, this);
+    }
+
+    public BusTransaction respondOnce(String sendChannel,
+                                      Object payload,
+                                      String returnChannel,
+                                      JsonSchema schema,
+                                      String from,
+                                      Consumer<Message> successHandler,
+                                      Consumer<Message> errorHandler) {
+
+        MessageObjectHandlerConfig config
+                = new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload);
+
+        config.setSingleResponse(true);
+        config.setReturnChannel(returnChannel);
+        config.setSendChannel(sendChannel);
+        config.setSchema(schema);
+
+        MessageHandler messageHandler = this.createMessageResponder(config, false);
+        Disposable sub = messageHandler.handle(successHandler, errorHandler);
+        this.send(config.getSendChannel(), config, from);
+
+        BusTransaction transaction = new BusHandlerTransaction(sub, messageHandler);
+        return transaction;
     }
 
 
