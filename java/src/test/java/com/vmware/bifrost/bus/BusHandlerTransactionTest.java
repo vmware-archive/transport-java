@@ -37,8 +37,16 @@ public class BusHandlerTransactionTest {
 
         transaction = this.createNullSubTransaction();
         Assert.assertFalse(transaction.isSubscribed());
+
         transaction.unsubscribe();
         Assert.assertFalse(transaction.isSubscribed());
+
+        transaction = this.createNullHandlerTransaction();
+        Assert.assertTrue(transaction.isSubscribed());
+
+        transaction.unsubscribe();
+        Assert.assertFalse(transaction.isSubscribed());
+
 
     }
 
@@ -72,6 +80,34 @@ public class BusHandlerTransactionTest {
         transaction.tick("hot");
         observer.assertValueCount(3);
         transaction.tick("rock");
+        observer.assertValueCount(4);
+
+    }
+
+    @Test
+    public void error() throws Exception {
+        BusHandlerTransaction transaction = this.createTransaction();
+        TestObserver<Message> observer =
+                this.bus.getErrorChannel("#test-local", this.getClass().getName()).test();
+
+        observer.assertSubscribed();
+        observer.assertValueCount(0);
+
+        transaction.error("pop");
+        observer.assertValueCount(1);
+        transaction.error("shop");
+        observer.assertValueCount(2);
+
+        transaction = this.createNullHandlerTransaction();
+        transaction.error("tick");
+        observer.assertValueCount(2);
+        transaction.error("tock");
+        observer.assertValueCount(2);
+
+        transaction = this.createTransaction();
+        transaction.error("hot");
+        observer.assertValueCount(3);
+        transaction.error("rock");
         observer.assertValueCount(4);
 
     }

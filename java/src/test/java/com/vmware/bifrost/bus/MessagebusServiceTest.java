@@ -25,6 +25,7 @@ public class MessagebusServiceTest {
     private ObjectMapper mapper;
     private JsonSchemaGenerator schemaGen;
     private int counter;
+    private int errors;
 
 
     @Before
@@ -36,6 +37,7 @@ public class MessagebusServiceTest {
         this.schemaGen = new JsonSchemaGenerator(mapper);
         this.schema = schemaGen.generateSchema(MessageSchema.class);
         this.counter = 0;
+        this.errors = 0;
 
     }
 
@@ -340,6 +342,13 @@ public class MessagebusServiceTest {
         config.setReturnChannel(chan);
 
         MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
+        TestObserver<Message> observer = this.bus.getErrorChannel(chan, "test").test();
+        observer.assertSubscribed();
+        observer.assertValueCount(0);
+
+        responder.error("ignore me, not subscribed yet");
+
+        observer.assertValueCount(0);
 
         responder.generate(
                 (Message message) -> {
@@ -499,9 +508,11 @@ public class MessagebusServiceTest {
         MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
         TestObserver<Message> observer = this.bus.getRequestChannel(chan, "test").test();
         TestObserver<Message> observer2 = this.bus.getResponseChannel(chan, "test").test();
+        TestObserver<Message> observer3 = this.bus.getErrorChannel(chan, "test").test();
 
         observer.assertSubscribed();
         observer2.assertSubscribed();
+        observer3.assertSubscribed();
 
         responder.generate(
                 (Message message) -> {
@@ -519,6 +530,7 @@ public class MessagebusServiceTest {
                     Assert.assertEquals(answer + this.counter, message.getPayload());
                 },
                 (Message message) -> {
+                    this.errors++;
                     Assert.assertEquals(error, message.getPayload());
                 }
         );
@@ -531,10 +543,19 @@ public class MessagebusServiceTest {
 
         this.bus.sendError(chan, error);
 
+        observer3.assertValueCount(1);
+
         observer.assertValueCount(4);
         observer2.assertValueCount(4);
 
         Assert.assertTrue(busTransaction.isSubscribed());
+
+        busTransaction.error(error);
+        busTransaction.error(error);
+
+        Assert.assertEquals(3, this.errors);
+
+        observer3.assertValueCount(3);
 
         busTransaction.unsubscribe();
 
@@ -546,6 +567,268 @@ public class MessagebusServiceTest {
         observer.assertValueCount(4);
         observer2.assertValueCount(4);
 
+        busTransaction.error(error);
+        busTransaction.error(error);
+
+        Assert.assertEquals(3, this.errors);
+
     }
+
+    @Test
+    public void testResponseOnce() {
+
+        String chan = "#local-simple";
+
+        BusTransaction sendTransaction = this.bus.respondOnce(
+                chan,
+                (Message message) -> {
+                    this.counter++;
+                    Assert.assertEquals("coffee", message.getPayload());
+                    Assert.assertEquals(String.class, message.getPayloadClass());
+                    Assert.assertTrue(message.isRequest());
+                    return "milk " + this.counter;
+                }
+        );
+
+        BusTransaction handleTransaction = this.bus.requestOnce(
+                chan,
+                "coffee",
+                (Message message) -> {
+                    Assert.assertEquals("milk 1", message.getPayload());
+                    Assert.assertEquals(String.class, message.getPayloadClass());
+                    Assert.assertTrue(message.isResponse());
+                    Assert.assertEquals(this.counter, 1);
+                }
+        );
+
+        Assert.assertFalse(sendTransaction.isSubscribed());
+        Assert.assertFalse(handleTransaction.isSubscribed());
+
+    }
+
+    @Test
+    public void testResponseOnceDifferentChannel() {
+
+        String sendChan = "#local-simple";
+        String recvChan = "#local-return";
+
+        BusTransaction sendTransaction = this.bus.respondOnce(
+                sendChan,
+                recvChan,
+                (Message message) -> {
+                    this.counter++;
+                    Assert.assertEquals("chocolate pie", message.getPayload());
+                    Assert.assertEquals(String.class, message.getPayloadClass());
+                    Assert.assertTrue(message.isRequest());
+                    return "chocolate pie " + this.counter;
+                }
+        );
+
+        BusTransaction handleTransaction = this.bus.requestOnce(
+                sendChan,
+                "chocolate pie",
+                recvChan,
+                (Message message) -> {
+                    Assert.assertEquals("chocolate pie 1", message.getPayload());
+                    Assert.assertEquals(String.class, message.getPayloadClass());
+                    Assert.assertTrue(message.isResponse());
+                    Assert.assertEquals(this.counter, 1);
+                }
+        );
+
+        Assert.assertFalse(sendTransaction.isSubscribed());
+        Assert.assertFalse(handleTransaction.isSubscribed());
+
+    }
+
+    @Test
+    public void testRequestResponseOnceError() {
+
+        String chan = "#local-simple-error";
+
+        BusTransaction sendTransaction = this.bus.respondOnce(
+                chan,
+                (Message message) -> {
+                    this.counter++;
+                    Assert.assertEquals("chick chick chickie", message.getPayload());
+                    Assert.assertEquals(String.class, message.getPayloadClass());
+                    Assert.assertTrue(message.isRequest());
+                    return "maggie and fox " + this.counter;
+                }
+        );
+
+        BusTransaction handleTransaction = this.bus.requestOnce(
+                chan,
+                "chick chick chickie",
+                chan,
+                (Message message) -> {
+                    Assert.assertEquals("maggie and fox 1", message.getPayload());
+                    Assert.assertEquals(String.class, message.getPayloadClass());
+                    Assert.assertTrue(message.isResponse());
+                    Assert.assertEquals(this.counter, 1);
+                },
+                (Message message) -> {
+                    this.counter++;
+                    Assert.assertEquals("computer says no", message.getPayload());
+                    Assert.assertEquals(String.class, message.getPayloadClass());
+                    Assert.assertTrue(message.isError());
+                    Assert.assertEquals(this.counter, 2);
+                }
+        );
+
+        Assert.assertFalse(sendTransaction.isSubscribed());
+        Assert.assertFalse(handleTransaction.isSubscribed());
+
+        // tick and error should not work.
+        handleTransaction.error("something else");
+        Assert.assertEquals(this.counter, 1);
+
+        // any further errors or messages won't be handled.
+        handleTransaction.error("another one here");
+        Assert.assertEquals(this.counter, 1);
+
+        handleTransaction.tick("should not be handled");
+        Assert.assertEquals(this.counter, 1);
+
+        sendTransaction.tick("should be ignored also");
+        Assert.assertEquals(this.counter, 1);
+
+        // the error stream is still active and can still pick up a single error however.
+        this.bus.sendError(chan,"computer says no");
+        Assert.assertEquals(this.counter, 2);
+
+        this.bus.sendError(chan,"should be ignored");
+        Assert.assertEquals(this.counter, 2);
+
+    }
+
+    @Test
+    public void testResponseOnceError() {
+
+        String chan = "#local-simple-error";
+
+        TestObserver<Message> observer = this.bus.getErrorChannel(chan, "test").test();
+        observer.assertSubscribed();
+
+        BusTransaction sendTransaction = this.bus.respondOnce(
+                chan,
+                (Message message) -> {
+                    this.counter++;
+                    Assert.assertEquals("did it work?", message.getPayload());
+                    Assert.assertEquals(String.class, message.getPayloadClass());
+                    Assert.assertTrue(message.isRequest());
+                    return "it did work! " + this.counter;
+                }
+        );
+
+        Assert.assertEquals(this.counter, 0);
+        this.bus.sendError(chan,"computer says no");
+
+        Assert.assertEquals(observer.valueCount(), 1);
+        Assert.assertEquals(this.counter, 0);
+        this.bus.sendError(chan,"computer says no again");
+
+        Assert.assertEquals(observer.valueCount(), 2);
+        Assert.assertEquals(this.counter, 0);
+
+        this.bus.sendError(chan,"computer says no yet again");
+        Assert.assertEquals(observer.valueCount(), 3);
+
+        sendTransaction.error("should not be ignored");
+        Assert.assertEquals(observer.valueCount(), 4);
+        Assert.assertEquals(this.counter, 0);
+
+    }
+
+    @Test
+    public void testResponseStream() {
+
+        String chan = "#local-simple-error";
+
+        TestObserver<Message> observer = this.bus.getRequestChannel(chan, "test").test();
+        TestObserver<Message> observer2 = this.bus.getResponseChannel(chan, "test").test();
+
+        BusTransaction responseTransaction = this.bus.respondStream(
+                chan,
+                (Message message) -> ++this.counter
+        );
+
+        BusTransaction busTransaction = this.bus.requestStream(
+                chan,
+                "ignored",
+                (Message message) -> {
+                    Assert.assertEquals(message.getPayload(), this.counter);
+                    Assert.assertTrue(message.isResponse());
+                }
+        );
+
+        Assert.assertTrue(busTransaction.isSubscribed());
+
+        busTransaction.tick("anything");
+        busTransaction.tick("anything");
+
+        Assert.assertEquals(3, this.counter);
+
+        busTransaction.tick("anything");
+
+        Assert.assertEquals(4, this.counter);
+
+        observer.assertValueCount(4);
+        observer2.assertValueCount(4);
+
+        Assert.assertTrue(busTransaction.isSubscribed());
+
+        busTransaction.unsubscribe();
+
+        Assert.assertFalse(busTransaction.isSubscribed());
+
+        Assert.assertTrue(responseTransaction.isSubscribed());
+
+        responseTransaction.unsubscribe();
+
+        Assert.assertFalse(responseTransaction.isSubscribed());
+
+    }
+
+    @Test
+    public void testResponseStreamError() {
+
+        String chan = "#local-simple-error";
+
+        BusTransaction responseTransaction = this.bus.respondStream(
+                chan,
+                (Message message) -> ++this.counter
+        );
+
+
+        TestObserver<Message> observer = this.bus.getErrorChannel(chan, "test").test();
+        TestObserver<Message> observer2 = this.bus.getResponseChannel(chan, "test").test();
+
+        observer.assertSubscribed();
+
+
+        Assert.assertEquals(0, this.counter);
+        responseTransaction.error("computer says no");
+
+        Assert.assertEquals(observer.valueCount(), 1);
+        Assert.assertEquals(0, this.counter);
+
+        responseTransaction.error("computer says no again");
+
+        Assert.assertEquals(observer.valueCount(), 2);
+        Assert.assertEquals(0, this.counter);
+
+        responseTransaction.error("computer says no yet again");
+        Assert.assertEquals(observer.valueCount(), 3);
+        Assert.assertEquals(0, this.counter);
+
+        responseTransaction.tick("a thing!");
+        Assert.assertEquals(0, this.counter);
+        Assert.assertEquals(observer2.valueCount(), 1);
+
+
+
+    }
+
 
 }

@@ -26,20 +26,14 @@ public class MessageResponderImpl<T> implements MessageResponder<T> {
         this.requestStream = requestStream;
         this.config = config;
         this.bus = bus;
-        logger = LoggerFactory.getLogger(this.getClass());
+        this.logger = LoggerFactory.getLogger(this.getClass());
 
     }
 
     private Consumer<Message> createGenerator(Function<Message, T> supplier) {
         return (Message message) -> {
-            if (!message.isError()) {
-                if (supplier != null) {
-                    this.bus.sendResponse(this.config.getReturnChannel(), supplier.apply(message));
-                }
-            } else {
-                if (supplier != null) {
-                    this.bus.sendError(this.config.getReturnChannel(), supplier.apply(message));
-                }
+            if (supplier != null) {
+                this.bus.sendResponse(this.config.getReturnChannel(), supplier.apply(message));
             }
         };
     }
@@ -56,8 +50,15 @@ public class MessageResponderImpl<T> implements MessageResponder<T> {
 
     @Override
     public void tick(T payload) {
-        if (!this.config.isSingleResponse()) {
+        if (this.sub != null && !this.sub.isDisposed()) {
             this.bus.sendResponse(this.config.getReturnChannel(), payload);
+        }
+    }
+
+    @Override
+    public void error(T payload) {
+        if (this.sub != null && !this.sub.isDisposed()) {
+            this.bus.sendError(this.config.getReturnChannel(), payload);
         }
     }
 

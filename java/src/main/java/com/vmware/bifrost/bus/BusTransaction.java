@@ -7,5 +7,7 @@ public interface BusTransaction {
     public void unsubscribe();
     public boolean isSubscribed();
     public void tick(Object payload);
+    public void error(Object payload);
+
 
 }

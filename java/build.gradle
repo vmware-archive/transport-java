@@ -37,7 +37,7 @@ jar {
 
 jacocoTestReport {
     reports {
-        xml.enabled true
+        xml.enabled false
         html.enabled true
     }
 }

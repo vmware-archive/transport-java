@@ -70,6 +70,13 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
     }
 
     @Override
+    public void error(T payload) {
+        if (this.sub != null && !this.sub.isDisposed()) {
+            this.bus.sendError(this.config.getSendChannel(), payload);
+        }
+    }
+
+    @Override
     public void close() {
         if (this.sub != null && !this.sub.isDisposed()) {
             this.sub.dispose();

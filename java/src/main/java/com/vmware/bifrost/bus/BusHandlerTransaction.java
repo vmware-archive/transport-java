@@ -19,21 +19,30 @@ public class BusHandlerTransaction implements BusTransaction {
     }
 
     public void unsubscribe() {
-        if(this.sub != null) {
+        if (this.handler != null) {
+            this.handler.close();
+        }
+        if (this.sub != null) {
             this.sub.dispose();
         }
     }
 
     public boolean isSubscribed() {
-        if(this.sub != null) {
+        if (this.sub != null) {
             return !this.sub.isDisposed();
         }
         return false;
     }
 
     public void tick(Object payload) {
-        if(this.handler != null) {
+        if (this.handler != null) {
             this.handler.tick(payload);
+        }
+    }
+
+    public void error(Object payload) {
+        if (this.handler != null) {
+            this.handler.error(payload);
         }
     }
 

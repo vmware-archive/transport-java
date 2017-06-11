@@ -14,6 +14,7 @@ import io.reactivex.Observable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 
 /**
@@ -261,7 +262,7 @@ public class MessagebusService extends AbstractService {
         config.setSendChannel(sendChannel);
         config.setSchema(schema);
 
-        MessageHandler messageHandler = this.createMessageHandler(config, false, from);
+        MessageHandler messageHandler = this.createMessageHandler(config, false);
         Disposable sub = messageHandler.handle(successHandler, errorHandler);
         this.send(config.getSendChannel(), config, from);
 
@@ -318,38 +319,68 @@ public class MessagebusService extends AbstractService {
                 sendChannel, null, this.getName(), successHandler, null);
     }
 
-
-    private MessageHandler createMessageHandler(MessageObjectHandlerConfig config, boolean requestStream) {
-        return new MessageHandlerImpl(requestStream, config, this);
-    }
-
-    private MessageHandler createMessageResponder(MessageObjectHandlerConfig config, boolean requestStream) {
-        return new MessageHandlerImpl(requestStream, config, this);
-    }
-
     public BusTransaction respondOnce(String sendChannel,
-                                      Object payload,
                                       String returnChannel,
                                       JsonSchema schema,
-                                      String from,
-                                      Consumer<Message> successHandler,
-                                      Consumer<Message> errorHandler) {
+                                      Function<Message, Object> generateHandler) {
 
-        MessageObjectHandlerConfig config
-                = new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload);
-
+        MessageObjectHandlerConfig config = new MessageObjectHandlerConfig();
         config.setSingleResponse(true);
         config.setReturnChannel(returnChannel);
         config.setSendChannel(sendChannel);
         config.setSchema(schema);
 
-        MessageHandler messageHandler = this.createMessageResponder(config, false);
-        Disposable sub = messageHandler.handle(successHandler, errorHandler);
-        this.send(config.getSendChannel(), config, from);
+        MessageResponder messageResponder = this.createMessageResponder(config, false);
+        Disposable sub = messageResponder.generate(generateHandler);
+        BusTransaction transaction = new BusResponderTransaction(sub, messageResponder);
+        return transaction;
+    }
 
-        BusTransaction transaction = new BusHandlerTransaction(sub, messageHandler);
+    public BusTransaction respondStream(String sendChannel,
+                                      String returnChannel,
+                                      JsonSchema schema,
+                                      Function<Message, Object> generateHandler) {
+
+        MessageObjectHandlerConfig config = new MessageObjectHandlerConfig();
+        config.setSingleResponse(false);
+        config.setReturnChannel(returnChannel);
+        config.setSendChannel(sendChannel);
+        config.setSchema(schema);
+
+        MessageResponder messageResponder = this.createMessageResponder(config, false);
+        Disposable sub = messageResponder.generate(generateHandler);
+        BusTransaction transaction = new BusResponderTransaction(sub, messageResponder);
         return transaction;
     }
 
 
+    public BusTransaction respondOnce(String sendChannel,
+                                      String returnChannel,
+                                      Function<Message, Object> generateHandler) {
+        return this.respondOnce(sendChannel, returnChannel, null,  generateHandler);
+    }
+
+    public BusTransaction respondOnce(String sendChannel,
+                                      Function<Message, Object> generateHandler) {
+        return this.respondOnce(sendChannel, sendChannel, null,  generateHandler);
+    }
+
+    public BusTransaction respondStream(String sendChannel,
+                                      String returnChannel,
+                                      Function<Message, Object> generateHandler) {
+        return this.respondStream(sendChannel, returnChannel, null,  generateHandler);
+    }
+
+    public BusTransaction respondStream(String sendChannel,
+                                      Function<Message, Object> generateHandler) {
+        return this.respondStream(sendChannel, sendChannel, null,  generateHandler);
+    }
+
+    private MessageHandler createMessageHandler(MessageObjectHandlerConfig config, boolean requestStream) {
+        return new MessageHandlerImpl(requestStream, config, this);
+    }
+
+    private MessageResponder createMessageResponder(MessageObjectHandlerConfig config, boolean requestStream) {
+        return new MessageResponderImpl(requestStream, config, this);
+    }
 }

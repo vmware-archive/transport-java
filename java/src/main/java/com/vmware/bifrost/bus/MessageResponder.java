@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 public interface MessageResponder<T> {
     public Disposable generate(Function<Message, T> generator);
     public void tick(T payload);
+    public void error(T payload);
     public void close();
     public boolean isClosed();
 }

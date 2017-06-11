@@ -184,6 +184,14 @@ public class MessageHandlerImplTest {
 
         TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
         TestObserver<Message> observer2 = this.bus.getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer3 = this.bus.getErrorChannel(this.testChannelSend, this.getClass().getName()).test();
+
+        observer3.assertSubscribed();
+        observer3.assertValueCount(0);
+
+        handler.error("ignore me, not subscribed yet");
+
+        observer3.assertValueCount(0);
 
         Disposable sub = handler.handle(this.success);
 

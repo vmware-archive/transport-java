@@ -230,6 +230,9 @@ public class MessageResponderImplTest {
         handler.tick("show me the");
         handler.tick("show me the");
 
+        handler.error("oh dear");
+        handler.error("oh dear");
+
         observer.assertValueCount(1);
 
         Assert.assertEquals(this.responseCount, 1);
@@ -242,11 +245,76 @@ public class MessageResponderImplTest {
         Assert.assertTrue(sub.isDisposed());
     }
 
+    @Test
+    public void testSingleResponderTickErrorNull() throws Exception {
+
+        setConfig(true);
+
+        MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getResponseChannel(
+                this.testChannelSend, this.getClass().getName()).test();
+
+        TestObserver<Message> observer2 = this.bus.getErrorChannel(
+                this.testChannelSend, this.getClass().getName()).test();
+
+        observer.assertSubscribed();
+        observer2.assertSubscribed();
+
+        handler.error("oh dear");
+        handler.error("oh dear");
+
+        this.bus.sendRequest(this.testChannelSend, "show me the");
+        handler.tick("show me the");
+        handler.tick("show me the");
+
+        observer.assertValueCount(0);
+        observer2.assertValueCount(0);
+
+        Assert.assertEquals(this.responseCount, 0);
+
+    }
+
+
     private void setConfig(boolean singleResponse) {
         this.config = new MessageObjectHandlerConfig();
         this.config.setSingleResponse(singleResponse);
         this.config.setSendChannel(this.testChannelSend);
         this.config.setReturnChannel(this.testChannelSend);
+    }
+
+    @Test
+    public void testSingleResponderTickErrorNoSub() throws Exception {
+
+        setConfig(true);
+
+        MessageResponder<String> responder = new MessageResponderImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getResponseChannel(
+                this.testChannelSend, this.getClass().getName()).test();
+
+        TestObserver<Message> observer2 = this.bus.getErrorChannel(
+                this.testChannelSend, this.getClass().getName()).test();
+
+        observer.assertSubscribed();
+        observer2.assertSubscribed();
+
+        Disposable sub = responder.generate(this.generateResponse());
+
+        this.bus.sendRequest(this.testChannelSend, "show me the");
+        responder.tick("show me the");
+        responder.tick("show me the");
+
+        observer.assertValueCount(1);
+
+        Assert.assertEquals(this.responseCount, 1);
+
+        for (Message msg : observer.values()) {
+            Assert.assertEquals(msg.getPayloadClass(), String.class);
+            Assert.assertFalse(msg.isError());
+            Assert.assertEquals("money", msg.getPayload());
+        }
+        Assert.assertTrue(sub.isDisposed());
     }
 
 }
