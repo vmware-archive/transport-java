@@ -7,7 +7,7 @@ import {Injector} from '@angular/core';
 import {Syslog} from '../log/syslog';
 import {LogUtil} from '../log/util';
 import {LogLevel} from '../log/logger.model';
-import {Message, MessageType} from './message.model';
+import {Message, MessageResponder, MessageType} from './message.model';
 import {MessagebusService} from './index';
 import {Observable} from 'rxjs/Observable';
 
@@ -934,6 +934,48 @@ describe('Messagebus Service [messagebus.service]', () => {
                 handler.tick('c');
                 handler.tick('d');
                 handler.error('e');
+            }
+        );
+
+
+        // break
+
+        it('Should be able to get observable from message responder for requests',
+            (done) => {
+                const responder: MessageResponder = bus.respondOnce(testChannel);
+                const obs = responder.getObservable<string>();
+
+                obs.subscribe(
+                    (val: string) => {
+                        expect(val).toEqual('fox');
+                        done();
+                    }
+                );
+
+                bus.sendRequestMessage(testChannel, 'fox');
+
+            }
+        );
+
+
+        it('Should be able to get observable from message responder for errors',
+            (done) => {
+
+                const responder: MessageResponder = bus.respondOnce(testChannel);
+                const obs = responder.getObservable<string>();
+
+                obs.subscribe(
+                    () => {
+                        expect(true).toBeFalsy();
+                        done();
+                    },
+                    (val: Error) => {
+                        expect(val.message).toEqual('chickie & maggie');
+                        done();
+                    }
+                );
+
+                bus.sendErrorMessage(testChannel, 'chickie & maggie');
             }
         );
 
