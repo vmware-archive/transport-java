@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2017 VMware, Inc. All Rights Reserved.
  */
+var path = require("path");
 
 module.exports = function (config) {
 
@@ -67,7 +68,17 @@ module.exports = function (config) {
         colors: true,
         logLevel: config.LOG_INFO,
         autoWatch: false,
-        browsers: ['Chrome'],
+        browsers: ['Chrome'], // You may use 'ChromeCanary', 'Chromium' or any other supported browser
+        customLaunchers: {
+            Chrome_without_security: {
+                base: 'Chrome',
+                flags: ['--disable-web-security']
+            },
+            Chrome_with_debugging: {
+                base: 'Chrome',
+                chromeDataDir: path.resolve(__dirname, '.chrome')
+            }
+        },
         singleRun: true
     })
 }

@@ -553,90 +553,73 @@ export class MessagebusService implements MessageBusEnabled {
      * @returns MessageResponder
      */
     public respond(handlerConfig: MessageHandlerConfig, schema?: any, name = this.getName()): MessageResponder {
-        let schemaRef: any;
-        if (schemaRef) {
-            schemaRef = schema;
+        let _schema: any;
+        if (schema) {
+            _schema = schema;
         } else {
             // TODO: build an intelligent schema generator.
-            schemaRef = new MessageSchema();
+            _schema = new MessageSchema();
         }
 
-        let sub: Subscription;
-        const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.sendChannel, name);
-        const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.sendChannel, name);
-
+        let _sub: Subscription;
         return {
             generate: (generateSuccessResponse: Function, generateErrorResponse: Function): Subscription => {
-                const mergedStreams = Observable.merge(errorChannel, requestChannel);
-                sub = mergedStreams.subscribe(
+                let _chan = this.getRequestChannel(handlerConfig.sendChannel, name);
+                const _errChan: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name);
+                const mergedStreams = Observable.merge(_errChan, _chan);
+                _sub = mergedStreams.subscribe(
                     (msg: Message) => {
-                        let pl = msg.payload;
+                        let _pl = msg.payload;
                         // check if message is using wrapped API or not.
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
+                        if (_pl.hasOwnProperty('_sendChannel')) {
+                            _pl = msg.payload.body;
                         }
                         if (!msg.isError()) {
                             this.sendResponseMessage(
                                 handlerConfig.returnChannel,
-                                generateSuccessResponse(pl),
-                                schemaRef,
+                                generateSuccessResponse(_pl),
+                                _schema,
                                 name
                             );
                         } else {
-                            let err: Function;
+                            let _err: Function;
                             if (generateErrorResponse) {
-                                err = generateErrorResponse;
+                                _err = generateErrorResponse;
                             } else {
-                                err = generateSuccessResponse;
+                                _err = generateSuccessResponse;
                             }
                             this.sendErrorMessage(
                                 handlerConfig.returnChannel,
-                                err(pl),
-                                schemaRef,
+                                _err(_pl),
+                                _schema,
                                 name
                             );
                         }
                         if (handlerConfig.singleResponse) {
-                            if (sub) {
-                                sub.unsubscribe();
+                            if (_sub) {
+                                _sub.unsubscribe();
                             }
                         }
                     }
                 );
-                return sub;
+                return _sub;
             },
             tick: (payload: any): void => {
-                if (sub && !sub.closed) {
+                if (_sub && !_sub.closed) {
                     this.sendResponse(handlerConfig.returnChannel, payload);
                 }
             },
             close: (): boolean => {
                 if (!handlerConfig.singleResponse) {
-                    if (sub) {
-                        sub.unsubscribe();
+                    if (_sub) {
+                        _sub.unsubscribe();
                     }
-                    sub = null;
+                    _sub = null;
                 }
                 return true;
             },
             isClosed(): boolean {
-                return (!sub || sub.closed);
-            },
-            getObservable(): Observable<any> {
-                const chan = Observable.merge(requestChannel, errorChannel);
-                return chan.map(
-                    (msg: Message) => {
-                        let pl = msg.payload;
-                        if (pl.hasOwnProperty('_sendChannel')) {
-                            pl = msg.payload.body;
-                        }
-                        if (msg.isError()) {
-                            throw new Error(pl);
-                        } else {
-                            return pl;
-                        }
-                    }
-                );
+                return (!_sub || _sub.closed);
             }
         };
     }
@@ -650,12 +633,12 @@ export class MessagebusService implements MessageBusEnabled {
      * @param name string
      * @returns MessageHandler
      */
-    public request(handlerConfig: MessageHandlerConfig, schemaRef?: any, name = this.getName()): MessageHandler {
+    public request(handlerConfig: MessageHandlerConfig, schema?: any, name = this.getName()): MessageHandler {
         let _schema: any;
 
         // if a schema is supplied, use it!
-        if (schemaRef) {
-            _schema = schemaRef;
+        if (schema) {
+            _schema = schema;
         } else {
             // TODO: build intelligent schema builder if none is supplied.
             _schema = new MessageSchema();
@@ -690,7 +673,7 @@ export class MessagebusService implements MessageBusEnabled {
      */
     private createMessageHandler(handlerConfig: MessageHandlerConfig, requestStream: boolean = false,
                                  name = this.getName()) {
-        let sub: Subscription;
+        let _sub: Subscription;
         const errorChannel: Observable<Message> = this.getErrorChannel(handlerConfig.returnChannel, name);
         const requestChannel: Observable<Message> = this.getRequestChannel(handlerConfig.returnChannel, name);
         const responseChannel: Observable<Message> = this.getResponseChannel(handlerConfig.returnChannel, name);
@@ -705,7 +688,7 @@ export class MessagebusService implements MessageBusEnabled {
                     _chan = responseChannel;
                 }
                 const mergedStreams = Observable.merge(errorChannel, _chan);
-                sub = mergedStreams.subscribe(
+                _sub = mergedStreams.subscribe(
                     (msg: Message) => {
                         let _pl = msg.payload;
                         if (_pl.hasOwnProperty('_sendChannel')) {
@@ -721,8 +704,8 @@ export class MessagebusService implements MessageBusEnabled {
                             }
                         }
                         if (handlerConfig.singleResponse) {
-                            if (sub) {
-                                sub.unsubscribe();
+                            if (_sub) {
+                                _sub.unsubscribe();
                             }
                         }
                     },
@@ -730,34 +713,34 @@ export class MessagebusService implements MessageBusEnabled {
                         if (error) {
                             error(data);
                         }
-                        if (sub) {
-                            sub.unsubscribe();
+                        if (_sub) {
+                            _sub.unsubscribe();
                         }
                     }
                 );
-                return sub;
+                return _sub;
             },
             tick: (payload: any): void => {
-                if (sub && !sub.closed) {
+                if (_sub && !_sub.closed) {
                     this.sendRequestMessage(handlerConfig.sendChannel, payload);
                 }
             },
             error: (payload: any): void => {
-                if (sub && !sub.closed) {
+                if (_sub && !_sub.closed) {
                     this.sendErrorMessage(handlerConfig.returnChannel, payload);
                 }
             },
             close: (): boolean => {
                 if (!handlerConfig.singleResponse) {
-                    if (sub) {
-                        sub.unsubscribe();
+                    if (_sub) {
+                        _sub.unsubscribe();
                     }
-                    sub = null;
+                    _sub = null;
                 }
                 return true;
             },
             isClosed(): boolean {
-                return (!sub || sub.closed);
+                return (!_sub || _sub.closed);
             },
             getObservable(type?: MessageType): Observable<any> {
 

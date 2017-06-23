@@ -7,7 +7,7 @@ import {Injector} from '@angular/core';
 import {Syslog} from '../log/syslog';
 import {LogUtil} from '../log/util';
 import {LogLevel} from '../log/logger.model';
-import {Message, MessageResponder, MessageType} from './message.model';
+import {Message, MessageType} from './message.model';
 import {MessagebusService} from './index';
 import {Observable} from 'rxjs/Observable';
 
@@ -378,27 +378,6 @@ describe('Messagebus Service [messagebus.service]', () => {
         );
 
 
-        it('respondOnce() and requestOnce() on differing request/response channels.',
-            (done) => {
-
-                bus.respondOnce(testChannel, '#some-different-return')
-                    .generate(
-                        (request: string) => {
-                            expect(request).toEqual('magnum');
-                            return 'maggie';
-                        }
-                    );
-
-                bus.requestOnce(testChannel, 'magnum', '#some-different-return')
-                    .handle(
-                        (resp: string) => {
-                            expect(resp).toEqual('maggie');
-                            done();
-                        }
-                    );
-            }
-        );
-
         it('request once with a different return channel',
             (done) => {
 
@@ -445,56 +424,6 @@ describe('Messagebus Service [messagebus.service]', () => {
                         done();
                     }
                 );
-            }
-        );
-
-
-        it('request once with a different return channel',
-            (done) => {
-
-                const channel1 = '#test-channel1';
-                const channel2 = '#test-channel2';
-
-                bus.listenRequestOnce(channel1)
-                    .handle(
-                        (request: string) => {
-                            expect(request).toEqual('strawbarita');
-                            bus.sendResponse(channel2, 'margarita');
-                        }
-                    );
-
-                bus.requestOnce(channel1, 'strawbarita', channel2)
-                    .handle(
-                        (resp: string) => {
-                            expect(resp).toEqual('margarita');
-                            done();
-                        }
-                    );
-            }
-        );
-
-        it('request stream with a different return channel',
-            (done) => {
-
-                const channel1 = '#test-channel1';
-                const channel2 = '#test-channel2';
-
-                const handler1 = bus.listenRequestStream(channel1);
-                const sub1 = handler1.handle(
-                        (request: string) => {
-                            expect(request).toEqual('strawbarita');
-                            bus.sendResponse(channel2, 'margarita');
-                            sub1.unsubscribe();
-                        }
-                    );
-                const handler2 = bus.requestStream(channel1, 'strawbarita', channel2);
-                const sub2 = handler2.handle(
-                        (resp: string) => {
-                            expect(resp).toEqual('margarita');
-                            sub2.unsubscribe();
-                            done();
-                        }
-                    );
             }
         );
 
@@ -979,6 +908,8 @@ describe('Messagebus Service [messagebus.service]', () => {
                 bus.sendErrorMessage(testChannel, 'chickie & maggie');
             }
         );
+
+
         it('Should be able to get observable from message handler for full channel',
             (done) => {
 
@@ -1006,42 +937,7 @@ describe('Messagebus Service [messagebus.service]', () => {
             }
         );
 
-        it('Should be able to get observable from message responder for requests',
-            (done) => {
-                const responder: MessageResponder = bus.respondOnce(testChannel);
-                const obs = responder.getObservable<string>();
-
-                obs.subscribe(
-                    (val: string) => {
-                        expect(val).toEqual('fox');
-                        done();
-                    }
-                );
-
-                bus.sendRequestMessage(testChannel, 'fox');
-
-            }
-        );
-
-        it('Should be able to get observable from message responder for errors',
-            (done) => {
-
-                const responder: MessageResponder = bus.respondOnce(testChannel);
-                const obs = responder.getObservable<string>();
-
-                obs.subscribe(
-                    () => {
-                        expect(true).toBeFalsy();
-                        done();
-                    },
-                    (val: Error) => {
-                        expect(val.message).toEqual('chickie & maggie');
-                        done();
-                    }
-                );
-
-                bus.sendErrorMessage(testChannel, 'chickie & maggie');
-            }
-        );
     });
+
 });
+
