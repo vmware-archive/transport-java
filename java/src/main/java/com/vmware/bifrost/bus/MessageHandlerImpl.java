@@ -2,6 +2,7 @@ package com.vmware.bifrost.bus;
 
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
+import com.vmware.bifrost.bus.model.MessageType;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -33,6 +34,7 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
 
     }
 
+    @Override
     public Disposable handle(Consumer<Message> successHandler) {
         return this.handle(successHandler, null);
     }
@@ -45,6 +47,7 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
         };
     }
 
+    @Override
     public Disposable handle(Consumer<Message> successHandler, Consumer<Message> errorHandler) {
         if (this.requestStream) {
             this.channel = this.bus.getRequestChannel(this.config.getReturnChannel(), this.getClass().getName());
@@ -53,11 +56,11 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
         }
         this.errors = this.bus.getErrorChannel(this.config.getReturnChannel(), this.getClass().getName());
         if (this.config.isSingleResponse()) {
-                this.sub = this.channel.take(1).subscribe(this.createHandler(successHandler));
-                this.errorSub = this.errors.take(1).subscribe(this.createHandler(errorHandler));
+            this.sub = this.channel.take(1).subscribe(this.createHandler(successHandler));
+            this.errorSub = this.errors.take(1).subscribe(this.createHandler(errorHandler));
         } else {
-                this.sub = this.channel.subscribe(this.createHandler(successHandler));
-                this.errorSub = this.errors.subscribe(this.createHandler(errorHandler));
+            this.sub = this.channel.subscribe(this.createHandler(successHandler));
+            this.errorSub = this.errors.subscribe(this.createHandler(errorHandler));
         }
         return this.sub;
     }
@@ -89,6 +92,41 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
     @Override
     public boolean isClosed() {
         return (this.sub != null && this.sub.isDisposed());
+    }
+
+    @Override
+    public Observable<T> getObservable(MessageType type) {
+        Observable<Message> obs = this.bus.getChannel(this.config.getReturnChannel(), this.getClass().getName());
+
+        if(type.equals(MessageType.MessageTypeRequest))
+           obs = this.bus.getRequestChannel(this.config.getReturnChannel(), this.getClass().getName());
+
+        if(type.equals(MessageType.MessageTypeError))
+            obs = this.bus.getErrorChannel(this.config.getReturnChannel(), this.getClass().getName());
+
+        if(type.equals(MessageType.MessageTypeResponse))
+            obs = this.bus.getResponseChannel(this.config.getReturnChannel(), this.getClass().getName());
+
+        return this.generateObservableFromPayload(obs);
+    }
+
+    @Override
+    public Observable<T> getObservable() {
+        final Observable<Message> obs = this.bus.getChannel(this.config.getReturnChannel(), this.getClass().getName());
+        return this.generateObservableFromPayload(obs);
+    }
+
+    private Observable<T> generateObservableFromPayload(Observable<Message> obs) {
+        return obs.map(
+                (Message msg) -> {
+                    T payload = (T) msg.getPayload();
+                    if (msg.isError()) {
+                        throw new Exception(payload.toString());
+                    } else {
+                        return payload;
+                    }
+                }
+        );
     }
 
 }

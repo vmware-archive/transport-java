@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright(c) VMware Inc., 2016
  */
 
@@ -55,7 +55,7 @@ export interface MessageHandler {
     isClosed(): boolean;
 
     /**
-     * Get an observable for payloads
+     * / Get an observable for payloads
      * @param messageType optional filter for responses, requests or errors. If left blank, you get the firehose.
      */
     getObservable<T>(messageType?: MessageType): Observable<T>;

@@ -1,23 +1,24 @@
 package com.vmware.bifrost.bus;
 
+import com.vmware.bifrost.bus.model.MessageType;
+import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Copyright(c) VMware Inc. 2017
  */
-public class BusHandlerTransaction implements BusTransaction {
-    private Disposable sub;
-    private MessageHandler handler;
-    private Logger logger;
 
-    public BusHandlerTransaction(Disposable sub, MessageHandler handler) {
+@SuppressWarnings("unchecked")
+public class BusHandlerTransaction<T> implements BusTransaction, AsObservable<T> {
+    private Disposable sub;
+    private MessageHandler<T> handler;
+
+    BusHandlerTransaction(Disposable sub, MessageHandler handler) {
         this.sub = sub;
         this.handler = handler;
-        this.logger = LoggerFactory.getLogger(this.getClass());
     }
 
+    @Override
     public void unsubscribe() {
         if (this.handler != null) {
             this.handler.close();
@@ -27,23 +28,34 @@ public class BusHandlerTransaction implements BusTransaction {
         }
     }
 
+    @Override
     public boolean isSubscribed() {
-        if (this.sub != null) {
-            return !this.sub.isDisposed();
-        }
-        return false;
+        return this.sub != null && !this.sub.isDisposed();
     }
 
+    @Override
     public void tick(Object payload) {
-        if (this.handler != null) {
-            this.handler.tick(payload);
-        }
+        if (this.handler != null)
+            this.handler.tick((T) payload);
     }
 
+    @Override
     public void error(Object payload) {
-        if (this.handler != null) {
-            this.handler.error(payload);
-        }
+        if (this.handler != null)
+            this.handler.error((T) payload);
     }
 
+    @Override
+    public Observable<T> getObservable(MessageType type) {
+        if (this.handler != null)
+            return this.handler.getObservable(type);
+        return null;
+    }
+
+    @Override
+    public Observable<T> getObservable() {
+        if (this.handler != null)
+            return this.handler.getObservable();
+        return null;
+    }
 }
