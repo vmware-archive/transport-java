@@ -12,9 +12,10 @@ import org.junit.Test;
 /**
  * Copyright(c) VMware Inc. 2017
  */
-public class BusHandlerTransactionTest {
+public class BusResponderTransactionTest {
 
     private MessagebusService bus;
+    private String sendChannel = "#test-channel-send";
 
     @Before
     public void setUp() throws Exception {
@@ -23,7 +24,7 @@ public class BusHandlerTransactionTest {
 
     @Test
     public void unsubscribe() throws Exception {
-        BusHandlerTransaction transaction = this.createTransaction();
+        BusResponderTransaction transaction = this.createTransaction();
         Assert.assertTrue(transaction.isSubscribed());
         transaction.unsubscribe();
         Assert.assertFalse(transaction.isSubscribed());
@@ -34,26 +35,24 @@ public class BusHandlerTransactionTest {
         transaction.unsubscribe();
         Assert.assertFalse(transaction.isSubscribed());
 
-        transaction = this.createNullHandlerTransaction();
+        transaction = this.createNullResponderTransaction();
         Assert.assertTrue(transaction.isSubscribed());
 
         transaction.unsubscribe();
         Assert.assertFalse(transaction.isSubscribed());
-
-
     }
 
     @Test
     public void isSubscribed() throws Exception {
-        BusHandlerTransaction transaction = this.createTransaction();
+        BusResponderTransaction transaction = this.createTransaction();
         Assert.assertTrue(transaction.isSubscribed());
     }
 
     @Test
     public void tick() throws Exception {
-        BusHandlerTransaction transaction = this.createTransaction();
+        BusResponderTransaction transaction = this.createTransaction();
         TestObserver<Message> observer =
-                this.bus.getRequestChannel("#test-local", this.getClass().getName()).test();
+                this.bus.getResponseChannel(sendChannel, this.getClass().getName()).test();
 
         observer.assertSubscribed();
         observer.assertValueCount(0);
@@ -63,7 +62,7 @@ public class BusHandlerTransactionTest {
         transaction.tick("shop");
         observer.assertValueCount(2);
 
-        transaction = this.createNullHandlerTransaction();
+        transaction = this.createNullResponderTransaction();
         transaction.tick("tick");
         observer.assertValueCount(2);
         transaction.tick("tock");
@@ -79,9 +78,9 @@ public class BusHandlerTransactionTest {
 
     @Test
     public void error() throws Exception {
-        BusHandlerTransaction transaction = this.createTransaction();
+        BusResponderTransaction transaction = this.createTransaction();
         TestObserver<Message> observer =
-                this.bus.getErrorChannel("#test-local", this.getClass().getName()).test();
+                this.bus.getErrorChannel(sendChannel, this.getClass().getName()).test();
 
         observer.assertSubscribed();
         observer.assertValueCount(0);
@@ -91,7 +90,7 @@ public class BusHandlerTransactionTest {
         transaction.error("shop");
         observer.assertValueCount(2);
 
-        transaction = this.createNullHandlerTransaction();
+        transaction = this.createNullResponderTransaction();
         transaction.error("tick");
         observer.assertValueCount(2);
         transaction.error("tock");
@@ -105,32 +104,32 @@ public class BusHandlerTransactionTest {
 
     }
 
-    private BusHandlerTransaction createTransaction() {
-        return new BusHandlerTransaction(this.createSub(), this.createHandler());
+    private BusResponderTransaction createTransaction() {
+        return new BusResponderTransaction(this.createSub(), this.createResponder());
     }
 
-    private BusHandlerTransaction createNullSubTransaction() {
-        return new BusHandlerTransaction(null, this.createHandler());
+    private BusResponderTransaction createNullSubTransaction() {
+        return new BusResponderTransaction(null, this.createResponder());
     }
 
-    private BusHandlerTransaction createNullHandlerTransaction() {
-        return new BusHandlerTransaction(this.createSub(), null);
+    private BusResponderTransaction createNullResponderTransaction() {
+        return new BusResponderTransaction(this.createSub(), null);
     }
 
     private Disposable createSub() {
-        Observable<Message> chan = this.bus.getChannel("#test-local", this.getClass().getName());
+        Observable<Message> chan = this.bus.getChannel(sendChannel, this.getClass().getName());
         return chan.subscribe();
     }
 
-    private MessageHandler createHandler() {
+    private MessageResponder createResponder() {
 
         MessageObjectHandlerConfig config = new MessageObjectHandlerConfig();
         config.setSingleResponse(false);
-        config.setSendChannel("#test-local");
-        config.setReturnChannel("#test-local");
-        MessageHandler handler = new MessageHandlerImpl(false, config, this.bus);
-        handler.handle(null);
-        return handler;
+        config.setSendChannel(sendChannel);
+        config.setReturnChannel(sendChannel);
+        MessageResponder responder = new MessageResponderImpl(false, config, this.bus);
+        responder.generate(null);
+        return responder;
     }
 
 }

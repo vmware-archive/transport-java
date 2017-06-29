@@ -4,14 +4,51 @@ import com.vmware.bifrost.bus.model.Message;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
-/**
+/*
  * Copyright(c) VMware Inc. 2017
  */
+
+/**
+ * MessageHandler will handle incoming responses on the configured return channel.
+ * @param <T> The Type of the payload you want to tick or error (only if using stream handlers)
+ */
 public interface MessageHandler<T> {
-    public Disposable handle(Consumer<Message> successHandler);
-    public Disposable handle(Consumer<Message> successHandler, Consumer<Message> errorHandler);
-    public void tick(T payload);
-    public void error(T payload);
-    public void close();
-    public boolean isClosed();
+
+    /**
+     * Handle an inbound response message sent on configured inbound return channel.
+     * @param successHandler Successful (non error) handler. Consumer will always be passed a Message object.
+     * @return Disposable subscription, automatically disposed when using requestOnce()
+     */
+    Disposable handle(Consumer<Message> successHandler);
+
+    /**
+     * Handle and inbound response message sent on configured inbound return channel.
+     * @param successHandler  Successful (non error) handler. Consumer will always be passed a Message object.
+     * @param errorHandler Error handler. Consumer will always be passed a Message object.
+     * @return Disposable subscription, automatically disposed when using requestOnce()
+     */
+    Disposable handle(Consumer<Message> successHandler, Consumer<Message> errorHandler);
+
+    /**
+     * Send a new payload of type T to configured send channel (only for requestStream())
+     * @param payload payload you want to send.
+     */
+    void tick(T payload);
+
+    /**
+     * Send a new error payload of type T to configured send channel (only for requestStream())
+     * @param payload payload you want to send.
+     */
+    void error(T payload);
+
+    /**
+     * Close/Dispose of subscription, automatically closed when using requestOnce()
+     */
+    void close();
+
+    /**
+     * Checks if subscription has been disposed
+     * @return has been disposed or not.
+     */
+    boolean isClosed();
 }

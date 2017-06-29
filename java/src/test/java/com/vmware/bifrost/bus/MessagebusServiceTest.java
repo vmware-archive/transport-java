@@ -743,7 +743,7 @@ public class MessagebusServiceTest {
     @Test
     public void testResponseStream() {
 
-        String chan = "#local-simple-error";
+        String chan = "#local-simple";
 
         TestObserver<Message> observer = this.bus.getRequestChannel(chan, "test").test();
         TestObserver<Message> observer2 = this.bus.getResponseChannel(chan, "test").test();
@@ -755,6 +755,59 @@ public class MessagebusServiceTest {
 
         BusTransaction busTransaction = this.bus.requestStream(
                 chan,
+                "ignored",
+                (Message message) -> {
+                    Assert.assertEquals(message.getPayload(), this.counter);
+                    Assert.assertTrue(message.isResponse());
+                }
+        );
+
+        Assert.assertTrue(busTransaction.isSubscribed());
+
+        busTransaction.tick("anything");
+        busTransaction.tick("anything");
+
+        Assert.assertEquals(3, this.counter);
+
+        busTransaction.tick("anything");
+
+        Assert.assertEquals(4, this.counter);
+
+        observer.assertValueCount(4);
+        observer2.assertValueCount(4);
+
+        Assert.assertTrue(busTransaction.isSubscribed());
+
+        busTransaction.unsubscribe();
+
+        Assert.assertFalse(busTransaction.isSubscribed());
+
+        Assert.assertTrue(responseTransaction.isSubscribed());
+
+        responseTransaction.unsubscribe();
+
+        Assert.assertFalse(responseTransaction.isSubscribed());
+
+    }
+
+    @Test
+    public void testResponseStreamDifferentReturnChan() {
+
+        String chanOut = "#local-simple";
+        String chanReturn = "#local-simple-return";
+
+        TestObserver<Message> observer = this.bus.getRequestChannel(chanOut, "test").test();
+        TestObserver<Message> observer2 = this.bus.getResponseChannel(chanReturn, "test").test();
+
+        BusTransaction responseTransaction = this.bus.respondStream(
+                chanOut,
+                chanReturn,
+                (Message message) -> ++this.counter
+        );
+
+        BusTransaction busTransaction = this.bus.requestStream(
+                chanOut,
+                chanReturn,
                 "ignored",
                 (Message message) -> {
                     Assert.assertEquals(message.getPayload(), this.counter);
