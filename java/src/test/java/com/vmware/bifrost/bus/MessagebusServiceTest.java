@@ -5,12 +5,16 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.vmware.bifrost.bus.model.*;
 import io.reactivex.observers.TestObserver;
+import io.reactivex.subjects.Subject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import io.reactivex.Observable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.core.AnyOf.anyOf;
 
 /**
  * Copyright(c) VMware Inc. 2017
@@ -694,10 +698,10 @@ public class MessagebusServiceTest {
         Assert.assertEquals(this.counter, 1);
 
         // the error stream is still active and can still pick up a single error however.
-        this.bus.sendError(chan,"computer says no");
+        this.bus.sendError(chan, "computer says no");
         Assert.assertEquals(this.counter, 2);
 
-        this.bus.sendError(chan,"should be ignored");
+        this.bus.sendError(chan, "should be ignored");
         Assert.assertEquals(this.counter, 2);
 
     }
@@ -722,16 +726,16 @@ public class MessagebusServiceTest {
         );
 
         Assert.assertEquals(this.counter, 0);
-        this.bus.sendError(chan,"computer says no");
+        this.bus.sendError(chan, "computer says no");
 
         Assert.assertEquals(observer.valueCount(), 1);
         Assert.assertEquals(this.counter, 0);
-        this.bus.sendError(chan,"computer says no again");
+        this.bus.sendError(chan, "computer says no again");
 
         Assert.assertEquals(observer.valueCount(), 2);
         Assert.assertEquals(this.counter, 0);
 
-        this.bus.sendError(chan,"computer says no yet again");
+        this.bus.sendError(chan, "computer says no yet again");
         Assert.assertEquals(observer.valueCount(), 3);
 
         sendTransaction.error("should not be ignored");
@@ -879,6 +883,96 @@ public class MessagebusServiceTest {
         Assert.assertEquals(0, this.counter);
         Assert.assertEquals(observer2.valueCount(), 1);
 
+    }
+
+    @Test
+    public void testMonitor() {
+
+        String chan = "#scooby-do";
+        String chan2 = "#scrappy-do";
+
+        Subject<Message> monitorStream = bus.getMonitor();
+        TestObserver<Message> observerMonitor = monitorStream.test();
+
+        monitorStream.subscribe(
+                (Message message) -> {
+                    Assert.assertNotNull(message);
+                    Assert.assertNotNull(message.getPayloadClass());
+                    Assert.assertNotNull(message.getPayload());
+                    Assert.assertEquals(message.getPayloadClass(), MonitorObject.class);
+
+                    MonitorObject mo = (MonitorObject) message.getPayload();
+
+                    if (mo.isNewChannel()) {
+                        Assert.assertThat(mo.getChannel(), anyOf(containsString(chan),
+                                containsString(chan2)));
+                    }
+
+                    if (mo.getType().equals(MonitorType.MonitorData)) {
+                        Assert.assertEquals("chickie", mo.getData().toString());
+                    }
+
+                    if (mo.getType().equals(MonitorType.MonitorError)) {
+                        Assert.assertEquals("maggie", mo.getData().toString());
+                    }
+
+                    if (mo.getType().equals(MonitorType.MonitorDropped)) {
+                        Assert.assertEquals("foxypop", mo.getData().toString());
+                    }
+
+                    if (mo.getType().equals(MonitorType.MonitorCloseChannel)) {
+                        Assert.assertEquals("close [#scooby-do] 2 references remaining",
+                                mo.getData().toString());
+                    }
+
+                    if (mo.getType().equals(MonitorType.MonitorCompleteChannel)) {
+                        Assert.assertEquals("completed [#scrappy-do]",
+                                mo.getData().toString());
+                    }
+
+                    if (mo.getType().equals(MonitorType.MonitorDestroyChannel)) {
+                        Assert.assertEquals("destroyed [#scooby-do]",
+                                mo.getData().toString());
+                    }
+
+                }
+        );
+
+        bus.getChannel(chan, this.getClass().getName());
+        observerMonitor.assertValueCount(1);
+
+        TestObserver<Message> observerStream = bus.getChannel(chan, "test").test();
+        observerStream.assertValueCount(0);
+        observerMonitor.assertValueCount(2);
+
+        bus.sendRequest(chan, "chickie");
+        observerMonitor.assertValueCount(3);
+        observerStream.assertValueCount(1);
+
+        bus.sendResponse(chan, "chickie");
+        observerMonitor.assertValueCount(4);
+        observerStream.assertValueCount(2);
+
+        bus.sendError(chan, "maggie");
+        observerMonitor.assertValueCount(5);
+        observerStream.assertValueCount(3);
+
+        bus.sendResponse("no-chan!", "foxypop");
+        observerMonitor.assertValueCount(6);
+        observerStream.assertValueCount(3);
+
+        TestObserver<Message> observerStream2 = bus.getChannel(chan, "test").test();
+        observerMonitor.assertValueCount(7);
+        observerStream2.assertValueCount(0);
+
+        bus.close(chan, "test");
+        observerMonitor.assertValueCount(8);
+        observerStream.assertValueCount(3);
+
+        TestObserver<Message> observerStream3 = bus.getChannel(chan2, "test").test();
+        observerMonitor.assertValueCount(9);
+        observerStream3.assertValueCount(0);
+        bus.complete(chan2, "test");
 
 
     }

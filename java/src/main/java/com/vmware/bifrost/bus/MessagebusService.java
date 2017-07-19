@@ -16,11 +16,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import static com.vmware.bifrost.bus.model.MonitorChannel.*;
+
 
 /**
  * Copyright(c) VMware Inc. 2017
  */
 
+@SuppressWarnings("unchecked")
 public class MessagebusService extends AbstractService {
 
     private Map<String, Channel> channelMap;
@@ -40,8 +43,8 @@ public class MessagebusService extends AbstractService {
         this.schema = schemaGen.generateSchema(MessageSchema.class);
 
         logger = LoggerFactory.getLogger(MessagebusService.class);
-        this.channelMap = new HashMap<String, Channel>();
-        this.monitorChannel = MonitorChannel.stream;
+        this.channelMap = new HashMap<>();
+        this.monitorChannel = stream;
         this.monitorStream = new Channel(this.monitorChannel);
         this.channelMap.put(this.monitorChannel, this.monitorStream);
 
@@ -68,18 +71,18 @@ public class MessagebusService extends AbstractService {
 
     public Channel getChannelObject(String cname, String from) {
         Channel channel;
-        String symbol = " + ";
+        String symbol = " [+] ";
 
         if (this.channelMap.containsKey(cname)) {
             channel = this.channelMap.get(cname);
         } else {
             channel = new Channel(cname);
             this.channelMap.put(cname, channel);
-            symbol = " +++ ";
+            symbol = " [+++] ";
         }
 
         MonitorObject mo = new MonitorObject(MonitorType.MonitorNewChannel, cname, from, symbol);
-        this.monitorStream.send(new MessageObject<MonitorObject>(MessageType.MessageTypeRequest, mo));
+        this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
         channel.increment();
         return channel;
     }
@@ -98,7 +101,7 @@ public class MessagebusService extends AbstractService {
         channel.decrement();
         MonitorObject mo = new MonitorObject(
                 MonitorType.MonitorCloseChannel, cname, from,
-                ' ' + channel.getRefCount());
+                "close [" + cname.trim() + "] " + channel.getRefCount() + " references remaining");
 
         this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
 
@@ -109,7 +112,8 @@ public class MessagebusService extends AbstractService {
 
     public void complete(Channel channel, String from) {
 
-        MonitorObject mo = new MonitorObject(MonitorType.MonitorCompleteChannel, channel.getName(), from);
+        MonitorObject mo = new MonitorObject(MonitorType.MonitorCompleteChannel, channel.getName(), from,
+                "completed [" + channel.getName() + "]");
         this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
         channel.complete();
         this.destroy(channel, from);
@@ -140,7 +144,13 @@ public class MessagebusService extends AbstractService {
             return;
         }
 
-        mo = new MonitorObject(MonitorType.MonitorData, channel, from, messageObject);
+        MonitorType type = MonitorType.MonitorData;
+        switch (messageObject.getType()) {
+            case MessageTypeError:
+                type = MonitorType.MonitorError;
+        }
+
+        mo = new MonitorObject(type, channel, from, messageObject);
         this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
         this.channelMap.get(channel).send(messageObject);
 
@@ -272,12 +282,12 @@ public class MessagebusService extends AbstractService {
 
 
     public BusTransaction requestStream(String sendChannel,
-                                      Object payload,
-                                      String returnChannel,
-                                      JsonSchema schema,
-                                      String from,
-                                      Consumer<Message> successHandler,
-                                      Consumer<Message> errorHandler) {
+                                        Object payload,
+                                        String returnChannel,
+                                        JsonSchema schema,
+                                        String from,
+                                        Consumer<Message> successHandler,
+                                        Consumer<Message> errorHandler) {
 
         MessageObjectHandlerConfig config
                 = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
@@ -296,25 +306,25 @@ public class MessagebusService extends AbstractService {
     }
 
     public BusTransaction requestStream(String sendChannel,
-                                      Object payload,
-                                      String returnChannel,
-                                      Consumer<Message> successHandler,
-                                      Consumer<Message> errorHandler) {
+                                        Object payload,
+                                        String returnChannel,
+                                        Consumer<Message> successHandler,
+                                        Consumer<Message> errorHandler) {
         return this.requestStream(sendChannel, payload,
                 returnChannel, null, this.getName(), successHandler, errorHandler);
     }
 
     public BusTransaction requestStream(String sendChannel,
-                                      Object payload,
-                                      String returnChannel,
-                                      Consumer<Message> successHandler) {
+                                        Object payload,
+                                        String returnChannel,
+                                        Consumer<Message> successHandler) {
         return this.requestStream(sendChannel, payload,
                 returnChannel, null, this.getName(), successHandler, null);
     }
 
     public BusTransaction requestStream(String sendChannel,
-                                      Object payload,
-                                      Consumer<Message> successHandler) {
+                                        Object payload,
+                                        Consumer<Message> successHandler) {
         return this.requestStream(sendChannel, payload,
                 sendChannel, null, this.getName(), successHandler, null);
     }
@@ -337,9 +347,9 @@ public class MessagebusService extends AbstractService {
     }
 
     public BusTransaction respondStream(String sendChannel,
-                                      String returnChannel,
-                                      JsonSchema schema,
-                                      Function<Message, Object> generateHandler) {
+                                        String returnChannel,
+                                        JsonSchema schema,
+                                        Function<Message, Object> generateHandler) {
 
         MessageObjectHandlerConfig config = new MessageObjectHandlerConfig();
         config.setSingleResponse(false);
@@ -357,23 +367,23 @@ public class MessagebusService extends AbstractService {
     public BusTransaction respondOnce(String sendChannel,
                                       String returnChannel,
                                       Function<Message, Object> generateHandler) {
-        return this.respondOnce(sendChannel, returnChannel, null,  generateHandler);
+        return this.respondOnce(sendChannel, returnChannel, null, generateHandler);
     }
 
     public BusTransaction respondOnce(String sendChannel,
                                       Function<Message, Object> generateHandler) {
-        return this.respondOnce(sendChannel, sendChannel, null,  generateHandler);
+        return this.respondOnce(sendChannel, sendChannel, null, generateHandler);
     }
 
     public BusTransaction respondStream(String sendChannel,
-                                      String returnChannel,
-                                      Function<Message, Object> generateHandler) {
-        return this.respondStream(sendChannel, returnChannel, null,  generateHandler);
+                                        String returnChannel,
+                                        Function<Message, Object> generateHandler) {
+        return this.respondStream(sendChannel, returnChannel, null, generateHandler);
     }
 
     public BusTransaction respondStream(String sendChannel,
-                                      Function<Message, Object> generateHandler) {
-        return this.respondStream(sendChannel, sendChannel, null,  generateHandler);
+                                        Function<Message, Object> generateHandler) {
+        return this.respondStream(sendChannel, sendChannel, null, generateHandler);
     }
 
     private MessageHandler createMessageHandler(MessageObjectHandlerConfig config, boolean requestStream) {
