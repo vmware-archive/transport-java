@@ -1,37 +1,67 @@
-group 'com.vmware.ui.bifrost'
-version '1.0-SNAPSHOT'
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
+    }
+}
 
 apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
 apply plugin: 'jacoco'
 
-sourceCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile "io.reactivex.rxjava2:rxjava:2.0.7"
-    runtime "io.reactivex.rxjava2:rxjava:2.0.7"
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.8'
-    compile 'com.fasterxml.jackson.module:jackson-module-jsonSchema:2.8.8'
-    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8.2'
-
-}
-
-test {
-  testLogging {
-        showStandardStreams = true
-        }
-}
-
 jar {
+    baseName = 'vmw-bifrost'
+    version =  '0.3.0'
     manifest {
         attributes(
                 'Main-Class': 'com.vmware.bifrost.Bifrost'
         )
+    }
+}
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    // tag::jetty[]
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude module: "spring-boot-starter-tomcat"
+        exclude module : 'spring-boot-starter-logging'
+    }
+
+    compile ('org.springframework.boot:spring-boot-starter') {
+        exclude module : 'spring-boot-starter-logging'
+    }
+
+    compile("org.springframework.boot:spring-boot-starter-jetty")
+    // end::jetty[]
+    // tag::actuator[]
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+    // end::actuator[]
+    testCompile("junit:junit")
+    compile "io.reactivex.rxjava2:rxjava:2.0.7"
+    runtime "io.reactivex.rxjava2:rxjava:2.0.7"
+    compile group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.8.8"
+    compile "com.fasterxml.jackson.module:jackson-module-jsonSchema:2.8.8"
+    compile group: "org.slf4j", name: "slf4j-api", version: "1.7.25"
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    testCompile "org.springframework.boot:spring-boot-starter-test"
+    compile "org.springframework.boot:spring-boot-starter-websocket"
+    compile "org.webjars:webjars-locator"
+    compile "org.webjars:stomp-websocket:2.3.3"
+
+}
+
+test {
+    testLogging {
+        showStandardStreams = true
     }
 }
 
