@@ -172,6 +172,9 @@ export class MessagebusService implements MessageBusEnabled {
     public getGalacticChannel(cname: string, from: string): Observable<Message> {
         return this.getChannelObject(cname, from)
             .setGalactic().stream
+            .filter((message: Message) => {
+                return message.isResponse();
+            })
             .map(
                 (msg: Message) => {
                     if (msg.payload.hasOwnProperty('_sendChannel')) {
@@ -215,11 +218,11 @@ export class MessagebusService implements MessageBusEnabled {
             channel = new Channel(cname);
             this._channelMap.set(cname, channel);
             symbol = ' +++ ';
+            let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, cname, from, symbol);
+            this.monitorStream.send(new Message().request(mo));
+
         }
 
-
-        let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, cname, from, symbol);
-        this.monitorStream.send(new Message().request(mo));
         channel.increment();
         return channel;
     }

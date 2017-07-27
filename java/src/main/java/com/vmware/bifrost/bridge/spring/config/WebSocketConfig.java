@@ -1,8 +1,4 @@
-package com.vmware.bifrost.bridge;
-
-/*
- * Copyright(c) VMware Inc. 2017
- */
+package com.vmware.bifrost.bridge.spring.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -12,17 +8,17 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
 @Configuration
 @EnableWebSocketMessageBroker
-public class BifrostSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
+public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic", "/queue");
+        config.enableSimpleBroker("/topic");
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/nexus").setAllowedOrigins("*");
+        registry.addEndpoint("/bifrost").setAllowedOrigins("*");
     }
 
 }

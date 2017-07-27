@@ -6,8 +6,12 @@ import {
     StompParser,
     StompChannel,
     StompBusCommand,
-    MessageHandler
+    MessageHandler, Message
 } from '@vmw/bifrost';
+import {Observable} from "rxjs/Observable";
+import {Subscription} from "rxjs/Subscription";
+import {LogLevel} from "@vmw/bifrost/log";
+
 
 
 @Component({
@@ -19,24 +23,63 @@ export class MainComponentComponent implements OnInit {
     private config: StompConfig;
     private connectionStream: MessageHandler;
 
+    private streamSub: Subscription;
+    private requestTimer: any;
+
+    messages: Array<string>;
+
     constructor(private bus: MessagebusService) {
-        this.config = StompConfig.generate('/bifrost', 'localhost', 8080);
+        this.config = StompConfig.generate(
+            '/bifrost',
+            'localhost',
+            8080,
+            false,
+            "test",
+            "password"
+        );
+
+        this.bus.silenceLog(false);
+        this.bus.setLogLevel(LogLevel.Debug);
+        this.bus.suppressLog(false);
+        this.bus.enableMonitorDump(true);
+
     }
 
     ngOnInit() {
 
-        const command = StompParser.generateStompBusCommand(
-            StompClient.STOMP_CONNECT,
-            "test",
-            "password",
-            this.config);
+        const command =
+            StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, "", "", this.config);
 
         this.listenForConnection();
 
         this.bus.sendRequestMessage(StompChannel.connection, command);
         console.log('sending command');
+        this.messages = [];
+
 
     }
+
+    sendRandomRequests() {
+        this.requestTimer = setInterval(
+            () => {
+                this.bus.sendRequestMessage("app/hello", { name: "chappy"});
+            },
+            3000
+        );
+    }
+
+    listenForIncomingMessages(): void {
+        const streamHello: Observable<Message> = this.bus.getGalacticChannel("app/hello", "pop");
+        const stream: Observable<Message> = this.bus.getGalacticChannel("greeting", "pop");
+        this.streamSub = stream.subscribe(
+            (msg: Message) => {
+                console.log("****** INBOUND ON GALACTIC ", msg.payload);
+
+                this.messages.push(msg.payload);
+            }
+        );
+    }
+
 
     listenForConnection() {
         this.connectionStream = this.bus.listenStream(StompChannel.status);
@@ -44,7 +87,8 @@ export class MainComponentComponent implements OnInit {
             (command: StompBusCommand) => {
                 switch (command.command) {
                     case StompClient.STOMP_CONNECTED:
-                        console.log('connected!');
+                        this.listenForIncomingMessages();
+                        this.sendRandomRequests();
                         break;
 
                 }

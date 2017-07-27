@@ -1,19 +1,14 @@
-package com.vmware.bifrost.controllers;/*
- * Copyright(c) VMware Inc. 2017
- */
+package com.vmware.bifrost.bridge.spring.controllers;
 
+import hello.Greeting;
+import hello.HelloMessage;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
 
-@RestController
-public class TestController {
 
-    @RequestMapping("/")
-    public String index() {
-        return "Greetings from The bifrost!";
-    }
+@Controller
+public class MessageController {
 
     @MessageMapping("/hello")
     @SendTo("/topic/greetings")

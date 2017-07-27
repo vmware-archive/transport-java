@@ -197,6 +197,10 @@ export class StompService implements MessageBusEnabled {
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
         this._galaticChannels.set(channel, true);
 
+
+
+
+
         // if we're connected, kick things off, if not then fill the requests stream up
         // and consume once we are connected.
         if (this._sessions.size >= 1) {
@@ -214,6 +218,21 @@ export class StompService implements MessageBusEnabled {
                             session.id, destination, subscriptionId
                         );
                     this.subscribeToDestination(subscription);
+
+                    // listen on galatic channel for requests and pump them down the wire!
+
+                    this.bus.getRequestChannel(cleanedChannel, this.getName()).subscribe(
+                        (message: Message) => {
+                            const command: StompBusCommand = StompParser.generateStompBusCommand(
+                                StompClient.STOMP_MESSAGE,
+                                session.id,
+                                destination,
+                                StompParser.generateStompReadyMessage(message.payload)
+                            );
+                            this.sendPacket(command);
+                        }
+                    );
+
                 }
             });
 
@@ -473,11 +492,18 @@ export class StompService implements MessageBusEnabled {
                     let channel =
                         StompParser.convertSubscriptionToChannel(data.destination, session.config.topicLocation);
 
+
+
+
+                    let payload = JSON.parse(message.body);
+
+                    this.bus.sendResponseMessage(channel, payload);
+
+
                     // send to galactic channel on bus.
-                    this.bus.send(channel,
-                        new Message().response(busResponse, new StompCommandSchema()),
-                        this.getName()
-                    );
+                    console.log('&&&&&&&& INBOUND MESSAGE FROM STOMP: ', message);
+                    console.log('&&&&&&&& SENDING TO ' + channel, payload);
+
 
                     // duplicate to stomp messages.
                     this.bus.send(StompChannel.messages,

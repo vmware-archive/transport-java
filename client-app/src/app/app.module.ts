@@ -4,7 +4,7 @@ import {NgModule} from '@angular/core';
 import {AppComponent} from './app.component';
 import {MainComponentComponent} from './main-component/main-component.component';
 
-import {MessagebusService} from '@vmw/bifrost';
+import {MessagebusService, StompService} from '@vmw/bifrost';
 
 @NgModule({
     declarations: [
@@ -14,7 +14,10 @@ import {MessagebusService} from '@vmw/bifrost';
     imports: [
         BrowserModule
     ],
-    providers: [MessagebusService],
+    providers: [
+        MessagebusService,
+        StompService
+    ],
     bootstrap: [AppComponent]
 })
 export class AppModule {
