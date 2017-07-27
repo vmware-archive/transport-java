@@ -62,7 +62,7 @@ export class MainComponentComponent implements OnInit {
     sendRandomRequests() {
         this.requestTimer = setInterval(
             () => {
-                this.bus.sendRequestMessage("app/hello", { name: "chappy"});
+                this.bus.sendGalacticMessage("/app/hello", { name: "chappy"});
             },
             3000
         );

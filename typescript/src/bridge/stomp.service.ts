@@ -177,6 +177,12 @@ export class StompService implements MessageBusEnabled {
                 }
                 break;
 
+            case MonitorType.MonitorGalacticData:
+                if (this.bus.isGalacticChannel(mo.channel)) {
+                    this.sendGalacticMessage(mo.channel, mo.data);
+                }
+                break;
+
             case MonitorType.MonitorCompleteChannel:
             case MonitorType.MonitorCloseChannel:
                 if (this._galaticChannels.get(mo.channel)) {
@@ -188,6 +194,29 @@ export class StompService implements MessageBusEnabled {
         }
     }
 
+    private sendGalacticMessage(channel: string, payload: any): void {
+
+        const cleanedChannel = StompParser.convertChannelToSubscription(channel);
+
+        this._sessions.forEach(session => {
+            const config = session.config;
+
+            if (config.useTopics) {
+                const destination = cleanedChannel;
+
+                const command: StompBusCommand = StompParser.generateStompBusCommand(
+                    StompClient.STOMP_MESSAGE,
+                    session.id,
+                    destination,
+                    StompParser.generateStompReadyMessage(payload)
+                );
+                console.log('sending galatic message', command);
+
+                this.sendPacket(command);
+            }
+        });
+    }
+
     private generateSubscriptionId(sessionId: string, channel: string): string {
         return sessionId + '-' + channel;
     }
@@ -196,9 +225,6 @@ export class StompService implements MessageBusEnabled {
 
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
         this._galaticChannels.set(channel, true);
-
-
-
 
 
         // if we're connected, kick things off, if not then fill the requests stream up
@@ -491,8 +517,6 @@ export class StompService implements MessageBusEnabled {
 
                     let channel =
                         StompParser.convertSubscriptionToChannel(data.destination, session.config.topicLocation);
-
-
 
 
                     let payload = JSON.parse(message.body);
