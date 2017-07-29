@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.vmware.bifrost.AbstractService;
+import com.vmware.bifrost.bridge.spring.BifrostEnabled;
+import com.vmware.bifrost.bridge.spring.BifrostPeer;
 import com.vmware.bifrost.bus.model.*;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -11,6 +13,13 @@ import io.reactivex.subjects.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.reactivex.Observable;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +33,10 @@ import static com.vmware.bifrost.bus.model.MonitorChannel.*;
  */
 
 @SuppressWarnings("unchecked")
+
+@Component
 public class MessagebusService extends AbstractService {
+
 
     private Map<String, Channel> channelMap;
     private Channel monitorStream;
@@ -37,6 +49,8 @@ public class MessagebusService extends AbstractService {
     private JsonSchemaGenerator schemaGen;
 
     public MessagebusService() throws Exception {
+
+        System.out.println("CREATING NEW BUS SERVICE");
 
         this.mapper = new ObjectMapper();
         this.schemaGen = new JsonSchemaGenerator(mapper);
@@ -51,9 +65,25 @@ public class MessagebusService extends AbstractService {
         this.enableMonitorDump(true);
     }
 
+    @Autowired
+    private ApplicationContext context;
+
+
     public boolean enableMonitorDump(boolean flag) {
         this.dumpMonitor = flag;
         return this.dumpMonitor;
+    }
+
+    public void init() {
+        System.out.println("***** STARTING BUS *******");
+
+        Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostPeer.class);
+        for (Map.Entry<String, Object> entry : peerBeans.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof BifrostEnabled) {
+                ((BifrostEnabled) value).initializeSubscriptions();
+            }
+        }
     }
 
 
@@ -328,6 +358,41 @@ public class MessagebusService extends AbstractService {
         return this.requestStream(sendChannel, payload,
                 sendChannel, null, this.getName(), successHandler, null);
     }
+
+
+    public BusTransaction listenStream(String channel,
+                                       Consumer<Message> successHandler,
+                                       Consumer<Message> errorHandler) {
+
+        return this.listenStream(channel, null, successHandler, errorHandler);
+    }
+
+
+    public BusTransaction listenStream(String channel,
+                                       Consumer<Message> successHandler) {
+
+        return this.listenStream(channel, null, successHandler, null);
+    }
+
+    public BusTransaction listenStream(String channel,
+                                       JsonSchema schema,
+                                       Consumer<Message> successHandler,
+                                       Consumer<Message> errorHandler) {
+
+        MessageObjectHandlerConfig config
+                = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, null);
+
+        config.setSingleResponse(false);
+        config.setReturnChannel(channel);
+        config.setSendChannel(channel);
+        config.setSchema(schema);
+
+        MessageHandler messageHandler = this.createMessageHandler(config, false);
+        Disposable sub = messageHandler.handle(successHandler, errorHandler);
+
+        return new BusHandlerTransaction(sub, messageHandler);
+    }
+
 
     public BusTransaction respondOnce(String sendChannel,
                                       String returnChannel,

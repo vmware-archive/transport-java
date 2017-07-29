@@ -62,20 +62,19 @@ export class MainComponentComponent implements OnInit {
     sendRandomRequests() {
         this.requestTimer = setInterval(
             () => {
-                this.bus.sendGalacticMessage("/app/hello", { name: "chappy"});
+               this.bus.sendGalacticMessage("/app/kitty", { name: "chappy"});
+
             },
             3000
         );
     }
 
     listenForIncomingMessages(): void {
-        const streamHello: Observable<Message> = this.bus.getGalacticChannel("app/hello", "pop");
-        const stream: Observable<Message> = this.bus.getGalacticChannel("greeting", "pop");
+        const stream: Observable<Message> = this.bus.getGalacticChannel("kitty", "pop");
         this.streamSub = stream.subscribe(
             (msg: Message) => {
-                console.log("****** INBOUND ON GALACTIC ", msg.payload);
-
-                this.messages.push(msg.payload);
+                this.messages.push(msg.payload.name);
+                console.log("socket talked! ", msg.payload.name);
             }
         );
     }

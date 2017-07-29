@@ -42,7 +42,6 @@ public class MessagebusServiceTest {
         this.schema = schemaGen.generateSchema(MessageSchema.class);
         this.counter = 0;
         this.errors = 0;
-
     }
 
     @Test

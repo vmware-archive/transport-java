@@ -341,7 +341,7 @@ export class MessagebusService implements MessageBusEnabled {
     }
 
     /**
-     * Send a regular message on a channel, however also fire a galactic send notification to the montitor. The
+     * Fire a galactic send notification to the montitor like it was a regular send on Observable. The
      * bridge will then pick this up and send a packet down the wire.
      *
      * @param {string} cname galactic channel name to send to
@@ -349,9 +349,9 @@ export class MessagebusService implements MessageBusEnabled {
      * @param {MessageSchema} schema
      */
     public sendGalacticMessage(cname: string, payload: any, schema = new MessageSchema()): void {
-        this.send(cname, new Message().request(payload, schema), name);
+        // let bridge know galactic payload needs to be sent.
 
-        // let bridge know galatic payload needs to be sent.
+        console.log('sending to galactic channel: ' + cname, payload);
         let mo = new MonitorObject().build(MonitorType.MonitorGalacticData, cname, this.getName(), payload);
         this.monitorStream.send(new Message().request(mo));
     }
@@ -930,6 +930,10 @@ export class MessagebusService implements MessageBusEnabled {
 
                                 case MonitorType.MonitorDestroyChannel:
                                     this.log.info('XXX ' + mo.channel, mo.from);
+                                    break;
+
+                                case MonitorType.MonitorGalacticData:
+                                    this.log.info('[***] galactic send: ' + mo.channel, mo.from);
                                     break;
 
                                 case MonitorType.MonitorData:

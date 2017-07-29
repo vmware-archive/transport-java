@@ -1,15 +1,20 @@
-package hello;
+package com.vmware.bifrost.bridge;
 
+import com.vmware.bifrost.bridge.spring.BifrostEnabled;
+import com.vmware.bifrost.bridge.spring.BifrostPeer;
 import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bus.MessageHandler;
 import com.vmware.bifrost.bus.MessageResponder;
 import com.vmware.bifrost.bus.MessagebusService;
 import com.vmware.bifrost.bus.model.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-@Service
-public class TestService {
+@Component
+@BifrostPeer
+public class TestService implements BifrostEnabled {
 
     @Autowired
     private MessagebusService bus;
@@ -17,17 +22,22 @@ public class TestService {
     private BusTransaction responder;
 
     TestService() {
-
     }
 
-    private void respondToRequests() {
-        responder = bus.respondStream("test-response",
+    @Override
+    public void initializeSubscriptions() {
+        System.out.println("Listening on bus!!!!");
+        System.out.println(this.bus);
+
+        responder = bus.respondStream("kitty",
                 (Message message) -> {
                     System.out.println("GOT A MESSAGE ON BUS: " + message.getPayload());
-                    return "Cakes and balls man";
+                    return new Pop();
                 }
         );
     }
+}
 
-
+class Pop {
+    public String name = "Chip";
 }

@@ -16,7 +16,9 @@ public class MessageObject<T> implements Message<T> {
     public MessageObject(MessageType type, T payload) {
         this.type = type;
         this.payload = payload;
-        this.payloadClass = (Class<T>) payload.getClass();
+        if(payload != null)
+            this.payloadClass = (Class<T>) payload.getClass();
+
     }
 
     public MessageObject(MessageType type, T payload, JsonSchema schema) {

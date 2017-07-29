@@ -1,6 +1,5 @@
-package com.vmware.bifrost.bridge.handlers;
+package com.vmware.bifrost.bridge.spring.handlers;
 
-import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
