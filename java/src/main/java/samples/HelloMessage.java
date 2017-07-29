@@ -1,4 +1,4 @@
-package hello;
+package samples;
 
 /*
  * Copyright(c) VMware Inc. 2017

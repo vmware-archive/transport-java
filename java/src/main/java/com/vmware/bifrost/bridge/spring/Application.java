@@ -4,7 +4,6 @@ package com.vmware.bifrost.bridge.spring;
  * Copyright(c) VMware Inc. 2017
  */
 
-import com.vmware.bifrost.bridge.TestService;
 import com.vmware.bifrost.bus.MessagebusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -14,9 +13,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
-import java.util.Arrays;
-import java.util.Map;
-
 @SpringBootApplication
 @ComponentScan(basePackages = {
         "com.vmware.bifrost.bridge.spring.config",
@@ -25,7 +21,7 @@ import java.util.Map;
         "com.vmware.bifrost.bridge.spring",
         "com.vmware.bifrost.bridge",
         "com.vmware.bifrost.bus",
-        "hello"
+        "samples"
 })
 public class Application {
 

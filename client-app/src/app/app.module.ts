@@ -5,6 +5,10 @@ import {AppComponent} from './app.component';
 import {MainComponentComponent} from './main-component/main-component.component';
 
 import {MessagebusService, StompService} from '@vmw/bifrost';
+import {ClarityModule} from "clarity-angular";
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {ChartsModule} from "ng2-charts";
+
 
 @NgModule({
     declarations: [
@@ -12,7 +16,10 @@ import {MessagebusService, StompService} from '@vmw/bifrost';
         MainComponentComponent
     ],
     imports: [
-        BrowserModule
+        BrowserModule,
+        ClarityModule.forRoot(),
+        BrowserAnimationsModule,
+        ChartsModule
     ],
     providers: [
         MessagebusService,

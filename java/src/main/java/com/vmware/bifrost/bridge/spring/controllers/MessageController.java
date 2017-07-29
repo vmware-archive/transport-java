@@ -2,14 +2,13 @@ package com.vmware.bifrost.bridge.spring.controllers;
 
 import com.vmware.bifrost.bridge.util.BifrostUtil;
 import com.vmware.bifrost.bus.MessagebusService;
-import hello.Greeting;
-import hello.HelloMessage;
+import samples.Greeting;
+import samples.HelloMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 

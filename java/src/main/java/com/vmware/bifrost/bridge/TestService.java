@@ -2,6 +2,7 @@ package com.vmware.bifrost.bridge;
 
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostPeer;
+import com.vmware.bifrost.bridge.util.OpenSimplexNoise;
 import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bus.MessageHandler;
 import com.vmware.bifrost.bus.MessageResponder;
@@ -21,23 +22,42 @@ public class TestService implements BifrostEnabled {
 
     private BusTransaction responder;
 
+    OpenSimplexNoise noise;
+    double x,y;
+
     TestService() {
+        noise = new OpenSimplexNoise();
+        x = 0;
+        y = 0;
+    }
+
+    private double generateValue() {
+        double newX = noise.eval(x, y);
+        double newY = noise.eval(x, y);
+        x = ++x + newX;
+        y = ++y + newY;
+        return newX;
     }
 
     @Override
     public void initializeSubscriptions() {
-        System.out.println("Listening on bus!!!!");
-        System.out.println(this.bus);
-
-        responder = bus.respondStream("kitty",
+        responder = bus.respondStream("metrics",
                 (Message message) -> {
-                    System.out.println("GOT A MESSAGE ON BUS: " + message.getPayload());
-                    return new Pop();
+                    return new SampleMetric(this.generateValue());
                 }
         );
     }
 }
 
-class Pop {
-    public String name = "Chip";
+class SampleMetric {
+    private Double value;
+
+    SampleMetric(Double val) {
+        value = val;
+    }
+
+    public Double getValue() {
+        return value;
+    }
+
 }

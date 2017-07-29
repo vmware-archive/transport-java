@@ -1,6 +1,54 @@
-<p>
-    main-component works!
-</p>
+<h1>
+    Bifröst Example Client
+</h1>
+<div class="row">
+    <div class="col-lg-5 col-md-8 col-sm-12 col-xs-12">
+        <div class="card">
+            <div class="card-header">
+                Long Running Task Stream
+            </div>
+            <div class="card-block">
+                <div class="card-text">
+                    Request long running activity with multiple responses.
+                    <button class="btn btn-primary" (click)="requestTask()">Request Task</button>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="progress flash progress-fade labeled">
+                    <progress [value]="taskProgress" max="100"></progress>
+                </div>
+                <h3>
+                    {{taskProgress}}% completed
+                </h3>
+                <h4>{{taskCategory}} / {{taskLabel}}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5 col-md-8 col-sm-12 col-xs-12">
+        <div class="card">
+            <div class="card-header">
+                Fast Feed Stream
+            </div>
+            <div class="card-block">
+                <div class="card-text">
+                    <div class="chart">
+                        <canvas baseChart width="100" height="50"
+                                [datasets]="lineChartData"
+                                [labels]="lineChartLabels"
+                                [options]="lineChartOptions"
+                                [colors]="lineChartColors"
+                                [legend]="lineChartLegend"
+                                [chartType]="lineChartType"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
 <ol>
     <li *ngFor="let message of messages">
         {{message}}

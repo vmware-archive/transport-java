@@ -65,35 +65,35 @@ describe('Stomp Parser [stomp.parser]', () => {
 
             let message1: string = StompParser.marshal(
                 StompClient.STOMP_CONNECT,
-                {'test-header': 'hello', 'some-value': 1234},
+                {'test-header': 'samples', 'some-value': 1234},
                 'stompy is a friend of stampy the elephant'
             );
 
             let message2: string = StompParser.marshal(
                 StompClient.STOMP_MESSAGE,
-                {'test-header': 'hello', 'some-value': 1234},
+                {'test-header': 'samples', 'some-value': 1234},
                 'hey hey hey!'
             );
 
             let message3: string = StompParser.marshal(
                 StompClient.STOMP_MESSAGE,
-                {'test-header': 'hello', 'some-value': 1234},
+                {'test-header': 'samples', 'some-value': 1234},
                 {look: 'an-object', with: 'properties'}
             );
 
             let expectedMessage1 = 'CONNECT\n' +
-                'test-header:hello\n' +
+                'test-header:samples\n' +
                 'some-value:1234\n\n' +
                 'stompy is a friend of stampy the elephant\0';
 
             let expectedMessage2 = 'MESSAGE\n' +
-                'test-header:hello\n' +
+                'test-header:samples\n' +
                 'some-value:1234\n\n' +
                 'hey hey hey!\0';
 
 
             let expectedMessage3 = 'MESSAGE\n' +
-                'test-header:hello\n' +
+                'test-header:samples\n' +
                 'some-value:1234\n\n' +
                 '{"look":"an-object","with":"properties"}\0';
 
@@ -119,7 +119,7 @@ describe('Stomp Parser [stomp.parser]', () => {
         (done) => {
 
             let stompMessage1 = 'CONNECT\n' +
-                'test-header:hello\n' +
+                'test-header:samples\n' +
                 'some-value:1234\n\n' +
                 'stompy is a friend of stampy the elephant\0';
 
@@ -138,7 +138,7 @@ describe('Stomp Parser [stomp.parser]', () => {
             let stompObject2 = StompParser.unmarshal(stompMessage2);
             let stompObject3 = StompParser.unmarshal(stompMessage3);
 
-            expect(stompObject1.headers['test-header']).toEqual('hello');
+            expect(stompObject1.headers['test-header']).toEqual('samples');
             expect(stompObject1.headers['some-value']).toEqual('1234');
             expect(stompObject1.command).toEqual(StompClient.STOMP_CONNECT);
             expect(stompObject1.body).toEqual('stompy is a friend of stampy the elephant');
