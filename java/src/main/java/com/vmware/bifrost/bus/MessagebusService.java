@@ -13,13 +13,11 @@ import io.reactivex.subjects.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.reactivex.Observable;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,10 +31,16 @@ import static com.vmware.bifrost.bus.model.MonitorChannel.*;
  */
 
 @SuppressWarnings("unchecked")
-
 @Component
 public class MessagebusService extends AbstractService {
 
+    @Autowired
+    private ApplicationContext context;
+
+    @EventListener
+    public void handleContextStarted(ContextRefreshedEvent evt) {
+        this.init();
+    }
 
     private Map<String, Channel> channelMap;
     private Channel monitorStream;
@@ -65,9 +69,6 @@ public class MessagebusService extends AbstractService {
         this.enableMonitorDump(true);
     }
 
-    @Autowired
-    private ApplicationContext context;
-
 
     public boolean enableMonitorDump(boolean flag) {
         this.dumpMonitor = flag;
@@ -75,8 +76,7 @@ public class MessagebusService extends AbstractService {
     }
 
     public void init() {
-        System.out.println("***** STARTING BUS *******");
-
+        logger.info(":-) Starting Bifröst");
         Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostPeer.class);
         for (Map.Entry<String, Object> entry : peerBeans.entrySet()) {
             Object value = entry.getValue();

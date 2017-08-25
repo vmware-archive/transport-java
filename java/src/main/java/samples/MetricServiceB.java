@@ -30,7 +30,7 @@ public class MetricServiceB implements BifrostEnabled {
     @Override
     public void initializeSubscriptions() {
         logger.info("Initializing Metrics-B Service");
-        Metrics metric = new Metrics(bus, 800, "metrics-b");
+        Metrics metric = new Metrics(bus, 1500, "metrics-b");
         executorService.submit(metric);
     }
 }

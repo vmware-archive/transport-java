@@ -216,6 +216,11 @@ export class MessagebusService implements MessageBusEnabled {
             );
     }
 
+    public listenGalacticStream(cname: string, name: string = this.getName()): MessageHandler {
+        this.getChannelObject(cname, name).setGalactic();
+        return this.listenStream(cname, name);
+    }
+
     /**
      * Returns true if a channel is Galactic. Galactic status requires a bit flipped on the channel object.
      * @param cname

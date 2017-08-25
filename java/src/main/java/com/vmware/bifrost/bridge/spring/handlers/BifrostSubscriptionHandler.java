@@ -25,7 +25,7 @@ public class BifrostSubscriptionHandler implements ApplicationListener<SessionSu
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
         String channel =  BifrostUtil.convertTopicToChannel(sha.getDestination());
 
-        logger.info("[>] Bifröst Bridge: subscription created: (" + channel + "), subId: " + sha.getSubscriptionId());
+        logger.info("[>] Bifröst Bridge: subscription requested: (" + channel + "), subId: " + sha.getSubscriptionId());
         subService.addSubscription(sha.getSubscriptionId(), sha.getSessionId(), channel);
     }
 }

@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
-import { Message, MessagebusService } from '@vmw/bifrost';
+import { Message, MessagebusService, MessageHandler } from '@vmw/bifrost';
 
 @Component({
     selector: 'metrics-chart',
@@ -52,7 +52,7 @@ export class MetricsChartComponent implements OnInit, OnDestroy {
     public lineChartType: string = 'line';
 
     private resultArray: Array<number>;
-    private streamSub: Subscription;
+    private metricsHandler: MessageHandler;
 
     constructor(private bus: MessagebusService) {
     }
@@ -73,8 +73,8 @@ export class MetricsChartComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.streamSub.unsubscribe();
-        this.bus.close;
+        this.metricsHandler.close();
+        this.bus.close(this.metricsChannel, 'metrics-chart');
     }
 
     buildResultArray() {
@@ -98,14 +98,16 @@ export class MetricsChartComponent implements OnInit, OnDestroy {
         ];
     }
 
-
     listenForMetrics(): void {
-        const stream: Observable<Message> = this.bus.getGalacticChannel(this.metricsChannel, 'metrics-component');
-        this.streamSub = stream.subscribe(
-            (msg: Message) => {
-                console.log('INCOMING MESSAGE', msg);
-                this.buildResults(msg.payload.value);
+        this.metricsHandler = this.bus.listenGalacticStream(this.metricsChannel);
+        this.metricsHandler.handle(
+            (metric: Metric) => {
+                this.buildResults(metric.value);
             }
         );
     }
+}
+
+interface Metric {
+    value: number;
 }

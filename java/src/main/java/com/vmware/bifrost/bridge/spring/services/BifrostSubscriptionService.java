@@ -10,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class BifrostSubscriptionService {
@@ -60,7 +57,7 @@ public class BifrostSubscriptionService {
             openChannels.add(channelName);
 
             // check if this user has other channel subscriptions
-            if(sessionChannels.containsKey(sessionId)) {
+            if (sessionChannels.containsKey(sessionId)) {
                 sessionChannels.get(sessionId).add(channelName);
             } else {
                 List<String> chanList = new ArrayList<>();
@@ -86,25 +83,38 @@ public class BifrostSubscriptionService {
             openChannels.remove(sub.channelName);
 
             // remove from session mappings.
-            if(sessionChannels.containsKey(sessionId)) {
+            if (sessionChannels.containsKey(sessionId)) {
                 List<String> chans = sessionChannels.get(sessionId);
-                if(chans.contains(sub.channelName)) {
+                if (chans.contains(sub.channelName)) {
                     chans.remove(sub.channelName);
                 }
             }
-
         }
     }
 
     public void unsubsribeSessionsAfterDisconnect(String sessionId) {
-        if(sessionChannels.containsKey(sessionId)) {
+
+        if (sessionChannels.containsKey(sessionId)) {
             List<String> chans = sessionChannels.get(sessionId);
-            for(String chan : chans) {
+
+            for (String chan : chans) {
                 // close bus channels to silence any long running streams.
                 // there are two subscriptions, one by the producer and one by the subscription handler.
                 bus.close(chan, this.getClass().getName());
                 bus.close(chan, this.getClass().getName());
                 openChannels.remove(chan);
+
+                Collection<BifrostSubscription> subs = openSubscriptions.values();
+                List<String> removeSubs = new ArrayList<>();
+                for (BifrostSubscription sub : subs) {
+                    if (sub.sessionId == sessionId) {
+                        sub.transaction.unsubscribe();
+                        removeSubs.add(sub.subId);
+                    }
+                }
+                for (String subId : removeSubs) {
+                    openSubscriptions.remove(subId);
+                }
 
                 logger.info("[-] Bifröst Bus: closing channel '" + chan + "' after disconnect");
             }

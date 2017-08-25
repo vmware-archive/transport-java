@@ -1,5 +1,5 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Message, MessagebusService } from '@vmw/bifrost';
+import { Message, MessagebusService, MessageHandler } from '@vmw/bifrost';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
@@ -13,34 +13,37 @@ export class TaskBoxComponent implements OnInit, OnDestroy {
     @Input() title: string;
     @Input() channel: string;
 
-    private longTask: Subscription;
+    private taskHandler: MessageHandler;
     private running: boolean = false;
-
-    constructor(private bus: MessagebusService) {
-    }
-
-    ngOnInit() {
-    }
-
-    ngOnDestroy() {
-        this.bus.close(this.channel, "task-box");
-    }
 
     private taskProgress: number = 0;
     private taskCategory: string;
     private taskLabel: string;
 
-    requestTask() {
-        this.running = true;
-        const stream: Observable<Message> = this.bus.getGalacticChannel(this.channel, "task-box");
-        this.longTask = stream.subscribe(
-            (msg: Message) => {
-                this.taskProgress = msg.payload.completedState;
-                this.taskCategory = msg.payload.category;
-                this.taskLabel = msg.payload.task;
 
-                if(msg.payload.taskStatus == "Finished") {
-                    this.longTask.unsubscribe();
+    constructor(private bus: MessagebusService) {
+    }
+
+    ngOnInit() {
+        this.bus.listenOnce('bridge-ready')
+            .handle(
+                () => {
+                    this.listenToMetrics();
+                }
+            )
+    }
+
+    private listenToMetrics() {
+        this.taskHandler = this.bus.listenGalacticStream(this.channel);
+        this.taskHandler.handle(
+            (task: Task) => {
+                this.running = true;
+                this.taskProgress = task.completedState;
+                this.taskCategory = task.category;
+                this.taskLabel = task.task;
+
+                if(task.taskStatus == "Finished") {
+                    this.taskHandler.close();
                     setTimeout(
                         () => {
                             this.running = false;
@@ -50,7 +53,20 @@ export class TaskBoxComponent implements OnInit, OnDestroy {
                 }
             }
         );
-
-        this.bus.sendGalacticMessage("/app/" + this.channel, { command: "start"});
     }
+
+    ngOnDestroy() {
+        this.bus.close(this.channel, "task-box");
+    }
+    requestTask() {
+        this.running = true;
+        this.bus.sendGalacticMessage("/pub/" + this.channel, { command: "start"});
+    }
+}
+
+interface Task {
+    completedState: number;
+    category: string;
+    task;
+    taskStatus: string;
 }
