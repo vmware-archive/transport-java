@@ -1,0 +1,25 @@
+<div class="card">
+    <div class="card-header">
+        {{title}}
+    </div>
+    <div class="card-block">
+        <div class="card-text">
+            Request long running activity with multiple responses.
+
+        </div>
+    </div>
+    <div class="card-footer" *ngIf="running">
+
+        <div class="progress flash progress-fade labeled">
+            <progress [value]="taskProgress" max="100"></progress>
+        </div>
+
+        <h3>
+            {{taskProgress}}% completed
+        </h3>
+        <h4>{{taskCategory}} / {{taskLabel}}</h4>
+    </div>
+    <div class="card-footer" *ngIf="!running">
+        <button class="btn btn-sm " (click)="requestTask()">Start Task</button>
+    </div>
+</div>

@@ -8,12 +8,16 @@ import {MessagebusService, StompService} from '@vmw/bifrost';
 import {ClarityModule} from "clarity-angular";
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {ChartsModule} from "ng2-charts";
+import { MetricsChartComponent } from './metrics-chart/metrics-chart.component';
+import { TaskBoxComponent } from './task-box/task-box.component';
 
 
 @NgModule({
     declarations: [
         AppComponent,
-        MainComponentComponent
+        MainComponentComponent,
+        MetricsChartComponent,
+        TaskBoxComponent,
     ],
     imports: [
         BrowserModule,

@@ -1,4 +1,4 @@
-package com.vmware.bifrost.bridge.spring;
+package samples;
 
 /*
  * Copyright(c) VMware Inc. 2017

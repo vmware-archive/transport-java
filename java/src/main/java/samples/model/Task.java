@@ -9,13 +9,17 @@ public class Task implements Runnable {
     private TaskStatus taskStatus = TaskStatus.NotStarted;
     private String category;
     private String task;
+    private int sleep;
+    private String channel;
 
     private int completedState = 0;
     MessagebusService bus;
 
-    public Task(int id, MessagebusService bus) {
+    public Task(int id, MessagebusService bus, int sleep, String channel) {
         this.taskId = id;
         this.bus = bus;
+        this.sleep = sleep;
+        this.channel = channel;
     }
 
     public int getTaskId() {
@@ -48,14 +52,14 @@ public class Task implements Runnable {
             this.task = "Initializing";
             this.category = "Environment";
             for(int x = 0; x < 100; x++) {
-                Thread.sleep(100);
+                Thread.sleep(this.sleep);
                 this.completedState++;
                 this.updateLabels();
-                bus.sendResponse("process-task", this);
+                bus.sendResponse(this.channel, this);
 
             }
             this.taskStatus = TaskStatus.Finished;
-            bus.sendResponse("process-task", this);
+            bus.sendResponse(this.channel, this);
 
         } catch (InterruptedException exp) {
 

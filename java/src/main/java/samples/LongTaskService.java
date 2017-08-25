@@ -33,17 +33,25 @@ public class LongTaskService implements BifrostEnabled {
     @Override
     public void initializeSubscriptions() {
         logger.info("Initializing LongTaskService Channel Subscriptions");
-        bus.respondStream("process-task",
+        bus.respondStream("task-a",
                 (Message message) -> {
 
-                    Task task = new Task(taskCount, bus);
+                    Task task = new Task(taskCount, bus, 100, "task-a");
                     executorService.submit(task);
                     this.taskCount++;
                     return task;
                 }
         );
 
+        bus.respondStream("task-b",
+                (Message message) -> {
 
+                    Task task = new Task(taskCount, bus, 500, "task-b");
+                    executorService.submit(task);
+                    this.taskCount++;
+                    return task;
+                }
+        );
     }
 }
 
