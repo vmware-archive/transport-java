@@ -43,10 +43,12 @@ export class TaskBoxComponent implements OnInit, OnDestroy {
                 this.taskLabel = task.task;
 
                 if(task.taskStatus == "Finished") {
-                    this.taskHandler.close();
                     setTimeout(
                         () => {
                             this.running = false;
+                            this.taskProgress = 0;
+                            this.taskCategory = '';
+                            this.taskLabel = '';
                         },
                         1000
                     );
@@ -56,6 +58,7 @@ export class TaskBoxComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        this.taskHandler.close();
         this.bus.close(this.channel, "task-box");
     }
     requestTask() {
