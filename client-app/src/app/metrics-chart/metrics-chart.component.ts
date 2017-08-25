@@ -103,6 +103,7 @@ export class MetricsChartComponent implements OnInit, OnDestroy {
         const stream: Observable<Message> = this.bus.getGalacticChannel(this.metricsChannel, 'metrics-component');
         this.streamSub = stream.subscribe(
             (msg: Message) => {
+                console.log('INCOMING MESSAGE', msg);
                 this.buildResults(msg.payload.value);
             }
         );

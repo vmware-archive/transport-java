@@ -39,10 +39,10 @@ export class MainComponentComponent implements OnInit {
             "password"
         );
 
-        this.bus.silenceLog(false);
-        this.bus.setLogLevel(LogLevel.Debug);
-        this.bus.suppressLog(false);
-        this.bus.enableMonitorDump(true);
+        // this.bus.silenceLog(false);
+        // this.bus.setLogLevel(LogLevel.Debug);
+        // this.bus.suppressLog(false);
+        // this.bus.enableMonitorDump(true);
     }
 
     ngOnInit() {

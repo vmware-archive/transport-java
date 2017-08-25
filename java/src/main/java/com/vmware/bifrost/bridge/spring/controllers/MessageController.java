@@ -2,8 +2,6 @@ package com.vmware.bifrost.bridge.spring.controllers;
 
 import com.vmware.bifrost.bridge.util.BifrostUtil;
 import com.vmware.bifrost.bus.MessagebusService;
-import samples.Greeting;
-import samples.HelloMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +23,9 @@ public class MessageController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @MessageMapping("/{topicDestination}")
-    public void bridgeMessage(HelloMessage message, @DestinationVariable String topicDestination) {
-        Greeting greeting = new Greeting("Hello there, " + message.getName() + "!");
+    public void bridgeMessage(Object request, @DestinationVariable String topicDestination) {
         logger.debug("[*] Bifröst Bridge: new message received.");
-        bus.sendRequest(BifrostUtil.convertTopicToChannel(topicDestination), greeting);
+        bus.sendRequest(BifrostUtil.convertTopicToChannel(topicDestination), request);
 
 
     }
