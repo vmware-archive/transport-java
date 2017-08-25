@@ -3,25 +3,24 @@ package com.vmware.bifrost.bridge.spring.handlers;
 import com.vmware.bifrost.bridge.spring.services.BifrostSubscriptionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;;
+import org.springframework.context.ApplicationListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
-
-import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 @Controller
-public class BifrostUnsubscriptionHandler implements ApplicationListener<SessionUnsubscribeEvent> {
+public class BifrostDisconnectHandler implements ApplicationListener<SessionDisconnectEvent> {
 
     @Autowired
     private BifrostSubscriptionService subService;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public void onApplicationEvent(SessionUnsubscribeEvent event) {
+    public void onApplicationEvent(SessionDisconnectEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
-        logger.info("[<] Bifröst Bridge: unsubscribing subId:" + sha.getSubscriptionId());
-        subService.removeSubscription(sha.getSubscriptionId(), sha.getSessionId());
+        logger.info("[x] Bifröst Bridge: disconnect:" + sha.getSessionId());
+        subService.unsubsribeSessionsAfterDisconnect(sha.getSessionId());
     }
+
 }

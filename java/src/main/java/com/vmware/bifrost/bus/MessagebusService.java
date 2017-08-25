@@ -127,6 +127,8 @@ public class MessagebusService extends AbstractService {
             return;
         }
 
+        logger.debug("[!] Bifröst Bus: channel closing '" + cname + "'");
+
         Channel channel = this.channelMap.get(cname);
         channel.decrement();
         MonitorObject mo = new MonitorObject(
