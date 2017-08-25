@@ -32,7 +32,9 @@ public class LongTaskService implements BifrostEnabled {
 
     @Override
     public void initializeSubscriptions() {
+
         logger.info("Initializing LongTaskService");
+
         bus.respondStream("task-a",
                 (Message message) -> {
 

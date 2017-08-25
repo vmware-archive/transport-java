@@ -10,6 +10,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {ChartsModule} from "ng2-charts";
 import { MetricsChartComponent } from './metrics-chart/metrics-chart.component';
 import { TaskBoxComponent } from './task-box/task-box.component';
+import { PeerListComponent } from './peer-list/peer-list.component';
 
 
 @NgModule({
@@ -18,6 +19,7 @@ import { TaskBoxComponent } from './task-box/task-box.component';
         MainComponentComponent,
         MetricsChartComponent,
         TaskBoxComponent,
+        PeerListComponent,
     ],
     imports: [
         BrowserModule,

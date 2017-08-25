@@ -1,20 +1,28 @@
 /**
  * Copyright(c) VMware Inc., 2016
  */
-import {Injectable} from '@angular/core';
-import {Channel} from './channel.model';
-import {LogUtil} from '../log/util';
-import {LoggerService} from '../log/logger.service';
-import {LogLevel} from '../log/logger.model';
-import {MonitorObject, MonitorType, MonitorChannel} from './monitor.model';
-import {Message, MessageHandlerConfig, MessageResponder, MessageHandler, MessageType} from './message.model';
-import {Subject, Subscription, Observable} from 'rxjs';
-import {MessageSchema, ErrorSchema} from './message.schema';
-
-import 'rxjs/add/operator/merge';
+import { Injectable } from '@angular/core';
+import { Channel } from './channel.model';
+import { LogUtil } from '../log/util';
+import { LoggerService } from '../log/logger.service';
+import { LogLevel } from '../log/logger.model';
+import { MonitorChannel, MonitorObject, MonitorType } from './monitor.model';
+import { Message,
+    MessageFunction,
+    MessageHandler,
+    MessageHandlerConfig,
+    MessageResponder,
+    MessageType
+} from './message.model';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { ErrorSchema, MessageSchema } from './message.schema';
 import { BusCache } from './cache/cache.api';
 import { CacheImpl } from './cache/cache';
 import { CacheType, UUID } from './cache/cache.model';
+import { StompBusCommand, StompChannel, StompConfig } from '../bridge/stomp.model';
+import { StompClient } from '../index';
+import { StompParser } from '../bridge/stomp.parser';
+import 'rxjs/add/operator/merge';
 
 // import * as Ajv from 'ajv';
 
@@ -219,6 +227,45 @@ export class MessagebusService implements MessageBusEnabled {
     public listenGalacticStream(cname: string, name: string = this.getName()): MessageHandler {
         this.getChannelObject(cname, name).setGalactic();
         return this.listenStream(cname, name);
+    }
+
+    /**
+     * Connect the bridge and bus to a broker! LET'S GET GALACTIC!
+     * @param {MessageFunction<boolean>} readyHandler notify once bridge is connected
+     * @param {string} endpoint broker endpoint
+     * @param {string} host broker host
+     * @param {number} port broker port
+     * @param {string} user username (if using rabbit)
+     * @param {string} pass (if using rabbit)
+     * @param {boolean} useSSL use secure sockets?
+     */
+    public connectBridge(readyHandler: MessageFunction<boolean>,
+                         endpoint: string,
+                         host?: string,
+                         port?: number,
+                         user?: string,
+                         pass?: string,
+                         useSSL?: boolean): void {
+
+        const config: StompConfig = StompConfig.generate(
+            endpoint,
+            host,
+            port,
+            useSSL,
+            user,
+            pass
+        );
+
+        this.requestOnce(
+            StompChannel.connection,
+            StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, '', '', config),
+        ).handle(
+            (command: StompBusCommand) => {
+                if (command.command === StompClient.STOMP_CONNECTED) {
+                    readyHandler(true);
+                }
+            }
+        );
     }
 
     /**

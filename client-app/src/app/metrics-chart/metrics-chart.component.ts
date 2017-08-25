@@ -79,7 +79,7 @@ export class MetricsChartComponent implements OnInit, OnDestroy {
 
     buildResultArray() {
         let arr: Array<number> = [];
-        for (let x = 0; x < 12; x++) {
+        for (let x = 0; x < 11; x++) {
             arr.push(Math.floor(Math.random() * 10));
         }
         this.resultArray = arr;

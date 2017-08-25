@@ -18,6 +18,7 @@ import {LogLevel} from "@vmw/bifrost/log";
 export class MainComponentComponent implements OnInit {
     private config: StompConfig;
     private connectionStream: MessageHandler;
+
     public metricsChannelA: string = "metrics-a";
     public metricsChannelB: string = "metrics-b";
 
@@ -30,41 +31,25 @@ export class MainComponentComponent implements OnInit {
     messages: Array<string>;
 
     constructor(private bus: MessagebusService) {
-        this.config = StompConfig.generate(
-            '/bifrost',
-            'localhost',
-            8080,
-            false,
-            "test",
-            "password"
-        );
 
-        // this.bus.silenceLog(false);
-        // this.bus.setLogLevel(LogLevel.Debug);
-        // this.bus.suppressLog(false);
-        // this.bus.enableMonitorDump(true);
+    }
+
+    private tellEveryoneTheBridgeIsReady(): void {
+        this.bus.sendResponseMessage('bridge-ready', true);
     }
 
     ngOnInit() {
 
-        const command =
-            StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, "", "", this.config);
-
-        this.listenForConnection();
-        this.bus.sendRequestMessage(StompChannel.connection, command);
-    }
-
-    listenForConnection() {
-        this.connectionStream = this.bus.listenStream(StompChannel.status);
-        this.connectionStream.handle(
-            (command: StompBusCommand) => {
-                switch (command.command) {
-                    case StompClient.STOMP_CONNECTED:
-                        this.bus.sendResponseMessage('bridge-ready', true);
-                        break;
-
-                }
-            }
+        this.bus.connectBridge(
+            () => {
+                this.tellEveryoneTheBridgeIsReady();
+            },
+            '/bifrost',
+            'localhost',
+            8080,
+            "test",
+            "password",
+            false
         );
     }
 }
