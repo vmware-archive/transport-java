@@ -1,17 +1,20 @@
 /**
  * Copyright(c) VMware Inc., 2016
  */
-import {Injectable} from '@angular/core';
-import {Channel} from './channel.model';
-import {LogUtil} from '../log/util';
-import {LoggerService} from '../log/logger.service';
-import {LogLevel} from '../log/logger.model';
-import {MonitorObject, MonitorType, MonitorChannel} from './monitor.model';
-import {Message, MessageHandlerConfig, MessageResponder, MessageHandler, MessageType} from './message.model';
-import {Subject, Subscription, Observable} from 'rxjs';
-import {MessageSchema, ErrorSchema} from './message.schema';
-
+import { Injectable } from '@angular/core';
+import { Channel } from './channel.model';
+import { LogUtil } from '../log/util';
+import { LoggerService } from '../log/logger.service';
+import { LogLevel } from '../log/logger.model';
+import { MonitorObject, MonitorType, MonitorChannel } from './monitor.model';
+import { Message, MessageHandlerConfig, MessageResponder, MessageHandler, MessageType } from './message.model';
+import { Subject, Subscription, Observable } from 'rxjs';
+import { MessageSchema, ErrorSchema } from './message.schema';
+import { CacheImpl } from './cache/cache';
+import { BusCache } from './cache/cache.api';
 import 'rxjs/add/operator/merge';
+import { CacheType, UUID } from './cache/cache.model';
+
 
 // import * as Ajv from 'ajv';
 
@@ -21,7 +24,6 @@ import 'rxjs/add/operator/merge';
  * https://confluence.eng.vmware.com/pages/viewpage.action?pageId=214302828
  *
  */
-
 
 export abstract class MessageBusEnabled {
     abstract getName(): string;
@@ -35,6 +37,8 @@ export class MessagebusService implements MessageBusEnabled {
     private dumpMonitor: boolean;
     private _channelMap: Map<string, Channel>;
 
+
+    private cacheMap: Map<string, BusCache<any>>;
 
     // private ajv = new Ajv({allErrors: true});
 
@@ -50,7 +54,34 @@ export class MessagebusService implements MessageBusEnabled {
 
         this.enableMonitorDump(false);
         this.monitorBus();
+        this.cacheMap = new Map<CacheType, BusCache<any>>();
     }
+
+    public createCache<T>(objectType: CacheType, map?: Map<UUID, T>): BusCache<T> {
+        if (!this.getCache(objectType)) {
+            const cache: BusCache<T> = new CacheImpl<T>(this);
+            if (map) {
+                cache.populateCache(map);
+            }
+            this.cacheMap.set(objectType, cache);
+            return cache;
+        } else {
+            return this.getCache(objectType);
+        }
+    }
+
+    public getCache<T>(objectType: CacheType): BusCache<T> {
+        return this.cacheMap.get(objectType);
+    }
+
+    public destroyCache(objectType: CacheType): boolean {
+        if (this.cacheMap.has(objectType)) {
+            this.cacheMap.delete(objectType);
+            return true;
+        }
+        return false;
+    }
+
 
     public getName() {
         return 'MessagebusService';
@@ -172,9 +203,6 @@ export class MessagebusService implements MessageBusEnabled {
     public getGalacticChannel(cname: string, from: string): Observable<Message> {
         return this.getChannelObject(cname, from)
             .setGalactic().stream
-            .filter((message: Message) => {
-                return message.isResponse();
-            })
             .map(
                 (msg: Message) => {
                     if (msg.payload.hasOwnProperty('_sendChannel')) {
@@ -218,11 +246,11 @@ export class MessagebusService implements MessageBusEnabled {
             channel = new Channel(cname);
             this._channelMap.set(cname, channel);
             symbol = ' +++ ';
-            let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, cname, from, symbol);
-            this.monitorStream.send(new Message().request(mo));
-
         }
 
+
+        let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, cname, from, symbol);
+        this.monitorStream.send(new Message().request(mo));
         channel.increment();
         return channel;
     }
@@ -338,22 +366,6 @@ export class MessagebusService implements MessageBusEnabled {
             .send(message);
 
         return true;
-    }
-
-    /**
-     * Fire a galactic send notification to the montitor like it was a regular send on Observable. The
-     * bridge will then pick this up and send a packet down the wire.
-     *
-     * @param {string} cname galactic channel name to send to
-     * @param payload payload of message
-     * @param {MessageSchema} schema
-     */
-    public sendGalacticMessage(cname: string, payload: any, schema = new MessageSchema()): void {
-        // let bridge know galactic payload needs to be sent.
-
-        console.log('sending to galactic channel: ' + cname, payload);
-        let mo = new MonitorObject().build(MonitorType.MonitorGalacticData, cname, this.getName(), payload);
-        this.monitorStream.send(new Message().request(mo));
     }
 
     /**
@@ -930,10 +942,6 @@ export class MessagebusService implements MessageBusEnabled {
 
                                 case MonitorType.MonitorDestroyChannel:
                                     this.log.info('XXX ' + mo.channel, mo.from);
-                                    break;
-
-                                case MonitorType.MonitorGalacticData:
-                                    this.log.info('[***] galactic send: ' + mo.channel, mo.from);
                                     break;
 
                                 case MonitorType.MonitorData:

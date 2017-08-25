@@ -1,17 +1,21 @@
-import {Injectable} from '@angular/core';
-import {StompClient} from './stomp.client';
-import {Observable, ReplaySubject, Subscription} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { StompClient } from './stomp.client';
+import { Observable, ReplaySubject, Subscription } from 'rxjs';
 import {
-    StompSession, StompChannel, StompBusCommand, StompSubscription, StompMessage,
-    StompConfig
+    StompBusCommand,
+    StompChannel,
+    StompConfig,
+    StompMessage,
+    StompSession,
+    StompSubscription
 } from '../bridge/stomp.model';
-import {StompCommandSchema, StompConfigSchema} from './stomp.schema';
-import {StompParser} from '../bridge/stomp.parser';
-import {StompValidator} from './stomp.validator';
-import {Syslog} from '../log/syslog';
-import {MonitorChannel, MonitorObject, MonitorType} from '../bus/monitor.model';
-import {Message} from '../bus/message.model';
-import {MessagebusService, MessageBusEnabled} from '../bus/messagebus.service';
+import { StompCommandSchema, StompConfigSchema } from './stomp.schema';
+import { StompParser } from '../bridge/stomp.parser';
+import { StompValidator } from './stomp.validator';
+import { Syslog } from '../log/syslog';
+import { MonitorChannel, MonitorObject, MonitorType } from '../bus/monitor.model';
+import { Message } from '../bus/message.model';
+import { MessageBusEnabled, MessagebusService } from '../bus/messagebus.service';
 
 // max length of a subscription ID before truncation
 const SUBSCRIPTION_ID_LENGTH = 13;
@@ -149,10 +153,7 @@ export class StompService implements MessageBusEnabled {
 
         this._sessions = new Map<string, StompSession>();
         this._galaticChannels = new Map<string, boolean>();
-
-        // lets keep this low to prevent a potential flood;
-        this._galacticRequests = new ReplaySubject<string>(10);
-
+        this._galacticRequests = new ReplaySubject<string>();
     }
 
     get galacticChannels(): Map<string, boolean> {
@@ -224,6 +225,7 @@ export class StompService implements MessageBusEnabled {
 
     private openGalacticChannel(channel: string) {
 
+
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
         this._galaticChannels.set(channel, true);
 
@@ -254,7 +256,6 @@ export class StompService implements MessageBusEnabled {
     }
 
     private closeGalacticChannel(channel: string) {
-
         let cleanedChannel = StompParser.convertChannelToSubscription(channel);
         if (this._sessions.size >= 1) {
 
