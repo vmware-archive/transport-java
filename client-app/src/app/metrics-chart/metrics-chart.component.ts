@@ -1,7 +1,5 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
-import { Message, MessagebusService, MessageHandler } from '@vmw/bifrost';
+import { MessagebusService, MessageHandler } from '@vmw/bifrost';
 
 @Component({
     selector: 'metrics-chart',

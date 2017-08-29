@@ -1,14 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {
     MessagebusService,
-    StompConfig,
-    StompClient,
-    StompParser,
-    StompChannel,
-    StompBusCommand,
-    MessageHandler
 } from '@vmw/bifrost';
-import {LogLevel} from "@vmw/bifrost/log";
 
 @Component({
     selector: 'app-main-component',
@@ -16,8 +9,6 @@ import {LogLevel} from "@vmw/bifrost/log";
     styleUrls: ['./main-component.component.css']
 })
 export class MainComponentComponent implements OnInit {
-    private config: StompConfig;
-    private connectionStream: MessageHandler;
 
     public metricsChannelA: string = "metrics-a";
     public metricsChannelB: string = "metrics-b";
@@ -27,8 +18,6 @@ export class MainComponentComponent implements OnInit {
 
     public taskTitleA: string = "Asynchronous Task A";
     public taskTitleB: string = "Asynchronous Task B";
-
-    messages: Array<string>;
 
     constructor(private bus: MessagebusService) {
 

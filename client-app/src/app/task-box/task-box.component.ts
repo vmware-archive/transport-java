@@ -1,7 +1,12 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Message, MessagebusService, MessageHandler } from '@vmw/bifrost';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+import { MessagebusService, MessageHandler } from '@vmw/bifrost';
+
+interface Task {
+    completedState: number;
+    category: string;
+    task;
+    taskStatus: string;
+}
 
 @Component({
     selector: 'task-box',
@@ -19,7 +24,6 @@ export class TaskBoxComponent implements OnInit, OnDestroy {
     private taskProgress: number = 0;
     private taskCategory: string;
     private taskLabel: string;
-
 
     constructor(private bus: MessagebusService) {
     }
@@ -65,11 +69,4 @@ export class TaskBoxComponent implements OnInit, OnDestroy {
         this.running = true;
         this.bus.sendGalacticMessage("/pub/" + this.channel, { command: "start"});
     }
-}
-
-interface Task {
-    completedState: number;
-    category: string;
-    task;
-    taskStatus: string;
 }
