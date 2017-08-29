@@ -53,12 +53,17 @@ export interface BusCache<T> {
      */
     retrieve<T>(id: UUID): T;
 
-
     /**
      * Get all values from cache.
      * @returns {Array<T>} everything we got!
      */
     allValues(): Array<T>;
+
+    /**
+     * Get the entire cache as a map.
+     * @returns {Map<UUID, T>}
+     */
+    allValuesAsMap<T>(): Map<UUID, T>;
 
     /**
      * Remove/delete an object into the cache.
@@ -67,7 +72,6 @@ export interface BusCache<T> {
      * @param {S} state you want to be sent to subscribers notifying cache deletion.
      */
     remove<S>(id: UUID,  state: S): boolean;
-
 
     /**
      * Send a mutation request to any subscribers handling mutations.
@@ -91,7 +95,7 @@ export interface BusCache<T> {
      * @param {S} stateChangeType the state change type you wish to listen to
      * @returns {CacheStream<T>} stream that will tick the object you're listening for.
      */
-    notifyOnChange<S, T>(id: UUID, ...stateChangeType: S[]): CacheStream<T>;
+    onChange<S, T>(id: UUID, ...stateChangeType: S[]): CacheStream<T>;
 
     /**
      * Subscribe to state changes for all objects of a specific type and state change
@@ -102,7 +106,7 @@ export interface BusCache<T> {
      * @param {S} stateChangeType the state change type you with to listen to
      * @returns {CacheStream<T>} stream that will tick the object you're listening for.
      */
-    notifyOnAllChanges<S, T>(objectType: T, ...stateChangeType: S[]): CacheStream<T>;
+    onAllChanges<S, T>(objectType: T, ...stateChangeType: S[]): CacheStream<T>;
 
     /**
      * Subscribe to mutation requests via mutate()
@@ -110,13 +114,13 @@ export interface BusCache<T> {
      * @param {M} mutationType optional mutation type
      * @returns {CacheStream<T>} stream that will tick mutation requests you're listening for.
      */
-    notifyOnMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): CacheStream<T>;
+    onMutationRequest<T, M = any>(objectType: T, ...mutationType: M[]): CacheStream<T>;
 
     /**
      * Notify when the cache has been initialized (via populateCache() or setInitialized()
      * @param {MessageFunction<boolean>} readyFunction
      */
-    notifyOnCacheReady(readyFunction: MessageFunction<boolean>): void;
+    whenCacheReady(readyFunction: MessageFunction<boolean>): void;
 
     /**
      * Flip an internal bit to set the cache to ready, notify all watchers.

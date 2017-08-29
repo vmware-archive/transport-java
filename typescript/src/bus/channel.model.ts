@@ -90,7 +90,6 @@ export class Channel {
     }
 
     increment(): number {
-
         return ++this._refCount;
     }
 
@@ -98,6 +97,7 @@ export class Channel {
         if (this._refCount > 0) {
             --this._refCount;
         }
+
         return this._refCount;
     }
 

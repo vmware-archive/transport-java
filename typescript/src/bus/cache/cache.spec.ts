@@ -60,7 +60,7 @@ describe('BusCache [cache/cache]', () => {
     it('check remove() works correctly', (done) => {
         const cache: BusCache<string> = bus.getCache('string');
 
-        cache.notifyOnChange<State.Deleted, string>('123', State.Deleted)
+        cache.onChange<State.Deleted, string>('123', State.Deleted)
             .subscribe(
                 (s: string) => {
                     expect(s).toEqual('chickie & fox');
@@ -116,7 +116,27 @@ describe('BusCache [cache/cache]', () => {
         expect(cache.retrieve('456')).toBeUndefined();
     });
 
-    it('check notifyOnChange() works correctly', (done) => {
+    it('check allValuesAsMap() works correctly', () => {
+        const cache: BusCache<string> = bus.getCache('string');
+
+        cache.encache('123', 'tip top', State.Created);
+        cache.encache('456', 'clip clop', State.Created);
+
+        const map = cache.allValuesAsMap();
+
+        expect(map.size).toEqual(2);
+        expect(map.get('123')).toEqual('tip top');
+        expect(map.get('456')).toEqual('clip clop');
+
+        /* check motification does not alter cache */
+        map.set('123', 'bacon!');
+
+        expect(cache.allValuesAsMap().get('123')).not.toEqual('bacon!');
+        expect(cache.allValuesAsMap().get('123')).toEqual('tip top');
+
+    });
+
+    it('check onChange() works correctly', (done) => {
 
         const cache: BusCache<string> = bus.createCache('Dog');
 
@@ -128,7 +148,7 @@ describe('BusCache [cache/cache]', () => {
             commonPhrase: string;
         }
 
-        cache.notifyOnChange<State.Created, Dog>('magnum', State.Created)
+        cache.onChange<State.Created, Dog>('magnum', State.Created)
             .subscribe(
                 (d: Dog) => {
                     expect(d.name).toEqual('maggie');
@@ -138,7 +158,7 @@ describe('BusCache [cache/cache]', () => {
                 }
             );
 
-        cache.notifyOnChange<State.Updated, Dog>('fox', State.Updated)
+        cache.onChange<State.Updated, Dog>('fox', State.Updated)
             .subscribe(
                 (d: Dog) => {
                     expect(d.name).toEqual('foxy pop');
@@ -148,7 +168,7 @@ describe('BusCache [cache/cache]', () => {
                 }
             );
 
-        cache.notifyOnChange<State.Deleted, Dog>('cotton', State.Deleted)
+        cache.onChange<State.Deleted, Dog>('cotton', State.Deleted)
             .subscribe(
                 (d: Dog) => {
                     expect(d.name).toEqual('chickie');
@@ -179,21 +199,21 @@ describe('BusCache [cache/cache]', () => {
 
     });
 
-    it('check notifyOnAllChanges() works correctly', (done) => {
+    it('check onAllChanges() works correctly', (done) => {
 
         const cache: BusCache<Dog> = bus.createCache('Dog');
 
         let counter: number = 0;
 
 
-        cache.notifyOnAllChanges<State.Created, Dog>(new Dog(), State.Created)
+        cache.onAllChanges<State.Created, Dog>(new Dog(), State.Created)
             .subscribe(
                 (d: Dog) => {
                     counter++;
                 }
             );
 
-        cache.notifyOnAllChanges<State.Updated, Dog>(new Dog(), State.Updated)
+        cache.onAllChanges<State.Updated, Dog>(new Dog(), State.Updated)
             .subscribe(
                 (d: Dog) => {
                     counter++;
@@ -241,7 +261,7 @@ describe('BusCache [cache/cache]', () => {
 
     });
 
-    it('check notifyOnAllChanges() works correctly with multiple states', (done) => {
+    it('check onAllChanges() works correctly with multiple states', (done) => {
 
         const cache: BusCache<Dog> = bus.createCache('Dog');
 
@@ -270,7 +290,7 @@ describe('BusCache [cache/cache]', () => {
 
     });
 
-    it('check notifyOnAllChanges() works correctly with all states', (done) => {
+    it('check onAllChanges() works correctly with all states', (done) => {
 
         const cache: BusCache<Dog> = bus.createCache('Dog');
 
@@ -311,7 +331,7 @@ describe('BusCache [cache/cache]', () => {
         let d: Dog = new Dog('maggie', 12, 'get the kitty');
         cache.encache('magnum', d, State.Created);
 
-        cache.notifyOnMutationRequest<Dog, Mutate.Update>(new Dog(), Mutate.Update)
+        cache.onMutationRequest<Dog, Mutate.Update>(new Dog(), Mutate.Update)
             .subscribe(
                 (dog: Dog) => {
                     expect(dog.dogName).toEqual('maggie');
@@ -325,7 +345,7 @@ describe('BusCache [cache/cache]', () => {
                 }
             );
 
-        cache.notifyOnChange<State.Updated, Dog>('magnum', State.Updated)
+        cache.onChange<State.Updated, Dog>('magnum', State.Updated)
             .subscribe(
                 (dog: Dog) => {
                     expect(dog.dogName).toEqual('maggles');
@@ -345,7 +365,7 @@ describe('BusCache [cache/cache]', () => {
         let d: Dog = new Dog('chicken', 6, 'go find the kitty');
         cache.encache('cotton', d, State.Created);
 
-        const stream = cache.notifyOnMutationRequest<Dog, Mutate.Update>(new Dog(), Mutate.Update);
+        const stream = cache.onMutationRequest<Dog, Mutate.Update>(new Dog(), Mutate.Update);
 
         stream.subscribe(
             (dog: Dog) => {
@@ -366,11 +386,11 @@ describe('BusCache [cache/cache]', () => {
     });
 
 
-    it('check notifyOnCacheReady() and cacheInitialized() work.', (done) => {
+    it('check whenCacheReady() and cacheInitialized() work.', (done) => {
 
         const cache: BusCache<Dog> = bus.createCache('Dog');
 
-        cache.notifyOnCacheReady(
+        cache.whenCacheReady(
             () => {
                 expect(cache.allValues().length).toEqual(1);
                 done();
@@ -383,11 +403,11 @@ describe('BusCache [cache/cache]', () => {
 
     });
 
-    it('check notifyOnCacheReady() and populateCache() work.', (done) => {
+    it('check whenCacheReady() and populateCache() work.', (done) => {
 
         const cache: BusCache<Dog> = bus.createCache('Dog');
 
-        cache.notifyOnCacheReady(
+        cache.whenCacheReady(
             () => {
                 expect(cache.allValues().length).toEqual(3);
                 expect(cache.retrieve<Dog>('cotton').dogPhrase).toEqual('go find the kitty');
@@ -442,5 +462,5 @@ function listen<T, B>(cache: BusCache<B>, ...things: T[]): CacheStream<B> {
     let arr = new Array<any>();
     arr.push(new Dog());
     arr = arr.concat(things);
-    return cache.notifyOnAllChanges.apply(cache, arr);
+    return cache.onAllChanges.apply(cache, arr);
 }

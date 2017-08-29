@@ -52,6 +52,16 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         return Array.from(this.cache.values());
     }
 
+    allValuesAsMap<T>(): Map<UUID, T> {
+        let copy: Map<UUID, T> = new Map<UUID, T>();
+        this.cache.forEach(
+            (val: T, key: UUID) => {
+                copy.set(key, val);
+            }
+        );
+        return copy;
+    }
+
     populateCache<T>(items: Map<UUID, T>): boolean {
         if (this.cache.size === 0) {
             this.cacheInitialized();
@@ -80,7 +90,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         return false;
     }
 
-    notifyOnChange<S, T>(id: UUID, ...stateChangeType: S[]): CacheStream<T> {
+    onChange<S, T>(id: UUID, ...stateChangeType: S[]): CacheStream<T> {
 
         const stream: Observable<CacheStateChange<S, T>> =
             this.bus.getChannel(CacheImpl.getObjectChannel(id), this.getName())
@@ -107,7 +117,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         return new CacheStreamImpl<T>(filterStream);
     }
 
-    notifyOnAllChanges<T, S>(objectType: T, ...stateChangeType: S[]): CacheStream<T> {
+    onAllChanges<T, S>(objectType: T, ...stateChangeType: S[]): CacheStream<T> {
 
         const stream: Observable<CacheStateChange<S, T>> =
             this.bus.getChannel(this.cacheStreamChan, this.getName())
@@ -157,7 +167,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         return true;
     }
 
-    notifyOnMutationRequest<T, M>(objectType: T, ...mutationType: M[]): CacheStream<T> {
+    onMutationRequest<T, M>(objectType: T, ...mutationType: M[]): CacheStream<T> {
 
         const stream: Observable<CacheStateMutation<M, T>> =
             this.bus.getChannel(this.cacheMutationChan, this.getName())
@@ -191,7 +201,7 @@ export class CacheImpl<T> implements BusCache<T>, MessageBusEnabled {
         this.cache.clear();
     }
 
-    notifyOnCacheReady(readyFunction: MessageFunction<boolean>): void {
+    whenCacheReady(readyFunction: MessageFunction<boolean>): void {
         setTimeout(
             () => {
                 if (this.initialized) {

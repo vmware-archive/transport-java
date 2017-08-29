@@ -6,23 +6,15 @@ import { Channel } from './channel.model';
 import { LogUtil } from '../log/util';
 import { LoggerService } from '../log/logger.service';
 import { LogLevel } from '../log/logger.model';
-import { MonitorChannel, MonitorObject, MonitorType } from './monitor.model';
-import { Message,
-    MessageFunction,
-    MessageHandler,
-    MessageHandlerConfig,
-    MessageResponder,
-    MessageType
-} from './message.model';
-import { Observable, Subject, Subscription } from 'rxjs';
-import { ErrorSchema, MessageSchema } from './message.schema';
-import { BusCache } from './cache/cache.api';
+import { MonitorObject, MonitorType, MonitorChannel } from './monitor.model';
+import { Message, MessageHandlerConfig, MessageResponder, MessageHandler, MessageType } from './message.model';
+import { Subject, Subscription, Observable } from 'rxjs';
+import { MessageSchema, ErrorSchema } from './message.schema';
 import { CacheImpl } from './cache/cache';
-import { CacheType, UUID } from './cache/cache.model';
-import { StompBusCommand, StompChannel, StompConfig } from '../bridge/stomp.model';
-import { StompClient } from '../index';
-import { StompParser } from '../bridge/stomp.parser';
+import { BusCache } from './cache/cache.api';
 import 'rxjs/add/operator/merge';
+import { CacheType, UUID } from './cache/cache.model';
+
 
 // import * as Ajv from 'ajv';
 
@@ -32,7 +24,6 @@ import 'rxjs/add/operator/merge';
  * https://confluence.eng.vmware.com/pages/viewpage.action?pageId=214302828
  *
  */
-
 
 export abstract class MessageBusEnabled {
     abstract getName(): string;
@@ -45,6 +36,7 @@ export class MessagebusService implements MessageBusEnabled {
     private monitorStream: Channel;
     private dumpMonitor: boolean;
     private _channelMap: Map<string, Channel>;
+
 
     private cacheMap: Map<string, BusCache<any>>;
 
@@ -62,7 +54,6 @@ export class MessagebusService implements MessageBusEnabled {
 
         this.enableMonitorDump(false);
         this.monitorBus();
-
         this.cacheMap = new Map<CacheType, BusCache<any>>();
     }
 
@@ -90,6 +81,7 @@ export class MessagebusService implements MessageBusEnabled {
         }
         return false;
     }
+
 
     public getName() {
         return 'MessagebusService';
@@ -211,9 +203,6 @@ export class MessagebusService implements MessageBusEnabled {
     public getGalacticChannel(cname: string, from: string): Observable<Message> {
         return this.getChannelObject(cname, from)
             .setGalactic().stream
-            .filter((message: Message) => {
-                return message.isResponse();
-            })
             .map(
                 (msg: Message) => {
                     if (msg.payload.hasOwnProperty('_sendChannel')) {
@@ -229,44 +218,6 @@ export class MessagebusService implements MessageBusEnabled {
         return this.listenStream(cname, name);
     }
 
-    /**
-     * Connect the bridge and bus to a broker! LET'S GET GALACTIC!
-     * @param {MessageFunction<boolean>} readyHandler notify once bridge is connected
-     * @param {string} endpoint broker endpoint
-     * @param {string} host broker host
-     * @param {number} port broker port
-     * @param {string} user username (if using rabbit)
-     * @param {string} pass (if using rabbit)
-     * @param {boolean} useSSL use secure sockets?
-     */
-    public connectBridge(readyHandler: MessageFunction<boolean>,
-                         endpoint: string,
-                         host?: string,
-                         port?: number,
-                         user?: string,
-                         pass?: string,
-                         useSSL?: boolean): void {
-
-        const config: StompConfig = StompConfig.generate(
-            endpoint,
-            host,
-            port,
-            useSSL,
-            user,
-            pass
-        );
-
-        this.requestOnce(
-            StompChannel.connection,
-            StompParser.generateStompBusCommand(StompClient.STOMP_CONNECT, '', '', config),
-        ).handle(
-            (command: StompBusCommand) => {
-                if (command.command === StompClient.STOMP_CONNECTED) {
-                    readyHandler(true);
-                }
-            }
-        );
-    }
 
     /**
      * Returns true if a channel is Galactic. Galactic status requires a bit flipped on the channel object.
@@ -301,11 +252,11 @@ export class MessagebusService implements MessageBusEnabled {
             channel = new Channel(cname);
             this._channelMap.set(cname, channel);
             symbol = ' +++ ';
-            let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, cname, from, symbol);
-            this.monitorStream.send(new Message().request(mo));
-
         }
 
+
+        let mo = new MonitorObject().build(MonitorType.MonitorNewChannel, cname, from, symbol);
+        this.monitorStream.send(new Message().request(mo));
         channel.increment();
         return channel;
     }
@@ -421,22 +372,6 @@ export class MessagebusService implements MessageBusEnabled {
             .send(message);
 
         return true;
-    }
-
-    /**
-     * Fire a galactic send notification to the montitor like it was a regular send on Observable. The
-     * bridge will then pick this up and send a packet down the wire.
-     *
-     * @param {string} cname galactic channel name to send to
-     * @param payload payload of message
-     * @param {MessageSchema} schema
-     */
-    public sendGalacticMessage(cname: string, payload: any, schema = new MessageSchema()): void {
-        // let bridge know galactic payload needs to be sent.
-
-        console.log('sending to galactic channel: ' + cname, payload);
-        let mo = new MonitorObject().build(MonitorType.MonitorGalacticData, cname, this.getName(), payload);
-        this.monitorStream.send(new Message().request(mo));
     }
 
     /**
@@ -1013,10 +948,6 @@ export class MessagebusService implements MessageBusEnabled {
 
                                 case MonitorType.MonitorDestroyChannel:
                                     this.log.info('XXX ' + mo.channel, mo.from);
-                                    break;
-
-                                case MonitorType.MonitorGalacticData:
-                                    this.log.info('[***] galactic send: ' + mo.channel, mo.from);
                                     break;
 
                                 case MonitorType.MonitorData:
