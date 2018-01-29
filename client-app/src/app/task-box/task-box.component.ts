@@ -63,7 +63,7 @@ export class TaskBoxComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         this.taskHandler.close();
-        this.bus.close(this.channel, "task-box");
+        this.bus.api.close(this.channel, "task-box");
     }
     requestTask() {
         this.running = true;

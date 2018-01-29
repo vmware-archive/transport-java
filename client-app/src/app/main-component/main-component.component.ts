@@ -34,12 +34,13 @@ export class MainComponentComponent implements OnInit {
                 this.tellEveryoneTheBridgeIsReady();
             },
             '/bifrost',
+            '/topic',
+            '/queue',
+            1,
             'localhost',
-            8080,
-            "test",
-            "password",
-            false
+            8080
         );
     }
+
 }
 

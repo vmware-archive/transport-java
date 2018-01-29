@@ -72,7 +72,7 @@ export class MetricsChartComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         this.metricsHandler.close();
-        this.bus.close(this.metricsChannel, 'metrics-chart');
+        this.bus.api.close(this.metricsChannel, 'metrics-chart');
     }
 
     buildResultArray() {
