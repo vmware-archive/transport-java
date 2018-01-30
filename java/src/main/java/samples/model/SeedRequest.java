@@ -2,8 +2,6 @@ package samples.model;
 
 import io.swagger.client.model.Seed;
 
-import java.util.List;
-
 public class SeedRequest extends AbstractRequest<SeedRequest.Type, Seed> {
 
     public enum Type {
@@ -12,12 +10,20 @@ public class SeedRequest extends AbstractRequest<SeedRequest.Type, Seed> {
         KillPlant
     }
 
-    public SeedRequest(Type type, List<Seed> payload) {
+    public SeedRequest(Type type) {
+        this(type, null, 1);
+    }
+
+    public SeedRequest(Type type, Seed payload) {
         this(type, payload, 1);
     }
 
-    public SeedRequest(Type type, List<Seed> payload, Integer version) {
-        super(version);
+    public SeedRequest(Type type, Seed payload, Integer version) {
+        super(type, payload, version);
+    }
+
+    public String toString() {
+        return "SeedRequest: " + this.getType().toString();
     }
 
 }

@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.UUID;
 
 public abstract class AbstractResponse<RespT> extends AbstractFrame {
+
+    protected List<RespT> payload;
+
     public AbstractResponse(Integer version) {
         super(version);
     }
-    protected List<RespT> payload;
 
     public AbstractResponse(UUID uuid, List<RespT> payload) {
         this(uuid, payload, 1);

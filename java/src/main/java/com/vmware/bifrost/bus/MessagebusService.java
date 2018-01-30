@@ -3,15 +3,13 @@ package com.vmware.bifrost.bus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import com.vmware.bifrost.AbstractService;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
+import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.model.*;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.subjects.Subject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import io.reactivex.Observable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -32,7 +30,7 @@ import static com.vmware.bifrost.bus.model.MonitorChannel.*;
 
 @SuppressWarnings("unchecked")
 @Component
-public class MessagebusService {
+public class MessagebusService extends Loggable {
 
     @Autowired
     private ApplicationContext context;
@@ -46,23 +44,16 @@ public class MessagebusService {
     private Channel monitorStream;
     private String monitorChannel;
     private boolean dumpMonitor;
-    private Logger logger;
 
     private JsonSchema schema;
     private ObjectMapper mapper;
     private JsonSchemaGenerator schemaGen;
-
-    protected String getName() {
-        return this.getClass().getTypeName();
-    }
 
     public MessagebusService() throws Exception {
 
         this.mapper = new ObjectMapper();
         this.schemaGen = new JsonSchemaGenerator(mapper);
         this.schema = schemaGen.generateSchema(MessageSchema.class);
-
-        logger = LoggerFactory.getLogger(MessagebusService.class);
         this.channelMap = new HashMap<>();
         this.monitorChannel = stream;
         this.monitorStream = new Channel(this.monitorChannel);
@@ -78,7 +69,8 @@ public class MessagebusService {
     }
 
     public void init() {
-        logger.info("\uD83C\uDF08 Starting Bifröst");
+        this.logBannerMessage("\uD83C\uDF08","Starting Bifröst");
+        this.logWarnMessage("The Villagers Are Here.");
         Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostService.class);
         for (Map.Entry<String, Object> entry : peerBeans.entrySet()) {
             Object value = entry.getValue();
@@ -128,8 +120,6 @@ public class MessagebusService {
         if (!this.channelMap.containsKey(cname)) {
             return;
         }
-
-        logger.debug("[!] Bifröst Bus: channel closing '" + cname + "'");
 
         Channel channel = this.channelMap.get(cname);
         channel.decrement();
@@ -183,6 +173,8 @@ public class MessagebusService {
             case MessageTypeError:
                 type = MonitorType.MonitorError;
         }
+
+        this.logDebugMessage("Sending request to " + channel + " for ", messageObject.getPayload().toString());
 
         mo = new MonitorObject(type, channel, from, messageObject);
         this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
@@ -374,7 +366,6 @@ public class MessagebusService {
 
     public BusTransaction listenStream(String channel,
                                        Consumer<Message> successHandler) {
-
         return this.listenStream(channel, null, successHandler, null);
     }
 
@@ -391,7 +382,7 @@ public class MessagebusService {
         config.setSendChannel(channel);
         config.setSchema(schema);
 
-        MessageHandler messageHandler = this.createMessageHandler(config, false);
+        MessageHandler messageHandler = this.createMessageHandler(config, true);
         Disposable sub = messageHandler.handle(successHandler, errorHandler);
 
         return new BusHandlerTransaction(sub, messageHandler);
