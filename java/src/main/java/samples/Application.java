@@ -1,7 +1,7 @@
 package samples;
 
 /*
- * Copyright(c) VMware Inc. 2017
+ * Copyright(c) VMware Inc. 2017-2018
  */
 
 import com.vmware.bifrost.bus.MessagebusService;
@@ -25,18 +25,8 @@ import org.springframework.context.annotation.ComponentScan;
 })
 public class Application {
 
-    @Autowired
-    private MessagebusService bus;
-
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
-    }
-
-    @Bean
-    public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
-        return args -> {
-
-        };
     }
 
 }

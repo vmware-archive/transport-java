@@ -5,7 +5,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.vmware.bifrost.AbstractService;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
-import com.vmware.bifrost.bridge.spring.BifrostPeer;
+import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.model.*;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -32,7 +32,7 @@ import static com.vmware.bifrost.bus.model.MonitorChannel.*;
 
 @SuppressWarnings("unchecked")
 @Component
-public class MessagebusService extends AbstractService {
+public class MessagebusService {
 
     @Autowired
     private ApplicationContext context;
@@ -52,9 +52,11 @@ public class MessagebusService extends AbstractService {
     private ObjectMapper mapper;
     private JsonSchemaGenerator schemaGen;
 
-    public MessagebusService() throws Exception {
+    protected String getName() {
+        return this.getClass().getTypeName();
+    }
 
-        System.out.println("CREATING NEW BUS SERVICE");
+    public MessagebusService() throws Exception {
 
         this.mapper = new ObjectMapper();
         this.schemaGen = new JsonSchemaGenerator(mapper);
@@ -76,8 +78,8 @@ public class MessagebusService extends AbstractService {
     }
 
     public void init() {
-        logger.info(":-) Starting Bifröst");
-        Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostPeer.class);
+        logger.info("\uD83C\uDF08 Starting Bifröst");
+        Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostService.class);
         for (Map.Entry<String, Object> entry : peerBeans.entrySet()) {
             Object value = entry.getValue();
             if (value instanceof BifrostEnabled) {

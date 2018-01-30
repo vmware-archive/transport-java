@@ -1,7 +1,7 @@
 package samples;
 
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
-import com.vmware.bifrost.bridge.spring.BifrostPeer;
+import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.MessagebusService;
 import com.vmware.bifrost.bus.model.Message;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 import samples.model.Task;
 
 @Component
-@BifrostPeer
+@BifrostService
 public class LongTaskService implements BifrostEnabled {
 
     @Autowired
