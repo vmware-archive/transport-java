@@ -172,18 +172,17 @@ public class SeedApi {
     }
     /**
      * Build call for killPlant
-     * @param seedId The ID of the seed (of the plant) you want to kill. (required)
+     * @param body Kill a plant from the garden (required)
      * @param progressListener Progress listener
      * @param progressRequestListener Progress request listener
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call killPlantCall(String seedId, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
-        Object localVarPostBody = null;
+    public com.squareup.okhttp.Call killPlantCall(Seed body, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        Object localVarPostBody = body;
         
         // create path and map variables
-        String localVarPath = "/seed/{seedId}"
-            .replaceAll("\\{" + "seedId" + "\\}", apiClient.escapeString(seedId.toString()));
+        String localVarPath = "/seed";
 
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
 
@@ -220,15 +219,15 @@ public class SeedApi {
     }
     
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call killPlantValidateBeforeCall(String seedId, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call killPlantValidateBeforeCall(Seed body, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         
-        // verify the required parameter 'seedId' is set
-        if (seedId == null) {
-            throw new ApiException("Missing the required parameter 'seedId' when calling killPlant(Async)");
+        // verify the required parameter 'body' is set
+        if (body == null) {
+            throw new ApiException("Missing the required parameter 'body' when calling killPlant(Async)");
         }
         
         
-        com.squareup.okhttp.Call call = killPlantCall(seedId, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = killPlantCall(body, progressListener, progressRequestListener);
         return call;
 
         
@@ -238,36 +237,36 @@ public class SeedApi {
     }
 
     /**
-     * Kill a plant / destroy a seed
+     * Kill a plant
      * 
-     * @param seedId The ID of the seed (of the plant) you want to kill. (required)
+     * @param body Kill a plant from the garden (required)
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public void killPlant(String seedId) throws ApiException {
-        killPlantWithHttpInfo(seedId);
+    public void killPlant(Seed body) throws ApiException {
+        killPlantWithHttpInfo(body);
     }
 
     /**
-     * Kill a plant / destroy a seed
+     * Kill a plant
      * 
-     * @param seedId The ID of the seed (of the plant) you want to kill. (required)
+     * @param body Kill a plant from the garden (required)
      * @return ApiResponse&lt;Void&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Void> killPlantWithHttpInfo(String seedId) throws ApiException {
-        com.squareup.okhttp.Call call = killPlantValidateBeforeCall(seedId, null, null);
+    public ApiResponse<Void> killPlantWithHttpInfo(Seed body) throws ApiException {
+        com.squareup.okhttp.Call call = killPlantValidateBeforeCall(body, null, null);
         return apiClient.execute(call);
     }
 
     /**
-     * Kill a plant / destroy a seed (asynchronously)
+     * Kill a plant (asynchronously)
      * 
-     * @param seedId The ID of the seed (of the plant) you want to kill. (required)
+     * @param body Kill a plant from the garden (required)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call killPlantAsync(String seedId, final ApiCallback<Void> callback) throws ApiException {
+    public com.squareup.okhttp.Call killPlantAsync(Seed body, final ApiCallback<Void> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -288,7 +287,7 @@ public class SeedApi {
             };
         }
 
-        com.squareup.okhttp.Call call = killPlantValidateBeforeCall(seedId, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = killPlantValidateBeforeCall(body, progressListener, progressRequestListener);
         apiClient.executeAsync(call, callback);
         return call;
     }
@@ -362,22 +361,25 @@ public class SeedApi {
      * Plant a new seed
      * 
      * @param body Plant a new seed in the garden (required)
+     * @return Seed
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public void plantSeed(Seed body) throws ApiException {
-        plantSeedWithHttpInfo(body);
+    public Seed plantSeed(Seed body) throws ApiException {
+        ApiResponse<Seed> resp = plantSeedWithHttpInfo(body);
+        return resp.getData();
     }
 
     /**
      * Plant a new seed
      * 
      * @param body Plant a new seed in the garden (required)
-     * @return ApiResponse&lt;Void&gt;
+     * @return ApiResponse&lt;Seed&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Void> plantSeedWithHttpInfo(Seed body) throws ApiException {
+    public ApiResponse<Seed> plantSeedWithHttpInfo(Seed body) throws ApiException {
         com.squareup.okhttp.Call call = plantSeedValidateBeforeCall(body, null, null);
-        return apiClient.execute(call);
+        Type localVarReturnType = new TypeToken<Seed>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);
     }
 
     /**
@@ -388,7 +390,7 @@ public class SeedApi {
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call plantSeedAsync(Seed body, final ApiCallback<Void> callback) throws ApiException {
+    public com.squareup.okhttp.Call plantSeedAsync(Seed body, final ApiCallback<Seed> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -410,7 +412,8 @@ public class SeedApi {
         }
 
         com.squareup.okhttp.Call call = plantSeedValidateBeforeCall(body, progressListener, progressRequestListener);
-        apiClient.executeAsync(call, callback);
+        Type localVarReturnType = new TypeToken<Seed>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
     }
 }

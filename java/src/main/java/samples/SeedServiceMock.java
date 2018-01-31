@@ -31,14 +31,49 @@ public class SeedServiceMock extends SeedService implements ApplicationListener<
         if (!this.mockFail) {
             List<Seed> result = mockModel.seed;
 
-            this.logDebugMessage("Mock API call success for getSeeds()", String.valueOf(result.size()));
+            this.logDebugMessage("Mock API call success","getSeeds()");
             this.sendResponse(new SeedResponse(request.getUuid(), result));
 
         } else {
             this.apiFailedHandler(
-                    new SeedResponse(request.getUuid(), null),
-                    new ApiException(),
+                    new SeedResponse(request.getUuid(), true),
+                    new ApiException("Mock API call failed"),
                     "getSeeds()");
+        }
+    }
+
+    @Override
+    protected void plantSeed(SeedRequest request) {
+        this.logDebugMessage("Running Mock API Method", "plantSeed()");
+
+        if (!this.mockFail) {
+            List<Seed> result = mockModel.seed.subList(0, 1);
+
+            this.logDebugMessage("Mock API call success","plantSeed()");
+            this.sendResponse(new SeedResponse(request.getUuid(), result));
+
+        } else {
+            this.apiFailedHandler(
+                    new SeedResponse(request.getUuid(), true),
+                    new ApiException("Mock API call failed"),
+                    "plantSeed()");
+        }
+    }
+
+    @Override
+    protected void killPlant(SeedRequest request) {
+        this.logDebugMessage("Running Mock API Method", "killPlant()");
+
+        if (!this.mockFail) {
+
+            this.logDebugMessage("Mock API call success","killPlant()");
+            this.sendResponse(new SeedResponse(request.getUuid(), null));
+
+        } else {
+            this.apiFailedHandler(
+                    new SeedResponse(request.getUuid(), true),
+                    new ApiException("Mock API call failed"),
+                    "killPlant()");
         }
     }
 }

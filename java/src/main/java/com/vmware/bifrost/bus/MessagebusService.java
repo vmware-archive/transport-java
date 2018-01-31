@@ -173,7 +173,7 @@ public class MessagebusService extends Loggable {
                 type = MonitorType.MonitorError;
         }
 
-        this.logTraceMessage("Sending request to " + channel + " for ", messageObject.getPayload().toString());
+        this.logTraceMessage("Sending payload to channel '" + channel + "'", messageObject.getPayload().toString());
 
         mo = new MonitorObject(type, channel, from, messageObject);
         this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));

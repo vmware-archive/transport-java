@@ -1,4 +1,4 @@
-package com.vmware.bifrost;
+package samples;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
@@ -37,7 +37,7 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
     private String serviceChannel;
     private BusTransaction serviceTransaction;
     private Resource res;
-    protected boolean mockFail = false;
+    public boolean mockFail = false;
 
     public AbstractService(String serviceChannel) {
         super();
@@ -55,7 +55,10 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
         this.serviceTransaction = this.bus.listenStream(this.serviceChannel,
                 (Message message) -> {
 
-                    this.logInfoMessage("\uD83D\uDCE5","Service Request Received",message.getPayload().toString());
+                    this.logInfoMessage(
+                            "\uD83D\uDCE5",
+                            "Service Request Received",
+                            message.getPayload().toString());
                     this.handleServiceRequest((ReqT)message.getPayload());
                 }
         );
@@ -72,6 +75,10 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
     public abstract void handleServiceRequest(ReqT request);
 
     public void sendResponse(RespT response) {
+        this.logInfoMessage(
+                "\uD83D\uDCE4",
+                "Sending Service Response",
+                response.toString());
         this.bus.sendResponse(this.serviceChannel, response);
     }
 

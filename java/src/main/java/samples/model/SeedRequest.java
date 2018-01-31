@@ -22,8 +22,9 @@ public class SeedRequest extends AbstractRequest<SeedRequest.Type, Seed> {
         super(type, payload, version);
     }
 
+    @Override
     public String toString() {
-        return "SeedRequest: " + this.getType().toString();
+        return "Seed Request: (" + this.getType() + ") [" + this.getUuid() + "]";
     }
 
 }

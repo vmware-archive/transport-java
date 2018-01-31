@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Seed
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2018-01-30T03:40:51.539Z")
+@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaClientCodegen", date = "2018-01-31T20:50:30.452Z")
 public class Seed {
   @SerializedName("id")
   private Long id = null;
@@ -86,6 +86,11 @@ public class Seed {
   @SerializedName("type")
   private TypeEnum type = null;
 
+  public Seed id(Long id) {
+    this.id = id;
+    return this;
+  }
+
    /**
    * Get id
    * @return id
@@ -93,6 +98,10 @@ public class Seed {
   @ApiModelProperty(value = "")
   public Long getId() {
     return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
   }
 
    /**

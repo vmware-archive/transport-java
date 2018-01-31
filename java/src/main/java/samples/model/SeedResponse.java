@@ -29,5 +29,9 @@ public class SeedResponse extends AbstractResponse<Seed> {
         super(uuid, payload, version);
     }
 
+    @Override
+    public String toString() {
+        return "Seed Response: (" + this.getUuid() + ")";
+    }
 }
 

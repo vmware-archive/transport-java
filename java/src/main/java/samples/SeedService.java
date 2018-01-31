@@ -1,6 +1,5 @@
 package samples;
 
-import com.vmware.bifrost.AbstractService;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.SeedApi;
 import io.swagger.client.model.Seed;
@@ -10,14 +9,13 @@ import samples.model.SeedRequest;
 import samples.model.SeedResponse;
 
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service("seedService")
 @Profile("prod")
 public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
 
-    public static String Channel = "service-seedservice";
+    public static String Channel = "service-seed";
 
     protected SeedApi seedApi;
 
@@ -34,15 +32,13 @@ public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
                 break;
 
             case PlantSeed:
-//                this.plantSeed(request);
+                this.plantSeed(request);
                 break;
 
             case KillPlant:
-//                this.killPlant(request);
+                this.killPlant(request);
                 break;
 
-            default:
-                break;
         }
     }
 
@@ -51,7 +47,7 @@ public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
         try {
 
             List<Seed> result = this.seedApi.getSeeds();
-            this.logDebugMessage("API call success for getSeeds()", String.valueOf(result.size()));
+            this.logDebugMessage("API call success for","getSeeds()");
             this.sendResponse(new SeedResponse(request.getUuid(), result));
 
         } catch (ApiException e) {
@@ -60,35 +56,31 @@ public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
 
     }
 
-    private void plantSeed(SeedRequest request) {
+    protected void plantSeed(SeedRequest request) {
+        super.logDebugMessage("Running API Method", "plantSeed()");
         try {
+
             this.seedApi.plantSeed(request.getPayload());
-
-            List<Seed> seeds = new ArrayList<>();
-            seeds.add(request.getPayload());
-
-            this.sendResponse(new SeedResponse(request.getUuid(), seeds));
+            this.logDebugMessage("API call success for","plantSeed()");
+            this.sendResponse(new SeedResponse(request.getUuid(), null));
 
         } catch (ApiException e) {
-
-            this.sendError("unable to call SeedApi#plantSeed()");
-            e.printStackTrace();
+            this.apiFailedHandler(new SeedResponse(request.getUuid(), null), e, "plantSeed()");
         }
+
     }
 
-    private void killPlant(SeedRequest request) {
+    protected void killPlant(SeedRequest request) {
+        super.logDebugMessage("Running API Method", "killPlant()");
         try {
-            this.seedApi.killPlant(request.getPayload().getId().toString());
 
-            List<Seed> seeds = new ArrayList<>();
-            seeds.add(request.getPayload());
-
-            this.sendResponse(new SeedResponse(request.getUuid(), seeds));
+            this.seedApi.killPlant(request.getPayload());
+            this.logDebugMessage("API call success for","killPlant()");
+            this.sendResponse(new SeedResponse(request.getUuid(), null));
 
         } catch (ApiException e) {
-
-            this.sendError("unable to call SeedApi#killPlant()");
-            e.printStackTrace();
+            this.apiFailedHandler(new SeedResponse(request.getUuid(), null), e, "killPlant()");
         }
+
     }
 }
