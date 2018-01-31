@@ -4,23 +4,26 @@ import com.vmware.bifrost.AbstractService;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.SeedApi;
 import io.swagger.client.model.Seed;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import samples.model.SeedRequest;
 import samples.model.SeedResponse;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
+@Service("seedService")
+@Profile("prod")
 public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
 
     public static String Channel = "service-seedservice";
 
-    private SeedApi seedApi;
+    protected SeedApi seedApi;
 
-    public SeedService() {
+    public SeedService(SeedApi seedApi) {
         super(SeedService.Channel);
-        this.seedApi = new SeedApi();
+        this.seedApi = seedApi;
     }
 
     @Override
@@ -43,13 +46,11 @@ public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
         }
     }
 
-    private void getSeeds(SeedRequest request) {
+    protected void getSeeds(SeedRequest request) {
         super.logDebugMessage("Running API Method", "getSeeds()");
-        List<Seed> result;
         try {
 
-            result = this.seedApi.getSeeds();
-
+            List<Seed> result = this.seedApi.getSeeds();
             super.logDebugMessage("API call success for getSeeds()", String.valueOf(result.size()));
             this.sendResponse(new SeedResponse(request.getUuid(), result));
 

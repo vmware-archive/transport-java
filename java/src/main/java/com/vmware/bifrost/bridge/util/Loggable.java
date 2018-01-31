@@ -5,14 +5,14 @@ import org.slf4j.LoggerFactory;
 
 public abstract class Loggable {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected final Logger logger;
 
     public String getName() {
         return this.getClass().getName();
     }
 
     public Loggable() {
-
+        logger = LoggerFactory.getLogger(this.getClass());
     }
 
     protected void logInfoMessage(String emoji, String message, String value){
@@ -25,6 +25,10 @@ public abstract class Loggable {
 
     protected void logDebugMessage(String message, String value){
         logger.debug("\uD83D\uDD39  \u001b[38;5;245m{}: \u001b[35m{}\u001b[0m", message.trim(), value.trim());
+    }
+
+    protected void logDebugMessage(String message){
+        logger.debug("\uD83D\uDD39  \u001b[38;5;245m{}\u001b[0m", message.trim());
     }
 
     protected void logTraceMessage(String message, String value){

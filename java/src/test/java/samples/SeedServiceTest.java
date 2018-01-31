@@ -1,60 +1,41 @@
 package samples;
 
-
 import com.vmware.bifrost.bridge.util.AbstractTest;
 import com.vmware.bifrost.bus.MessagebusService;
-import com.vmware.bifrost.bus.model.Message;
-import io.reactivex.Observable;
-import io.reactivex.observers.TestObserver;
-import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subscribers.TestSubscriber;
-import org.junit.Assert;
+import io.swagger.client.api.SeedApi;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import org.springframework.core.io.ResourceLoader;
 import samples.model.SeedRequest;
-import samples.model.SeedResponse;
+import static org.mockito.Mockito.*;
 
-import java.util.concurrent.TimeUnit;
-
-@RunWith(SpringRunner.class)
-@SpringBootTest()
+@RunWith(MockitoJUnitRunner.class)
 public class SeedServiceTest extends AbstractTest {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Mock
+    MessagebusService bus;
 
-    @Autowired
-    protected MessagebusService bus;
+    @Mock
+    ResourceLoader resourceLoader;
 
-    @Autowired
-    protected SeedService seedService;
+    @Mock
+    SeedApi seedApi;
+
+    @InjectMocks
+    private SeedService seedService;
 
     @Test
-    public void testGetSeeds() {
+    public void testGetSeeds() throws Exception {
 
         SeedRequest request = new SeedRequest(SeedRequest.Type.GetSeeds);
 
-        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
-        TestObserver<Message> observer = new TestObserver<>();
+        this.logTestMessage("starting testing things");
 
-        stream.subscribeOn(Schedulers.computation())
-                .subscribe(observer);
-
-        bus.sendRequest(seedService.getServiceChannel(), request);
-
-        observer.awaitTerminalEvent(1, TimeUnit.SECONDS);
-        observer.assertNoErrors();
-        Assert.assertEquals(1, observer.valueCount());
-        SeedResponse response = (SeedResponse)observer.values().get(0).getPayload();
-        Assert.assertEquals(request.getUuid(), response.getUuid());
-        Assert.assertFalse(response.isError());
-        Assert.assertNotNull(response.getPayload());
-        Assert.assertEquals(2, response.getPayload().size());
-
+        seedService.handleServiceRequest(request);
+        verify(seedApi).getSeeds();
     }
-
 }

@@ -1,5 +1,6 @@
 package com.vmware.bifrost;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.BusTransaction;
@@ -10,24 +11,36 @@ import io.swagger.client.ApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import samples.model.AbstractRequest;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import samples.MockModel;
+import samples.Mockable;
 import samples.model.AbstractResponse;
-import samples.model.SeedRequest;
-import samples.model.SeedResponse;
+
+
+import java.io.IOException;
 
 /**
- * Copyright(c) VMware Inc. 2017
+ * Copyright(c) VMware Inc. 2017-2018
  */
 @BifrostService
-public abstract class AbstractService<ReqT, RespT> extends Loggable implements BifrostEnabled {
+public abstract class AbstractService<ReqT, RespT> extends Loggable implements Mockable, BifrostEnabled {
 
     @Autowired
     MessagebusService bus;
 
+    @Autowired
+    protected ResourceLoader resourceLoader;
+
+    protected ObjectMapper mapper = new ObjectMapper();
     protected String serviceChannel;
     protected BusTransaction serviceTransaction;
+    protected Resource res;
+    protected boolean mockFail = false;
 
     public AbstractService(String serviceChannel) {
+        super();
         this.serviceChannel = serviceChannel;
     }
 
@@ -44,9 +57,6 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements B
 
                     this.logInfoMessage("\uD83D\uDCE5","Service Request Received",message.getPayload().toString());
                     this.handleServiceRequest((ReqT)message.getPayload());
-                },
-                (Message message) -> {
-                    super.logErrorMessage("API call failed for getSeeds()", message.toString());
                 }
         );
 
@@ -78,4 +88,23 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements B
         this.sendResponse((RespT)response);
     }
 
+
+    protected <T> T getModels(Class<T> clazz) throws IOException {
+        return this.getModels(clazz, mapper, res);
+    }
+
+    protected MockModel mockModel;
+
+    protected void loadSampleModels() {
+
+        this.logDebugMessage("Loading sample mock models.");
+        res = this.loadResources(this.resourceLoader);
+        try {
+            mockModel = this.getModels(MockModel.class);
+        } catch (IOException e) {
+            this.logErrorMessage("Unable to load mock model data", e.getMessage());
+        }
+    }
+
 }
+
