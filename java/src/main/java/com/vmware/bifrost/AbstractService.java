@@ -33,10 +33,10 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
     @Autowired
     protected ResourceLoader resourceLoader;
 
-    protected ObjectMapper mapper = new ObjectMapper();
-    protected String serviceChannel;
-    protected BusTransaction serviceTransaction;
-    protected Resource res;
+    private ObjectMapper mapper = new ObjectMapper();
+    private String serviceChannel;
+    private BusTransaction serviceTransaction;
+    private Resource res;
     protected boolean mockFail = false;
 
     public AbstractService(String serviceChannel) {
@@ -80,11 +80,11 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
     }
 
 
-    protected void apiFailedHandler(AbstractResponse response, ApiException e) {
+    public void apiFailedHandler(AbstractResponse response, ApiException e, String methodName) {
         response.setError(true);
         response.setErrorCode(e.getCode());
         response.setErrorMessage(e.getMessage());
-        super.logErrorMessage("API call failed for getSeeds()", response.getErrorMessage());
+        this.logErrorMessage("API call failed for " + methodName, e.getMessage());
         this.sendResponse((RespT)response);
     }
 

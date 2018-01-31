@@ -1,5 +1,6 @@
 package samples;
 
+import io.swagger.client.ApiException;
 import io.swagger.client.api.SeedApi;
 import io.swagger.client.model.Seed;
 import org.springframework.context.ApplicationListener;
@@ -34,7 +35,10 @@ public class SeedServiceMock extends SeedService implements ApplicationListener<
             this.sendResponse(new SeedResponse(request.getUuid(), result));
 
         } else {
-            this.apiFailedHandler(new SeedResponse(request.getUuid(), null), null);
+            this.apiFailedHandler(
+                    new SeedResponse(request.getUuid(), null),
+                    new ApiException(),
+                    "getSeeds()");
         }
     }
 }

@@ -28,7 +28,7 @@ public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
 
     @Override
     public void handleServiceRequest(SeedRequest request) {
-        switch(request.getType()) {
+        switch (request.getType()) {
             case GetSeeds:
                 this.getSeeds(request);
                 break;
@@ -51,11 +51,11 @@ public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
         try {
 
             List<Seed> result = this.seedApi.getSeeds();
-            super.logDebugMessage("API call success for getSeeds()", String.valueOf(result.size()));
+            this.logDebugMessage("API call success for getSeeds()", String.valueOf(result.size()));
             this.sendResponse(new SeedResponse(request.getUuid(), result));
 
         } catch (ApiException e) {
-            this.apiFailedHandler(new SeedResponse(request.getUuid(), null), e);
+            this.apiFailedHandler(new SeedResponse(request.getUuid(), null), e, "getSeeds()");
         }
 
     }

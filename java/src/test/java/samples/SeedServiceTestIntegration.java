@@ -7,6 +7,7 @@ import io.reactivex.Observable;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.schedulers.Schedulers;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +18,10 @@ import samples.model.SeedRequest;
 import samples.model.SeedResponse;
 import java.util.concurrent.TimeUnit;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest()
-@ActiveProfiles("test")
+//@RunWith(SpringRunner.class)
+//@SpringBootTest()
+//@ActiveProfiles("test")
+@Ignore
 public class SeedServiceTestIntegration extends AbstractTest {
 
     @Autowired

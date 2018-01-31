@@ -2,6 +2,7 @@ package samples;
 
 import com.vmware.bifrost.bridge.util.AbstractTest;
 import com.vmware.bifrost.bus.MessagebusService;
+import io.swagger.client.ApiException;
 import io.swagger.client.api.SeedApi;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +12,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.core.io.ResourceLoader;
 import samples.model.SeedRequest;
+import samples.model.SeedResponse;
+
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -29,13 +32,21 @@ public class SeedServiceTest extends AbstractTest {
     private SeedService seedService;
 
     @Test
-    public void testGetSeeds() throws Exception {
+    public void testGetSeeds() throws ApiException {
 
         SeedRequest request = new SeedRequest(SeedRequest.Type.GetSeeds);
-
-        this.logTestMessage("starting testing things");
-
         seedService.handleServiceRequest(request);
         verify(seedApi).getSeeds();
+    }
+
+    @Test
+    public void testGetSeedsError() throws ApiException {
+
+        SeedService seedServiceSpy = spy(seedService);
+
+        doThrow(new ApiException("testGetSeedsError() API Failure")).when(seedApi).getSeeds();
+        seedServiceSpy.handleServiceRequest(new SeedRequest(SeedRequest.Type.GetSeeds));
+        verify(seedServiceSpy, atLeastOnce()).apiFailedHandler(any(), any(), any());
+
     }
 }
