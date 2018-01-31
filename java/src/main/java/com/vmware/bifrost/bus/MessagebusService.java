@@ -70,7 +70,6 @@ public class MessagebusService extends Loggable {
 
     public void init() {
         this.logBannerMessage("\uD83C\uDF08","Starting Bifröst");
-        this.logWarnMessage("The Villagers Are Here.");
         Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostService.class);
         for (Map.Entry<String, Object> entry : peerBeans.entrySet()) {
             Object value = entry.getValue();
@@ -174,7 +173,7 @@ public class MessagebusService extends Loggable {
                 type = MonitorType.MonitorError;
         }
 
-        this.logDebugMessage("Sending request to " + channel + " for ", messageObject.getPayload().toString());
+        this.logTraceMessage("Sending request to " + channel + " for ", messageObject.getPayload().toString());
 
         mo = new MonitorObject(type, channel, from, messageObject);
         this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));

@@ -2,10 +2,12 @@ package samples;
 
 
 import com.vmware.bifrost.bridge.util.AbstractTest;
-import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.MessagebusService;
 import com.vmware.bifrost.bus.model.Message;
 import io.reactivex.Observable;
+import io.reactivex.observers.TestObserver;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subscribers.TestSubscriber;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import samples.model.SeedRequest;
+import samples.model.SeedResponse;
+
+import java.util.concurrent.TimeUnit;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest()
@@ -29,34 +34,26 @@ public class SeedServiceTest extends AbstractTest {
     protected SeedService seedService;
 
     @Test
-    public void checkDI() {
-        Assert.assertNotNull(seedService);
-        Assert.assertNotNull(seedService.getServiceChannel());
-        Assert.assertNotNull(bus);
-    }
-
-    @Test
-    public void sendSomething() {
-
+    public void testGetSeeds() {
 
         SeedRequest request = new SeedRequest(SeedRequest.Type.GetSeeds);
-        //Subject<Message> monitorStream = bus.getMonitor();
 
         Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
-        stream.subscribe(
-                (Message msg) -> {
-                    this.logTestMessage("got a response", msg.toString());
-                }
-        );
+        TestObserver<Message> observer = new TestObserver<>();
 
-        this.logTestMessage("sending request to", seedService.getServiceChannel());
+        stream.subscribeOn(Schedulers.computation())
+                .subscribe(observer);
+
         bus.sendRequest(seedService.getServiceChannel(), request);
 
-
-
-
-        //TestObserver<Message> observer = monitorStream.test();
-        //observer.assertSubscribed();
+        observer.awaitTerminalEvent(1, TimeUnit.SECONDS);
+        observer.assertNoErrors();
+        Assert.assertEquals(1, observer.valueCount());
+        SeedResponse response = (SeedResponse)observer.values().get(0).getPayload();
+        Assert.assertEquals(request.getUuid(), response.getUuid());
+        Assert.assertFalse(response.isError());
+        Assert.assertNotNull(response.getPayload());
+        Assert.assertEquals(2, response.getPayload().size());
 
     }
 

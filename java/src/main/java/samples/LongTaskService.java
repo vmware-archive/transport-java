@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 import samples.model.Task;
 
 @Component
-@BifrostService
+//@BifrostService
 public class LongTaskService implements BifrostEnabled {
 
     @Autowired

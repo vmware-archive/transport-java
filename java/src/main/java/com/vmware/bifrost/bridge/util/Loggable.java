@@ -19,8 +19,16 @@ public abstract class Loggable {
         logger.info("{}  {}: " + "\u001b[1m\u001b[35;1m{}\u001b[0m", emoji, message.trim(), value.trim());
     }
 
+    protected void logErrorMessage(String message, String value){
+        logger.error("\uD83D\uDED1  \u001b[41;1m{}:\u001b[0m \u001b[31;1m{}\u001b[0m", message.trim(), value.trim());
+    }
+
     protected void logDebugMessage(String message, String value){
         logger.debug("\uD83D\uDD39  \u001b[38;5;245m{}: \u001b[35m{}\u001b[0m", message.trim(), value.trim());
+    }
+
+    protected void logTraceMessage(String message, String value){
+        logger.trace("\uD83D\uDD38  \u001b[38;5;245m{}: \u001b[38;5;67m{}\u001b[0m", message.trim(), value.trim());
     }
 
     protected void logWarnMessage(String message){

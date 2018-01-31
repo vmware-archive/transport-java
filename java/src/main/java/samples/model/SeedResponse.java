@@ -7,17 +7,22 @@ import java.util.UUID;
 
 public class SeedResponse extends AbstractResponse<Seed> {
 
+
+    public SeedResponse(UUID id, boolean error) {
+        super(id, error, 1);
+    }
+
     public SeedResponse(List<Seed> payload) {
         this(payload, 1);
     }
 
     public SeedResponse(List<Seed> payload, Integer version) {
-        super(version);
+        super(UUID.randomUUID(), payload, version);
     }
 
 
     public SeedResponse(UUID uuid, List<Seed> payload) {
-        super(uuid, null, 1);
+        super(uuid, payload, 1);
     }
 
     public SeedResponse(UUID uuid, List<Seed> payload, Integer version) {

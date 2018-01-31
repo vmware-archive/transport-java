@@ -44,17 +44,17 @@ public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
     }
 
     private void getSeeds(SeedRequest request) {
-
+        super.logDebugMessage("Running API Method", "getSeeds()");
+        List<Seed> result;
         try {
 
-            super.logDebugMessage("running API Method", "getSeeds()");
-            List<Seed> result = this.seedApi.getSeeds();
+            result = this.seedApi.getSeeds();
+
+            super.logDebugMessage("API call success for getSeeds()", String.valueOf(result.size()));
             this.sendResponse(new SeedResponse(request.getUuid(), result));
 
         } catch (ApiException e) {
-
-            this.sendError("unable to call SeedApi#getSeeds()");
-            e.printStackTrace();
+            this.apiFailedHandler(new SeedResponse(request.getUuid(), null), e);
         }
 
     }

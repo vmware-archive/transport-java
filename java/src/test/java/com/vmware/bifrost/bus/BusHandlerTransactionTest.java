@@ -9,11 +9,13 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.observers.TestObserver;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Copyright(c) VMware Inc. 2017
  */
+@Ignore
 public class BusHandlerTransactionTest {
 
     private MessagebusService bus;

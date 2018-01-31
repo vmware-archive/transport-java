@@ -6,9 +6,14 @@ import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.MessagebusService;
 import com.vmware.bifrost.bus.model.Message;
+import io.swagger.client.ApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import samples.model.AbstractRequest;
+import samples.model.AbstractResponse;
+import samples.model.SeedRequest;
+import samples.model.SeedResponse;
 
 /**
  * Copyright(c) VMware Inc. 2017
@@ -37,11 +42,11 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements B
         this.serviceTransaction = this.bus.listenStream(this.serviceChannel,
                 (Message message) -> {
 
-                    this.logInfoMessage("\uD83D\uDCE5","request received",message.getPayload().toString());
+                    this.logInfoMessage("\uD83D\uDCE5","Service Request Received",message.getPayload().toString());
                     this.handleServiceRequest((ReqT)message.getPayload());
                 },
                 (Message message) -> {
-                    logger.error("something went really wrong here");
+                    super.logErrorMessage("API call failed for getSeeds()", message.toString());
                 }
         );
 
@@ -64,33 +69,13 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements B
         this.bus.sendError(this.serviceChannel, message);
     }
 
-//
-//
-//    public abstract void initializeSubscriptions();
-//    protected abstract void handleServiceRequest(ReqT request);
-//
-//    protected String getName() {
-//        return this.getClass().getTypeName();
-//    }
-//
-//    @Bean
-//    public RestTemplate restTemplate(RestTemplateBuilder builder) {
-//        return builder.build();
-//    }
-//
-//    @Override
-//    public void registerServiceChannel(String serviceChannel) {
-//        this.serviceChannel = serviceChannel;
-//    }
-//
-//    protected void sendResponse(RespT response) {
-//        this.bus.sendResponse(this.serviceChannel, response);
-//    }
-//
-//    protected Observable callAPI(RestRequest restRequest) {
-//        RestTemplate restTemplate = new RestTemplate();
-//        ResponseEntity<String> response = restTemplate.getForEntity(restRequest.getURI(), String.class);
-//
-//    }
+
+    protected void apiFailedHandler(AbstractResponse response, ApiException e) {
+        response.setError(true);
+        response.setErrorCode(e.getCode());
+        response.setErrorMessage(e.getMessage());
+        super.logErrorMessage("API call failed for getSeeds()", response.getErrorMessage());
+        this.sendResponse((RespT)response);
+    }
 
 }
