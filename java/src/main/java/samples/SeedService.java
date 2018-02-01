@@ -9,6 +9,8 @@ import samples.model.SeedRequest;
 import samples.model.SeedResponse;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service("seedService")
@@ -60,9 +62,10 @@ public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
         super.logDebugMessage("Running API Method", "plantSeed()");
         try {
 
-            this.seedApi.plantSeed(request.getPayload());
+            Seed seed = this.seedApi.plantSeed(request.getPayload());
+            List<Seed> seeds = new ArrayList<>(Arrays.asList(seed));
             this.logDebugMessage("API call success for","plantSeed()");
-            this.sendResponse(new SeedResponse(request.getUuid(), null));
+            this.sendResponse(new SeedResponse(request.getUuid(), seeds));
 
         } catch (ApiException e) {
             this.apiFailedHandler(new SeedResponse(request.getUuid(), null), e, "plantSeed()");

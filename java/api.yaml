@@ -5,14 +5,14 @@ info:
   title: "VMware Bifröst Garden"
   contact:
     email: "dshanley@vmware.com"
-host: "tbd"
+host: "localhost:3000"
 basePath: "/api"
 tags:
 - name: "seed"
   description: "Seed operations"
   externalDocs:
     description: "Gets grow some stuff!"
-    url: "http://vmware.com"    
+    url: "http://vmware.com"
 schemes:
 - "http"
 paths:
@@ -49,27 +49,33 @@ paths:
         schema:
           $ref: "#/definitions/Seed"
       responses:
-        default:
-          description: "success"
-  /seed/{seedId}:
+        200:
+          description: "Newly planted seed represented by the system"
+          schema:
+            $ref: "#/definitions/Seed"
     delete:
       tags:
       - "seed"
-      summary: "Kill a plant / destroy a seed"
+      summary: "Kill a plant"
+      description: ""
       operationId: "killPlant"
       produces:
       - "application/json"
       parameters:
-      - name: "seedId"
-        in: "path"
-        description: "The ID of the seed (of the plant) you want to kill."
+      - in: "body"
+        name: "body"
+        description: "Kill a plant from the garden"
         required: true
-        type: "string"
+        schema:
+          $ref: "#/definitions/Seed"
       responses:
+        200:
+          description: "success"
         400:
           description: "invalid request"
         404:
-          description: "plant / seed not found"      
+          description: "plant / seed not found"
+
 definitions:
   Seed:
     type: "object"
@@ -77,7 +83,6 @@ definitions:
       id:
         type: "integer"
         format: "int64"
-        readOnly: true
       planted:
         type: "integer"
         format: "int64"
