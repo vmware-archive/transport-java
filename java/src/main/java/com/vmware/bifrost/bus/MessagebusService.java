@@ -3,6 +3,7 @@ package com.vmware.bifrost.bus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.vmware.bifrost.bridge.RequestException;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bridge.util.Loggable;
@@ -375,6 +376,30 @@ public class MessagebusService extends Loggable {
 
         MessageObjectHandlerConfig config
                 = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, null);
+
+        config.setSingleResponse(false);
+        config.setReturnChannel(channel);
+        config.setSendChannel(channel);
+        config.setSchema(schema);
+
+        MessageHandler messageHandler = this.createMessageHandler(config, true);
+        Disposable sub = messageHandler.handle(successHandler, errorHandler);
+
+        return new BusHandlerTransaction(sub, messageHandler);
+    }
+
+    public BusTransaction listenResponseStream(String channel,
+                                       Consumer<Message> successHandler) {
+        return this.listenResponseStream(channel, null, successHandler, null);
+    }
+
+    public BusTransaction listenResponseStream(String channel,
+                                       JsonSchema schema,
+                                       Consumer<Message> successHandler,
+                                       Consumer<Message> errorHandler) {
+
+        MessageObjectHandlerConfig config
+                = new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, null);
 
         config.setSingleResponse(false);
         config.setReturnChannel(channel);

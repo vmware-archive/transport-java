@@ -1,1 +1,1 @@
-./gradlew build && java -jar build/libs/vmw-bifrost-0.5.0.jar
+./gradlew build && java -jar build/libs/bifrost-0.0.1.jar

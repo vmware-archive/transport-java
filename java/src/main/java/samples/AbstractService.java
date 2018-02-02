@@ -1,6 +1,8 @@
 package samples;
 
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vmware.bifrost.bridge.RequestException;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.BusTransaction;
@@ -11,12 +13,10 @@ import io.swagger.client.ApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import samples.MockModel;
-import samples.Mockable;
-import samples.model.AbstractResponse;
+import com.vmware.bifrost.bridge.Request;
+import com.vmware.bifrost.bridge.Response;
 
 
 import java.io.IOException;
@@ -32,8 +32,8 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
 
     @Autowired
     protected ResourceLoader resourceLoader;
+    protected ObjectMapper mapper = new ObjectMapper();
 
-    private ObjectMapper mapper = new ObjectMapper();
     private String serviceChannel;
     private BusTransaction serviceTransaction;
     private Resource res;
@@ -42,6 +42,8 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
     public AbstractService(String serviceChannel) {
         super();
         this.serviceChannel = serviceChannel;
+        mapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
+        mapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES);
     }
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -54,17 +56,29 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
 
         this.serviceTransaction = this.bus.listenStream(this.serviceChannel,
                 (Message message) -> {
+                    try {
 
-                    this.logInfoMessage(
-                            "\uD83D\uDCE5",
-                            "Service Request Received",
-                            message.getPayload().toString());
-                    this.handleServiceRequest((ReqT)message.getPayload());
+                        this.logInfoMessage(
+                                "\uD83D\uDCE5",
+                                "Service Request Received",
+                                message.getPayload().toString());
+
+                        this.handleServiceRequest((ReqT)message.getPayload());
+
+                    } catch (ClassCastException cce) {
+                        cce.printStackTrace();
+                        this.logErrorMessage("Service unable to process request, " +
+                                "request cannot be cast",  message.getPayload().getClass().getSimpleName());
+                        throw new RequestException("Service unable to process request, request cannot be cast");
+
+                    }
                 }
         );
 
         this.logInfoMessage("\uD83D\uDCE3", "initialized, handling requests on channel", this.serviceChannel);
     }
+
+
 
     @Override
     public void finalize() throws Throwable {
@@ -87,7 +101,7 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
     }
 
 
-    public void apiFailedHandler(AbstractResponse response, ApiException e, String methodName) {
+    public void apiFailedHandler(Response response, ApiException e, String methodName) {
         response.setError(true);
         response.setErrorCode(e.getCode());
         response.setErrorMessage(e.getMessage());
@@ -112,6 +126,11 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
             this.logErrorMessage("Unable to load mock model data", e.getMessage());
         }
     }
+
+    protected <T> T castPayload(Class clazz, Request request) throws ClassCastException {
+        return (T)this.mapper.convertValue(request.getPayload(), clazz);
+    }
+
 
 }
 

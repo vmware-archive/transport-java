@@ -1,6 +1,7 @@
 package com.vmware.bifrost.bridge.spring.services;
 
 import com.vmware.bifrost.bridge.util.BifrostUtil;
+import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bus.MessagebusService;
 import com.vmware.bifrost.bus.model.Message;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-public class BifrostSubscriptionService {
+public class BifrostSubscriptionService extends Loggable {
 
     @Autowired
     private MessagebusService bus;
@@ -46,14 +47,21 @@ public class BifrostSubscriptionService {
 
             logger.info("[+] Bifröst Bus: creating channel subscription to '" + channelName + "' subId: (" + subId + ")");
 
-            BusTransaction transaction = bus.listenStream(channelName,
+
+            bus.getResponseChannel(channelName, this.getName()).subscribe(
                     (Message msg) -> {
-                        logger.debug("Bifröst sending payload: " + msg.getPayload().toString() + " to " + channelName);
+                        this.logDebugMessage("Bifröst (New) sending payload: " + msg.getPayload().toString() + " to ", channelName);
                         msgTmpl.convertAndSend(BifrostUtil.convertChannelToTopic(channelName), msg.getPayload());
                     }
+
             );
 
-            openSubscriptions.put(subId, new BifrostSubscription(channelName, subId, sessionId, transaction));
+
+//            BusTransaction transaction = bus.listenResponseStream(channelName,
+//
+//            );
+
+           // openSubscriptions.put(subId, new BifrostSubscription(channelName, subId, sessionId, transaction));
             openChannels.add(channelName);
 
             // check if this user has other channel subscriptions

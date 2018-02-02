@@ -1,6 +1,23 @@
 <h1>
     Bifröst Example Client
 </h1>
+
+<div class="row">
+    <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
+        Get a list of seeds growing.<br/>
+        <button class="btn btn-sm " (click)="getSeeds()">Get Seeds</button>
+    </div>
+    <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
+        Plant a Tree<br/>
+        <button class="btn btn-sm " (click)="plantSeed('Tree')">Plant Tree</button>
+    </div>
+    <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
+        Plant a Flower<br/>
+        <button class="btn btn-sm " (click)="plantSeed('Flower')">Plant Flower</button>
+    </div>
+</div>
+
+<!-- 
 <div class="row">
     <div class="col-lg-6 col-md-8 col-sm-12 col-xs-12">
         <task-box [channel]="taskChannelA" [title]="taskTitleA"></task-box>
@@ -37,4 +54,4 @@
         </div>
     </div>
 
-</div>
+</div> -->

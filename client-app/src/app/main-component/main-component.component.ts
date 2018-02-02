@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {
-    MessagebusService,
+    MessagebusService, StompParser,
 } from '@vmw/bifrost';
 
 @Component({
@@ -25,6 +25,7 @@ export class MainComponentComponent implements OnInit {
 
     private tellEveryoneTheBridgeIsReady(): void {
         this.bus.sendResponseMessage('bridge-ready', true);
+        this.listenForSeeds();
     }
 
     ngOnInit() {
@@ -40,6 +41,45 @@ export class MainComponentComponent implements OnInit {
             'localhost',
             8080
         );
+    }
+
+    listenForSeeds(): void {
+        let handler = this.bus.listenGalacticStream("service-seed");
+        handler.handle(
+            (metric) => {
+                console.log('got a response!', metric);
+            }
+        );
+    }
+
+    public plantSeed(type) {
+        let seedRequest = {
+            id: StompParser.genUUID(),
+            created: Date.now(),
+            version: 1,
+            type: "PlantSeed",
+            payload: {id: 0, type: type }
+        }
+
+        this.bus.sendGalacticMessage("/pub/service-seed", seedRequest);
+
+    }
+
+    public getSeeds(): void {
+    
+        let seedRequest = {
+            id: StompParser.genUUID(),
+            created: Date.now(),
+            version: 1,
+            type: "GetSeeds",
+            payload: null
+        }
+
+        // let seedRequest = {
+        //     kitty: "cat"
+        // }
+
+        this.bus.sendGalacticMessage("/pub/service-seed", seedRequest);
     }
 
 }

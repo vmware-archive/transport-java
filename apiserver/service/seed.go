@@ -5,6 +5,10 @@ import (
     "encoding/json"
 )
 
+type ModelData struct {
+    Seeds []Seed `json:"seed"`
+}
+
 type Seed struct {
     Id      int    `json:"id"`
     Type    string `json:"type"`

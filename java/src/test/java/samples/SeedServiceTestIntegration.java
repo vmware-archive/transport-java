@@ -11,19 +11,18 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import samples.model.SeedRequest;
 import samples.model.SeedResponse;
+
+import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest()
-@ActiveProfiles("prod")
-//@Ignore
+//@RunWith(SpringRunner.class)
+//@SpringBootTest()
+//@ActiveProfiles("test")
+@Ignore
 public class SeedServiceTestIntegration extends AbstractTest {
 
     @Autowired
@@ -37,60 +36,11 @@ public class SeedServiceTestIntegration extends AbstractTest {
         seedService.mockFail = false;
     }
 
-//    @Test
-//    public void testGetSeeds() {
-//
-//        SeedRequest request = new SeedRequest(SeedRequest.Type.GetSeeds);
-//
-//
-//        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
-//        TestObserver<Message> observer = new TestObserver<>();
-//
-//        stream.subscribeOn(Schedulers.computation())
-//                .subscribe(observer);
-//
-//        bus.sendRequest(seedService.getServiceChannel(), request);
-//
-//        observer.awaitTerminalEvent(10, TimeUnit.MILLISECONDS);
-//        observer.assertNoErrors();
-//        Assert.assertEquals(1, observer.valueCount());
-//        SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
-//        Assert.assertEquals(request.getUuid(), response.getUuid());
-//        Assert.assertFalse(response.isError());
-//        Assert.assertNotNull(response.getPayload());
-//        Assert.assertEquals(2, response.getPayload().size());
-//    }
-//
-//    @Test
-//    public void testGetSeedsError() {
-//
-//        SeedRequest request = new SeedRequest(SeedRequest.Type.GetSeeds);
-//
-//
-//        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
-//        TestObserver<Message> observer = new TestObserver<>();
-//
-//        stream.subscribeOn(Schedulers.computation())
-//                .subscribe(observer);
-//
-//        seedService.mockFail = true;
-//        bus.sendRequest(seedService.getServiceChannel(), request);
-//
-//        observer.awaitTerminalEvent(10, TimeUnit.MILLISECONDS);
-//        Assert.assertEquals(1, observer.valueCount());
-//        SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
-//        Assert.assertEquals(request.getUuid(), response.getUuid());
-//        Assert.assertTrue(response.isError());
-//        Assert.assertNull(response.getPayload());
-//
-//    }
-
     @Test
-    public void testPlantSeed() {
-        Seed seed = new Seed();
-        seed.setType(Seed.TypeEnum.FLOWER);
+    public void testGetSeeds() {
 
-        SeedRequest request = new SeedRequest(SeedRequest.Type.PlantSeed, seed);
+        SeedRequest request
+                = new SeedRequest(1, UUID.randomUUID(), new Date(), "GetSeeds", null);
 
 
         Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
@@ -105,79 +55,137 @@ public class SeedServiceTestIntegration extends AbstractTest {
         observer.assertNoErrors();
         Assert.assertEquals(1, observer.valueCount());
         SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
-        Assert.assertEquals(request.getUuid(), response.getUuid());
+        Assert.assertEquals(request.getId(), response.getId());
+        Assert.assertFalse(response.isError());
+        Assert.assertNotNull(response.getPayload());
+        Assert.assertEquals(2, response.getPayload().size());
+    }
+
+    @Test
+    public void testGetSeedsError() {
+
+        SeedRequest request
+                = new SeedRequest(1, UUID.randomUUID(), new Date(), "GetSeeds", null);
+
+
+        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
+        TestObserver<Message> observer = new TestObserver<>();
+
+        stream.subscribeOn(Schedulers.computation())
+                .subscribe(observer);
+
+        seedService.mockFail = true;
+        bus.sendRequest(seedService.getServiceChannel(), request);
+
+        observer.awaitTerminalEvent(10, TimeUnit.MILLISECONDS);
+        Assert.assertEquals(1, observer.valueCount());
+        SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
+        Assert.assertEquals(request.getId(), response.getId());
+        Assert.assertTrue(response.isError());
+        Assert.assertNull(response.getPayload());
+
+    }
+
+    @Test
+    public void testPlantSeed() {
+        Seed seed = new Seed();
+        seed.setType(Seed.TypeEnum.FLOWER);
+
+        SeedRequest request
+                = new SeedRequest(1, UUID.randomUUID(), new Date(), "PlantSeed", seed);
+
+
+        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
+        TestObserver<Message> observer = new TestObserver<>();
+
+        stream.subscribeOn(Schedulers.computation())
+                .subscribe(observer);
+
+        bus.sendRequest(seedService.getServiceChannel(), request);
+
+        observer.awaitTerminalEvent(10, TimeUnit.MILLISECONDS);
+        observer.assertNoErrors();
+        Assert.assertEquals(1, observer.valueCount());
+        SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
+        Assert.assertEquals(request.getId(), response.getId());
         Assert.assertFalse(response.isError());
         Assert.assertNotNull(response.getPayload());
         Assert.assertEquals(1, response.getPayload().size());
     }
 
-//    @Test
-//    public void testPlantSeedError() {
-//
-//        SeedRequest request = new SeedRequest(SeedRequest.Type.PlantSeed);
-//
-//
-//        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
-//        TestObserver<Message> observer = new TestObserver<>();
-//
-//        stream.subscribeOn(Schedulers.computation())
-//                .subscribe(observer);
-//
-//        seedService.mockFail = true;
-//        bus.sendRequest(seedService.getServiceChannel(), request);
-//
-//        observer.awaitTerminalEvent(10, TimeUnit.MILLISECONDS);
-//        Assert.assertEquals(1, observer.valueCount());
-//        SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
-//        Assert.assertEquals(request.getUuid(), response.getUuid());
-//        Assert.assertTrue(response.isError());
-//        Assert.assertNull(response.getPayload());
-//
-//    }
-//
-//    @Test
-//    public void testKillPlant() {
-//
-//        SeedRequest request = new SeedRequest(SeedRequest.Type.KillPlant);
-//
-//        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
-//        TestObserver<Message> observer = new TestObserver<>();
-//
-//        stream.subscribeOn(Schedulers.computation())
-//                .subscribe(observer);
-//
-//        bus.sendRequest(seedService.getServiceChannel(), request);
-//
-//        observer.awaitTerminalEvent(10, TimeUnit.MILLISECONDS);
-//        observer.assertNoErrors();
-//        Assert.assertEquals(1, observer.valueCount());
-//        SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
-//        Assert.assertEquals(request.getUuid(), response.getUuid());
-//        Assert.assertFalse(response.isError());
-//        Assert.assertNull(response.getPayload());
-//    }
-//
-//    @Test
-//    public void testKillPlantError() {
-//
-//        SeedRequest request = new SeedRequest(SeedRequest.Type.KillPlant);
-//
-//        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
-//        TestObserver<Message> observer = new TestObserver<>();
-//
-//        stream.subscribeOn(Schedulers.computation())
-//                .subscribe(observer);
-//
-//        seedService.mockFail = true;
-//        bus.sendRequest(seedService.getServiceChannel(), request);
-//
-//        observer.awaitTerminalEvent(10, TimeUnit.MILLISECONDS);
-//        Assert.assertEquals(1, observer.valueCount());
-//        SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
-//        Assert.assertEquals(request.getUuid(), response.getUuid());
-//        Assert.assertTrue(response.isError());
-//        Assert.assertNull(response.getPayload());
-//
-//    }
+    @Test
+    public void testPlantSeedError() {
+
+        SeedRequest request
+                = new SeedRequest(1, UUID.randomUUID(), new Date(), "PlantSeed", null);
+
+
+        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
+        TestObserver<Message> observer = new TestObserver<>();
+
+        stream.subscribeOn(Schedulers.computation())
+                .subscribe(observer);
+
+        seedService.mockFail = true;
+        bus.sendRequest(seedService.getServiceChannel(), request);
+
+        observer.awaitTerminalEvent(10, TimeUnit.MILLISECONDS);
+        Assert.assertEquals(1, observer.valueCount());
+        SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
+        Assert.assertEquals(request.getId(), response.getId());
+        Assert.assertTrue(response.isError());
+        Assert.assertNull(response.getPayload());
+
+    }
+
+    @Test
+    public void testKillPlant() {
+
+        Seed seed = new Seed();
+        seed.setType(Seed.TypeEnum.FLOWER);
+
+        SeedRequest request
+                = new SeedRequest(1, UUID.randomUUID(), new Date(), "KillPlant", seed);
+
+        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
+        TestObserver<Message> observer = new TestObserver<>();
+
+        stream.subscribeOn(Schedulers.computation())
+                .subscribe(observer);
+
+        bus.sendRequest(seedService.getServiceChannel(), request);
+
+        observer.awaitTerminalEvent(10, TimeUnit.MILLISECONDS);
+        observer.assertNoErrors();
+        Assert.assertEquals(1, observer.valueCount());
+        SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
+        Assert.assertEquals(request.getId(), response.getId());
+        Assert.assertFalse(response.isError());
+        Assert.assertNull(response.getPayload());
+    }
+
+    @Test
+    public void testKillPlantError() {
+
+        SeedRequest request
+                = new SeedRequest(1, UUID.randomUUID(), new Date(), "KillPlant", null);
+
+        Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
+        TestObserver<Message> observer = new TestObserver<>();
+
+        stream.subscribeOn(Schedulers.computation())
+                .subscribe(observer);
+
+        seedService.mockFail = true;
+        bus.sendRequest(seedService.getServiceChannel(), request);
+
+        observer.awaitTerminalEvent(10, TimeUnit.MILLISECONDS);
+        Assert.assertEquals(1, observer.valueCount());
+        SeedResponse response = (SeedResponse) observer.values().get(0).getPayload();
+        Assert.assertEquals(request.getId(), response.getId());
+        Assert.assertTrue(response.isError());
+        Assert.assertNull(response.getPayload());
+
+    }
 
 }

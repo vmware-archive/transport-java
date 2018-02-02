@@ -8,13 +8,13 @@ import (
 )
 
 func getSeeds() []Seed {
-    raw, err := ioutil.ReadFile("../bifrost-java/java/src/main/resources/db.json")
+    raw, err := ioutil.ReadFile("../java/src/main/resources/db.json")
     if err != nil {
         fmt.Println(err.Error())
         os.Exit(1)
     }
 
-    var c []Seed
+    var c ModelData
     json.Unmarshal(raw, &c)
-    return c
+    return c.Seeds
 }

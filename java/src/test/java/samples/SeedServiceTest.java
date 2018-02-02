@@ -47,7 +47,7 @@ public class SeedServiceTest extends AbstractTest {
     @Test
     public void testGetSeeds() throws ApiException {
 
-        seedService.handleServiceRequest(new SeedRequest(SeedRequest.Type.GetSeeds));
+        seedService.handleServiceRequest(new SeedRequest("GetSeeds"));
         verify(seedApi).getSeeds();
     }
 
@@ -55,7 +55,7 @@ public class SeedServiceTest extends AbstractTest {
     public void testGetSeedsError() throws ApiException {
 
         doThrow(new ApiException("testGetSeedsError() API Failure")).when(seedApi).getSeeds();
-        seedServiceSpy.handleServiceRequest(new SeedRequest(SeedRequest.Type.GetSeeds));
+        seedServiceSpy.handleServiceRequest(new SeedRequest("GetSeeds"));
         verify(seedServiceSpy, atLeastOnce()).apiFailedHandler(any(), any(), any());
 
     }
@@ -63,7 +63,7 @@ public class SeedServiceTest extends AbstractTest {
     @Test
     public void testPlantSeed() throws ApiException {
 
-        seedService.handleServiceRequest(new SeedRequest(SeedRequest.Type.PlantSeed, seed));
+        seedService.handleServiceRequest(new SeedRequest("PlantSeed", seed));
         verify(seedApi).plantSeed(seed);
     }
 
@@ -71,14 +71,14 @@ public class SeedServiceTest extends AbstractTest {
     public void testPlantSeedError() throws ApiException {
 
         doThrow(new ApiException("testPlantSeedError() API Failure")).when(seedApi).plantSeed(seed);
-        seedServiceSpy.handleServiceRequest(new SeedRequest(SeedRequest.Type.PlantSeed, seed));
+        seedServiceSpy.handleServiceRequest(new SeedRequest("PlantSeed", seed));
         verify(seedServiceSpy, atLeastOnce()).apiFailedHandler(any(), any(), any());
     }
 
     @Test
     public void testKillPlant() throws ApiException {
 
-        seedService.handleServiceRequest(new SeedRequest(SeedRequest.Type.KillPlant, seed));
+        seedService.handleServiceRequest(new SeedRequest("KillPlant", seed));
         verify(seedApi).killPlant(seed);
     }
 
@@ -86,7 +86,7 @@ public class SeedServiceTest extends AbstractTest {
     public void testKillPlantError() throws ApiException {
 
         doThrow(new ApiException("testKillPlantError() API Failure")).when(seedApi).killPlant(seed);
-        seedServiceSpy.handleServiceRequest(new SeedRequest(SeedRequest.Type.KillPlant, seed));
+        seedServiceSpy.handleServiceRequest(new SeedRequest("KillPlant", seed));
         verify(seedServiceSpy, atLeastOnce()).apiFailedHandler(any(), any(), any());
     }
 }

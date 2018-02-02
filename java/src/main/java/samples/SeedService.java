@@ -1,12 +1,14 @@
 package samples;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.MapperFeature;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.SeedApi;
 import io.swagger.client.model.Seed;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import samples.model.SeedRequest;
-import samples.model.SeedResponse;
+import com.vmware.bifrost.bridge.Request;
+import com.vmware.bifrost.bridge.Response;
 
 
 import java.util.ArrayList;
@@ -15,7 +17,7 @@ import java.util.List;
 
 @Service("seedService")
 @Profile("prod")
-public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
+public class SeedService extends AbstractService<Request, Response> {
 
     public static String Channel = "service-seed";
 
@@ -27,62 +29,65 @@ public class SeedService extends AbstractService<SeedRequest, SeedResponse> {
     }
 
     @Override
-    public void handleServiceRequest(SeedRequest request) {
+    public void handleServiceRequest(Request request) {
         switch (request.getType()) {
-            case GetSeeds:
+            case "GetSeeds":
                 this.getSeeds(request);
                 break;
 
-            case PlantSeed:
+            case "PlantSeed":
                 this.plantSeed(request);
                 break;
 
-            case KillPlant:
+            case "KillPlant":
                 this.killPlant(request);
                 break;
 
         }
     }
 
-    protected void getSeeds(SeedRequest request) {
+    protected void getSeeds(Request request) {
         super.logDebugMessage("Running API Method", "getSeeds()");
         try {
 
             List<Seed> result = this.seedApi.getSeeds();
             this.logDebugMessage("API call success for","getSeeds()");
-            this.sendResponse(new SeedResponse(request.getUuid(), result));
+            this.sendResponse(new Response(request.getId(), result));
 
         } catch (ApiException e) {
-            this.apiFailedHandler(new SeedResponse(request.getUuid(), null), e, "getSeeds()");
+            this.apiFailedHandler(
+                    new Response(request.getVersion(), request.getId(), true), e, "getSeeds()");
         }
 
     }
 
-    protected void plantSeed(SeedRequest request) {
+    protected void plantSeed(Request request) {
         super.logDebugMessage("Running API Method", "plantSeed()");
         try {
 
-            Seed seed = this.seedApi.plantSeed(request.getPayload());
-            List<Seed> seeds = new ArrayList<>(Arrays.asList(seed));
-            this.logDebugMessage("API call success for","plantSeed()");
-            this.sendResponse(new SeedResponse(request.getUuid(), seeds));
+            Seed requestSeed = this.castPayload(Seed.class, request);
+            Seed responseSeed = this.seedApi.plantSeed(requestSeed);
+            List<Seed> seeds = new ArrayList<>(Arrays.asList(responseSeed));
+            this.logDebugMessage("API call success for", "plantSeed()");
+            this.sendResponse(new Response(request.getId(), seeds));
 
         } catch (ApiException e) {
-            this.apiFailedHandler(new SeedResponse(request.getUuid(), null), e, "plantSeed()");
+            this.apiFailedHandler(new Response(request.getId(), null), e, "plantSeed()");
         }
 
     }
 
-    protected void killPlant(SeedRequest request) {
+    protected void killPlant(Request request) {
         super.logDebugMessage("Running API Method", "killPlant()");
         try {
 
-            this.seedApi.killPlant(request.getPayload());
+            Seed requestSeed = this.mapper.convertValue(request.getPayload(), new TypeReference<Seed>() { });
+            this.seedApi.killPlant(requestSeed);
             this.logDebugMessage("API call success for","killPlant()");
-            this.sendResponse(new SeedResponse(request.getUuid(), null));
+            this.sendResponse(new Response(request.getId(), null));
 
         } catch (ApiException e) {
-            this.apiFailedHandler(new SeedResponse(request.getUuid(), null), e, "killPlant()");
+            this.apiFailedHandler(new Response(request.getId(), null), e, "killPlant()");
         }
 
     }
