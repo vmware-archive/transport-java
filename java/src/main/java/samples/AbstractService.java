@@ -25,7 +25,7 @@ import java.io.IOException;
  * Copyright(c) VMware Inc. 2017-2018
  */
 @BifrostService
-public abstract class AbstractService<ReqT, RespT> extends Loggable implements Mockable, BifrostEnabled {
+public abstract class AbstractService extends Loggable implements Mockable, BifrostEnabled {
 
     @Autowired
     MessagebusService bus;
@@ -63,7 +63,7 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
                                 "Service Request Received",
                                 message.getPayload().toString());
 
-                        this.handleServiceRequest((ReqT)message.getPayload());
+                        this.handleServiceRequest((Request)message.getPayload());
 
                     } catch (ClassCastException cce) {
                         cce.printStackTrace();
@@ -78,17 +78,15 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
         this.logInfoMessage("\uD83D\uDCE3", "initialized, handling requests on channel", this.serviceChannel);
     }
 
-
-
     @Override
     public void finalize() throws Throwable {
         super.finalize();
         this.serviceTransaction.unsubscribe();
     }
 
-    public abstract void handleServiceRequest(ReqT request);
+    public abstract void handleServiceRequest(Request request);
 
-    public void sendResponse(RespT response) {
+    public void sendResponse(Response response) {
         this.logInfoMessage(
                 "\uD83D\uDCE4",
                 "Sending Service Response",
@@ -106,7 +104,7 @@ public abstract class AbstractService<ReqT, RespT> extends Loggable implements M
         response.setErrorCode(e.getCode());
         response.setErrorMessage(e.getMessage());
         this.logErrorMessage("API call failed for " + methodName, e.getMessage());
-        this.sendResponse((RespT)response);
+        this.sendResponse(response);
     }
 
 

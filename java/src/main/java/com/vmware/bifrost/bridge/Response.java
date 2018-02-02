@@ -11,26 +11,22 @@ public class Response<RespP> extends AbstractFrame {
     protected String errorMessage;
     protected List<RespP> payload;
 
-    public Response(Integer version, UUID uuid, Date created, List<RespP> payload) {
-        super(version, uuid, created);
+    public Response(Integer version, UUID uuid, List<RespP> payload) {
+        super(version, uuid);
         this.payload = payload;
     }
 
-    public Response(Integer version, UUID uuid, List<RespP> payload) {
-        this(version, uuid, new Date(), payload);
-    }
-
     public Response(UUID uuid, List<RespP> payload) {
-        this(1, uuid, new Date(), payload);
+        this(1, uuid, payload);
     }
 
     public Response(Integer version, UUID uuid, boolean error) {
-        this(version, uuid, new Date(), null);
+        this(version, uuid, null);
         this.error = error;
     }
 
     public Response(UUID uuid, boolean error) {
-        this(1, uuid, new Date(), null);
+        this(1, uuid, null);
         this.error = error;
     }
 

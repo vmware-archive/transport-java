@@ -53,12 +53,13 @@ export class MainComponentComponent implements OnInit {
     }
 
     public plantSeed(type) {
+       
         let seedRequest = {
             id: StompParser.genUUID(),
             created: Date.now(),
             version: 1,
             type: "PlantSeed",
-            payload: {id: 0, type: type }
+            payload: {type: type }
         }
 
         this.bus.sendGalacticMessage("/pub/service-seed", seedRequest);
@@ -74,10 +75,6 @@ export class MainComponentComponent implements OnInit {
             type: "GetSeeds",
             payload: null
         }
-
-        // let seedRequest = {
-        //     kitty: "cat"
-        // }
 
         this.bus.sendGalacticMessage("/pub/service-seed", seedRequest);
     }

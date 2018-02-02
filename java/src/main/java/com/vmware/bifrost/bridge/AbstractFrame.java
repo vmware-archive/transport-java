@@ -9,7 +9,7 @@ public abstract class AbstractFrame {
     protected Date created;
     protected Integer version;
 
-    public AbstractFrame(Integer version, UUID uuid, Date created) {
+    public AbstractFrame(Integer version, UUID uuid) {
         this.id = uuid;
         this.created = new Date();
         this.version = version;

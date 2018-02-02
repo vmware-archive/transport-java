@@ -1,6 +1,5 @@
 package com.vmware.bifrost.bridge;
 
-import java.util.Date;
 import java.util.UUID;
 
 public class Request<ReqP> extends AbstractFrame {
@@ -9,8 +8,8 @@ public class Request<ReqP> extends AbstractFrame {
     public ReqP payload;
     public String type;
 
-    public Request(Integer version, UUID uuid, Date created,  String type, ReqP payload) {
-        super(version, uuid, created);
+    public Request(Integer version, UUID uuid, String type, ReqP payload) {
+        super(version, uuid);
         this.payload = payload;
         this.type = type;
     }

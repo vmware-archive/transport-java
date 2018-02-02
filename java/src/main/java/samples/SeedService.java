@@ -1,7 +1,5 @@
 package samples;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.MapperFeature;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.SeedApi;
 import io.swagger.client.model.Seed;
@@ -17,7 +15,7 @@ import java.util.List;
 
 @Service("seedService")
 @Profile("prod")
-public class SeedService extends AbstractService<Request, Response> {
+public class SeedService extends AbstractService {
 
     public static String Channel = "service-seed";
 
@@ -81,7 +79,7 @@ public class SeedService extends AbstractService<Request, Response> {
         super.logDebugMessage("Running API Method", "killPlant()");
         try {
 
-            Seed requestSeed = this.mapper.convertValue(request.getPayload(), new TypeReference<Seed>() { });
+            Seed requestSeed = this.castPayload(Seed.class, request);
             this.seedApi.killPlant(requestSeed);
             this.logDebugMessage("API call success for","killPlant()");
             this.sendResponse(new Response(request.getId(), null));

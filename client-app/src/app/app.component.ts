@@ -11,6 +11,8 @@ export class AppComponent {
 
     constructor(private bus: MessagebusService, private stompService: StompService) {
         this.stompService.init(this.bus);
+        this.bus.api.enableMonitorDump(true);
+        this.bus.api.silenceLog(false);
     }
 
 }
