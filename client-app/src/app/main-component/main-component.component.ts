@@ -49,15 +49,6 @@ export class MainComponentComponent extends AbstractComponent implements OnInit 
         );
     }
 
-    // listenForSeeds(): void {
-    //     let handler = this.bus.listenGalacticStream("service-seed");
-    //     handler.handle(
-    //         (metric) => {
-    //             console.log('got a response!', metric);
-    //         }
-    //     );
-    // }
-
     public plantSeed(type) {
 
         let seedRequest = {
