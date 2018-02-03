@@ -40,7 +40,7 @@ public class SeedServiceTestIntegration extends AbstractTest {
     public void testGetSeeds() {
 
         SeedRequest request
-                = new SeedRequest(1, UUID.randomUUID(), new Date(), "GetSeeds", null);
+                = new SeedRequest(1, UUID.randomUUID(), "GetSeeds", null);
 
 
         Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
@@ -65,7 +65,7 @@ public class SeedServiceTestIntegration extends AbstractTest {
     public void testGetSeedsError() {
 
         SeedRequest request
-                = new SeedRequest(1, UUID.randomUUID(), new Date(), "GetSeeds", null);
+                = new SeedRequest(1, UUID.randomUUID(), "GetSeeds", null);
 
 
         Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
@@ -92,7 +92,7 @@ public class SeedServiceTestIntegration extends AbstractTest {
         seed.setType(Seed.TypeEnum.FLOWER);
 
         SeedRequest request
-                = new SeedRequest(1, UUID.randomUUID(), new Date(), "PlantSeed", seed);
+                = new SeedRequest(1, UUID.randomUUID(), "PlantSeed", seed);
 
 
         Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
@@ -117,7 +117,7 @@ public class SeedServiceTestIntegration extends AbstractTest {
     public void testPlantSeedError() {
 
         SeedRequest request
-                = new SeedRequest(1, UUID.randomUUID(), new Date(), "PlantSeed", null);
+                = new SeedRequest(1, UUID.randomUUID(), "PlantSeed", null);
 
 
         Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
@@ -145,7 +145,7 @@ public class SeedServiceTestIntegration extends AbstractTest {
         seed.setType(Seed.TypeEnum.FLOWER);
 
         SeedRequest request
-                = new SeedRequest(1, UUID.randomUUID(), new Date(), "KillPlant", seed);
+                = new SeedRequest(1, UUID.randomUUID(), "KillPlant", seed);
 
         Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
         TestObserver<Message> observer = new TestObserver<>();
@@ -168,7 +168,7 @@ public class SeedServiceTestIntegration extends AbstractTest {
     public void testKillPlantError() {
 
         SeedRequest request
-                = new SeedRequest(1, UUID.randomUUID(), new Date(), "KillPlant", null);
+                = new SeedRequest(1, UUID.randomUUID(), "KillPlant", null);
 
         Observable<Message> stream = this.bus.getResponseChannel(seedService.getServiceChannel(), seedService.getName());
         TestObserver<Message> observer = new TestObserver<>();

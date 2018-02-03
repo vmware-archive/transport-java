@@ -1,12 +1,13 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MessagebusService, MessageHandler } from '@vmw/bifrost';
+import { AbstractComponent } from '../abstract.component';
 
 @Component({
     selector: 'metrics-chart',
     templateUrl: './metrics-chart.component.html',
     styleUrls: ['./metrics-chart.component.css']
 })
-export class MetricsChartComponent implements OnInit, OnDestroy {
+export class MetricsChartComponent extends AbstractComponent implements OnInit, OnDestroy {
 
     @Input() metricsChannel: string;
 
@@ -52,7 +53,8 @@ export class MetricsChartComponent implements OnInit, OnDestroy {
     private resultArray: Array<number>;
     private metricsHandler: MessageHandler;
 
-    constructor(private bus: MessagebusService) {
+    constructor() {
+        super();
     }
 
     ngOnInit() {

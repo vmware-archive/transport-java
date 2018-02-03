@@ -8,22 +8,22 @@ import java.util.UUID;
 
 public class SeedRequest extends Request<Seed> {
 
-//    public enum Type {
-//        PlantSeed,
-//        GetSeeds,
-//        KillPlant
-//    }
 
-    public SeedRequest(Integer version, UUID uuid, Date created, String type, Seed payload) {
-        super(version, uuid, created, type, payload);
+    public SeedRequest(Integer version, UUID uuid, String type, Seed payload) {
+        super(version, uuid, type, payload);
+
     }
 
-    public SeedRequest(String type) {
-        super(1, UUID.randomUUID(), new Date(), type, null);
+    public SeedRequest(UUID uuid, String type, Seed payload) {
+        this(1, uuid, type, payload);
     }
 
     public SeedRequest(String type, Seed payload) {
-        super(1, UUID.randomUUID(), new Date(), type, payload);
+        this(1, UUID.randomUUID(), type, payload);
+    }
+
+    public SeedRequest(String type) {
+        this(1, UUID.randomUUID(), type, null);
     }
 
     @Override

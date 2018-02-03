@@ -1,5 +1,6 @@
 package samples;
 
+import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.util.AbstractTest;
 import com.vmware.bifrost.bus.MessagebusService;
 import io.swagger.client.ApiException;
@@ -15,6 +16,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import org.springframework.core.io.ResourceLoader;
 import samples.model.SeedRequest;
+//import samples.model.SeedRequest;
 
 import static org.mockito.Mockito.*;
 

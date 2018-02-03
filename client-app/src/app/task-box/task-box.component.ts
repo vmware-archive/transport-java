@@ -1,5 +1,6 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MessagebusService, MessageHandler } from '@vmw/bifrost';
+import { AbstractComponent } from '../abstract.component';
 
 interface Task {
     completedState: number;
@@ -13,7 +14,7 @@ interface Task {
     templateUrl: './task-box.component.html',
     styleUrls: ['./task-box.component.css']
 })
-export class TaskBoxComponent implements OnInit, OnDestroy {
+export class TaskBoxComponent extends AbstractComponent implements OnInit, OnDestroy {
 
     @Input() title: string;
     @Input() channel: string;
@@ -25,7 +26,8 @@ export class TaskBoxComponent implements OnInit, OnDestroy {
     private taskCategory: string;
     private taskLabel: string;
 
-    constructor(private bus: MessagebusService) {
+    constructor() {
+        super();
     }
 
     ngOnInit() {

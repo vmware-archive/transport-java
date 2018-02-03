@@ -9,8 +9,7 @@ import {MessagebusService, StompService} from "@vmw/bifrost";
 export class AppComponent {
     title = 'app';
 
-    constructor(private bus: MessagebusService, private stompService: StompService) {
-        this.stompService.init(this.bus);
+    constructor(private bus: MessagebusService) {
         this.bus.api.enableMonitorDump(true);
         this.bus.api.silenceLog(false);
     }

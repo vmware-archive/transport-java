@@ -9,24 +9,24 @@ import java.util.UUID;
 
 public class SeedResponse extends Response<Seed> {
 
-    public SeedResponse(Integer version, UUID uuid, Date created, List<Seed> payload) {
-        super(version, uuid, created, payload);
+    public SeedResponse(Integer version, UUID uuid, List<Seed> payload) {
+        super(version, uuid, payload);
     }
 
     public SeedResponse(Integer version, List<Seed> payload) {
-        this(version, UUID.randomUUID(), new Date(), payload);
+        this(version, UUID.randomUUID(), payload);
     }
 
     public SeedResponse(UUID id, List<Seed> payload) {
-        this(1, id, new Date(), payload);
+        this(1, id, payload);
     }
 
     public SeedResponse(List<Seed> payload) {
-        this(1, UUID.randomUUID(), new Date(), payload);
+        this(1, UUID.randomUUID(), payload);
     }
 
     public SeedResponse(UUID id, boolean error) {
-        this(1, id, new Date(),null);
+        this(1, id, null);
         this.error = true;
     }
 

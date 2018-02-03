@@ -49,7 +49,7 @@ public class MessageController extends Loggable {
     private void valiateRequest(Request request) throws RequestException {
         if(request.getId() == null) {
             throw new RequestException("Request 'id' is missing");
-        } else if(request.type == null) {
+        } else if(request.getType() == null) {
             throw new RequestException("Request 'type' is missing");
         } else if(request.getVersion() == null) {
             throw new RequestException("Request 'version' is missing");
