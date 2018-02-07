@@ -9,8 +9,6 @@ import java.util.function.Consumer;
 
 public class ServiceMethodHandler {
 
-//    private Consumer<Request> runBefore;
-//    private Consumer<Response> runAfter;
     private Map<String, Consumer<Request>> methodBeforeHandlers;
     private Map<String, Consumer<Response>> methodAfterHandlers;
 
@@ -33,35 +31,11 @@ public class ServiceMethodHandler {
     ServiceMethodHandler(String methodName, Consumer<Request> runBefore, Consumer<Response> runAfter) {
         methodBeforeHandlers = new HashMap<>();
         methodAfterHandlers = new HashMap<>();
-        if(runBefore != null) {
+        if (runBefore != null) {
             methodBeforeHandlers.put(methodName, runBefore);
         }
-        if(runAfter != null) {
+        if (runAfter != null) {
             methodAfterHandlers.put(methodName, runAfter);
         }
-
-
-
-
-//        this.runAfter = runAfter;
-//        this.runBefore = runBefore;
     }
-
-
-
-//    public Consumer<Request> getRunBefore() {
-//        return runBefore;
-//    }
-//
-//    public void setRunBefore(Consumer<Request> runBefore) {
-//        this.runBefore = runBefore;
-//    }
-//
-//    public Consumer<Response> getRunAfter() {
-//        return runAfter;
-//    }
-//
-//    public void setRunAfter(Consumer<Response> runAfter) {
-//        this.runAfter = runAfter;
-//    }
 }
