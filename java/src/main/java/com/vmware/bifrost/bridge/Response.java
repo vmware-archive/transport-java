@@ -30,6 +30,10 @@ public class Response<RespP> extends AbstractFrame {
         this.error = error;
     }
 
+    public void setPayload(List<RespP> payload) {
+        this.payload = payload;
+    }
+
     public List<RespP> getPayload() {
         return this.payload;
     }
