@@ -41,7 +41,7 @@ public abstract class AbstractService extends Loggable
     @Autowired
     private ConfigurableApplicationContext context;
 
-    private final Map<String, ServiceMethodHandler> commandHandlers = new HashMap<>();
+    private final Map<String, ServiceMethodHandler> customMethodHandlers = new HashMap<>();
 
     @Autowired
     protected ResourceLoader resourceLoader;
@@ -157,26 +157,26 @@ public abstract class AbstractService extends Loggable
     }
 
     private void registerBeforeHandler(String service, String method, Consumer<Request> request) {
-        if (commandHandlers.containsKey(service)) {
-            ServiceMethodHandler handler = commandHandlers.get(service);
+        if (customMethodHandlers.containsKey(service)) {
+            ServiceMethodHandler handler = customMethodHandlers.get(service);
             handler.setRunBeforeMethod(method, request);
         } else {
-            commandHandlers.put(service, new ServiceMethodHandler(method, request, null));
+            customMethodHandlers.put(service, new ServiceMethodHandler(method, request, null));
         }
     }
 
     private void registerAfterHandler(String service, String method, Consumer<Response> response) {
-        if (commandHandlers.containsKey(service)) {
-            ServiceMethodHandler handler = commandHandlers.get(service);
+        if (customMethodHandlers.containsKey(service)) {
+            ServiceMethodHandler handler = customMethodHandlers.get(service);
             handler.setRunAfterMethod(method, response);
         } else {
-            commandHandlers.put(service, new ServiceMethodHandler(method, null, response));
+            customMethodHandlers.put(service, new ServiceMethodHandler(method, null, response));
         }
     }
 
     protected void runCustomCodeBefore(String serviceName, String methodName, Request request) {
-        if (commandHandlers.containsKey(serviceName)) {
-            ServiceMethodHandler handler = commandHandlers.get(serviceName);
+        if (customMethodHandlers.containsKey(serviceName)) {
+            ServiceMethodHandler handler = customMethodHandlers.get(serviceName);
             if (handler.getRunBeforeForMethod(methodName) != null) {
                 this.logDebugMessage("Running custom code pre handling for service [" + serviceName + "] method", methodName);
                 handler.getRunBeforeForMethod(methodName).accept(request);
@@ -189,8 +189,8 @@ public abstract class AbstractService extends Loggable
     }
 
     protected void runCustomCodeAfter(String serviceName, String methodName, Response response) {
-        if (commandHandlers.containsKey(serviceName)) {
-            ServiceMethodHandler handler = commandHandlers.get(serviceName);
+        if (customMethodHandlers.containsKey(serviceName)) {
+            ServiceMethodHandler handler = customMethodHandlers.get(serviceName);
             if (handler.getRunAfterForMethod(methodName) != null) {
                 this.logDebugMessage("Running custom code post handling for service [" + serviceName + "] method", methodName);
                 handler.getRunAfterForMethod(methodName).accept(response);
