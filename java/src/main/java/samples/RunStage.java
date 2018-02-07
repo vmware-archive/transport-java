@@ -1,4 +1,6 @@
 package samples;
 
-public class RunStage {
+public enum RunStage {
+    Before,
+    After
 }
