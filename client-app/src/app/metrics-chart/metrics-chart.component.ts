@@ -9,6 +9,18 @@ import { AbstractComponent } from '../abstract.component';
 })
 export class MetricsChartComponent extends AbstractComponent implements OnInit, OnDestroy {
 
+    /*
+    public metricsChannelA: string = "metrics-a";
+    public metricsChannelB: string = "metrics-b";
+
+    public taskChannelA: string = "task-a";
+    public taskChannelB: string = "task-b";
+
+    public taskTitleA: string = "Asynchronous Task A";
+    public taskTitleB: string = "Asynchronous Task B";
+    */
+
+
     @Input() metricsChannel: string;
 
     public lineChartData: Array<any>;

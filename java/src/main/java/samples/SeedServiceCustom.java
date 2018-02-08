@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-@CustomServiceCode(serviceName="SeedService")
+@CustomServiceCode(serviceName = "SeedService")
 @Component
 public class SeedServiceCustom {
 
@@ -19,17 +19,18 @@ public class SeedServiceCustom {
 
     @CustomServiceCodeHandler(stage = RunStage.After, methodName = "getSeeds")
     public void getSeedsAfter(Response response) {
-
+        // postprocess
         List<MutatedSeed> seeds = new ArrayList<>();
 
-        for(Object seed: response.getPayload()) {
-            seeds.add(new MutatedSeed((Seed)seed, "red"));
+        for (Object seed : response.getPayload()) {
+            seeds.add(new MutatedSeed((Seed) seed, "red"));
         }
         response.setPayload(seeds);
     }
 
 }
- class MutatedSeed extends Seed {
+
+class MutatedSeed extends Seed {
 
     private String seedColor;
 
@@ -40,11 +41,15 @@ public class SeedServiceCustom {
         this.setType(seed.getType());
     }
 
-     public String getSeedColor() {
-         return seedColor;
-     }
+    public String getSeedColor() {
+        return seedColor;
+    }
 
-     public void setSeedColor(String seedColor) {
-         this.seedColor = seedColor;
-     }
- }
+    public void setSeedColor(String seedColor) {
+        this.seedColor = seedColor;
+    }
+}
+
+/*
+
+ */

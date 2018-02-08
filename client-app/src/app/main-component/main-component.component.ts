@@ -3,10 +3,7 @@ import { MessagebusService, StompParser } from '@vmw/bifrost';
 import { AbstractComponent } from '../abstract.component';
 import { GalacticRequest } from '@vmw/bifrost/bus/model/request.model';
 import { GalacticResponse } from '@vmw/bifrost/bus/model/response.model';
-
-
-
-
+import { Seed } from '../service.model';
 
 @Component({
     selector: 'app-main-component',
@@ -15,64 +12,38 @@ import { GalacticResponse } from '@vmw/bifrost/bus/model/response.model';
 })
 export class MainComponentComponent extends AbstractComponent implements OnInit {
 
-    public metricsChannelA: string = "metrics-a";
-    public metricsChannelB: string = "metrics-b";
-
-    public taskChannelA: string = "task-a";
-    public taskChannelB: string = "task-b";
-
-    public taskTitleA: string = "Asynchronous Task A";
-    public taskTitleB: string = "Asynchronous Task B";
-
     constructor() {
         super();
     }
 
-    private tellEveryoneTheBridgeIsReady(): void {
-        this.bus.sendResponseMessage('bridge-ready', true);
-        //this.listenForSeeds();
-    }
-
     ngOnInit() {
+        super.ngOnInit();
+    }
 
-        this.bus.connectBridge(
-            () => {
-                this.tellEveryoneTheBridgeIsReady();
-            },
-            '/bifrost',
-            '/topic',
-            '/queue',
-            1,
-            'localhost',
-            8080,
-            '/pub'
+    public plantNewSeed(type: string) {
+         this.plantSeed(
+            new Seed(type),
+            (seeds: Seed[]) => {
+                console.log('seed planted!', seeds);
+            }
         );
     }
 
-    public plantSeed(type) {
+    public killAPlant(seed: Seed) {
+        this.killPlant(
+           seed,
+           (seeds: Seed[]) => {
+               console.log('we killed a plant', seeds);
+           }
+       );
+   }
 
-        let seedRequest = {
-            id: StompParser.genUUID(),
-            created: Date.now(),
-            version: 1,
-            type: "PlantSeed",
-            payload: { type: type }
-        }
-
-        this.bus.sendGalacticMessage("service-seed", seedRequest);
-
-    }
-
-    public getSeeds(): void {
-
-        const request = new GalacticRequest("GetSeeds", null, StompParser.genUUID(), 1);
-    
-        this.bus.requestGalactic('service-seed', request,
-            (seeds: GalacticResponse<any>) => {
-                console.log(seeds.payload);
-            }    
+    public getSeedList(): void {
+        this.getSeeds(
+            (seeds: Seed[]) => {
+                console.log('hey hey we got some seeds', seeds);
+            }
         );
     }
-
 }
 
