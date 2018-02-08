@@ -21,7 +21,7 @@ export class MainComponentComponent extends AbstractComponent implements OnInit 
     }
 
     public plantNewSeed(type: string) {
-         this.plantSeed(
+         this.SeedService.plantSeed(
             new Seed(type),
             (seeds: Seed[]) => {
                 console.log('seed planted!', seeds);
@@ -30,7 +30,7 @@ export class MainComponentComponent extends AbstractComponent implements OnInit 
     }
 
     public killAPlant(seed: Seed) {
-        this.killPlant(
+        this.SeedService.killPlant(
            seed,
            (seeds: Seed[]) => {
                console.log('we killed a plant', seeds);
@@ -39,11 +39,10 @@ export class MainComponentComponent extends AbstractComponent implements OnInit 
    }
 
     public getSeedList(): void {
-        this.getSeeds(
+        this.SeedService.getSeeds(
             (seeds: Seed[]) => {
                 console.log('hey hey we got some seeds', seeds);
             }
         );
     }
 }
-

@@ -7,8 +7,13 @@ import { GalacticResponse } from '@vmw/bifrost/bus/model/response.model';
 export class ServiceApi {
 
     protected bus: EventBus;
+    
+    // services
+    protected SeedService: SeedService;
+    
     constructor() {
         this.bus = window.AppEventBus;
+        this.initiateServiceApi();
     }
 
     private makeServiceRequest<ReqT, RespT>(request: GalacticRequest<ReqT>, 
@@ -24,27 +29,41 @@ export class ServiceApi {
         );
     }
 
-    public getSeeds(handler: MessageFunction<Seed[]>): void {
-        this.makeServiceRequest(
-            new GalacticRequest("GetSeeds", null, StompParser.genUUID(), 1),
-            'service-seed',
-             handler
-        );
+    private initiateServiceApi() {
+        this.SeedService = this.createSeedService();
     }
 
-    public plantSeed(seed: Seed, handler: MessageFunction<Seed[]>): void {
-        this.makeServiceRequest(
-            new GalacticRequest("PlantSeed", seed, StompParser.genUUID(), 1),
-            'service-seed', 
-            handler
-        );
-    }
+    private createSeedService(): SeedService {
+        return {
+            getSeeds: (handler: MessageFunction<Seed[]>) => {
+                this.makeServiceRequest(
+                    new GalacticRequest("GetSeeds", null, StompParser.genUUID(), 1),
+                    'service-seed',
+                     handler
+                );
+            },
+        
+            plantSeed: (seed: Seed, handler: MessageFunction<Seed[]>) => {
+                this.makeServiceRequest(
+                    new GalacticRequest("PlantSeed", seed, StompParser.genUUID(), 1),
+                    'service-seed', 
+                    handler
+                );
+            },
+        
+            killPlant: (seed: Seed, handler: MessageFunction<Seed[]>) => {
+                this.makeServiceRequest(
+                    new GalacticRequest("KillPlant", seed, StompParser.genUUID(), 1),
+                    'service-seed', 
+                    handler
+                );
+            }
+        }
+    }   
+}
 
-    public killPlant(seed: Seed, handler: MessageFunction<Seed[]>): void {
-        this.makeServiceRequest(
-            new GalacticRequest("KillPlant", seed, StompParser.genUUID(), 1),
-            'service-seed', 
-            handler
-        );
-    }
+export interface SeedService {
+    getSeeds(handler: MessageFunction<Seed[]>): void;
+    plantSeed(seed: Seed, handler: MessageFunction<Seed[]>): void
+    killPlant(seed: Seed, handler: MessageFunction<Seed[]>): void
 }
