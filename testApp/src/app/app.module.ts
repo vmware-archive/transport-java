@@ -1,13 +1,11 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { ClarityModule } from "@clr/angular";
-
+import { ClarityModule } from '@clr/angular';
 import { AppComponent } from './app.component';
 import { MainComponentComponent } from './main-component/main-component.component';
-import { MetricsChartComponent } from './metrics-chart/metrics-chart.component';
-import { TaskBoxComponent } from './task-box/task-box.component';
 import { PeerListComponent } from './peer-list/peer-list.component';
 import { MessagebusService, StompService } from '@vmw/bifrost';
+import { VmwComponentsModule } from '@vmw/ngx-components';
 
 
 @NgModule({
@@ -17,7 +15,8 @@ import { MessagebusService, StompService } from '@vmw/bifrost';
   ],
   imports: [
     BrowserModule,
-    ClarityModule
+    ClarityModule,
+    VmwComponentsModule.forRoot(),
   ],
   providers: [
     MessagebusService,

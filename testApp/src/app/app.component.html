@@ -1,12 +1,13 @@
 <clr-main-container>
-    <clr-header class="header-7">
+    <clr-header class="header-4">
         <div class="branding">
             <a href="/">
                 <clr-icon shape="vm-bug"></clr-icon>
-                <span class="title">VMware Cloud App</span>
+                <span class="title">Bifröst Playground</span>
             </a>
         </div>
     </clr-header>
+    
     <vmw-toast-container class="toast-container-7">
         <vmw-toast *ngFor="let t of toasts" [fade]="t.fade">
             <clr-icon *ngIf="!t.error" class="is-success" shape="check-circle" size="32"></clr-icon>
