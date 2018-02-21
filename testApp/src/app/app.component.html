@@ -1,13 +1,26 @@
-<div class="main-container">
-    <header class="header header-6">
-    </header>
+<clr-main-container>
+    <clr-header class="header-7">
+        <div class="branding">
+            <a href="/">
+                <clr-icon shape="vm-bug"></clr-icon>
+                <span class="title">VMware Cloud App</span>
+            </a>
+        </div>
+    </clr-header>
+    <vmw-toast-container class="toast-container-7">
+        <vmw-toast *ngFor="let t of toasts" [fade]="t.fade">
+            <clr-icon *ngIf="!t.error" class="is-success" shape="check-circle" size="32"></clr-icon>
+            <clr-icon *ngIf="t.error" class="is-error" shape="exclamation-circle" size="32"></clr-icon>
+            <h1 class="toast-title">{{t.title}}</h1>
+            <p class="toast-description">{{t.description}}</p>
+            <span class="toast-date">{{t.date | date}}</span>
+            <a class="toast-link" *ngIf="t.link" [href]="t.link">More Info</a>
+        </vmw-toast>
+    </vmw-toast-container>
+
     <div class="content-container">
         <div class="content-area">
             <app-main-component></app-main-component>
         </div>
     </div>
-</div>
-
-
-
-
+</clr-main-container>
