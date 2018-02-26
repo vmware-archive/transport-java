@@ -25,7 +25,7 @@ export class AppComponent {
                 (payload: any) => {
                     this.toasts.push(
                         {
-                            fade: true,
+                            fade: false,
                             error: payload.error,
                             title: payload.title,
                             description: payload.description,
