@@ -27,7 +27,7 @@ public class MessageController extends Loggable {
     public void bridgeMessage(Request request, @DestinationVariable String topicDestination) throws RequestException {
 
         valiateRequest(request);
-        this.logTraceMessage("New inbound message received for", topicDestination);
+        this.logTraceMessage("New inbound message received for channel: ", topicDestination);
         bus.sendRequest(BifrostUtil.convertTopicToChannel(topicDestination), request);
 
     }

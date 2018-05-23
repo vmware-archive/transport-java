@@ -48,20 +48,17 @@ public class BifrostSubscriptionService extends Loggable {
             logger.info("[+] Bifröst Bus: creating channel subscription to '" + channelName + "' subId: (" + subId + ")");
 
 
-            bus.getResponseChannel(channelName, this.getName()).subscribe(
+            BusTransaction transaction = bus.listenResponseStream(channelName,
                     (Message msg) -> {
-                        this.logDebugMessage("Bifröst (New) sending payload: " + msg.getPayload().toString() + " to ", channelName);
+                        this.logDebugMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
                         msgTmpl.convertAndSend(BifrostUtil.convertChannelToTopic(channelName), msg.getPayload());
                     }
 
             );
 
 
-//            BusTransaction transaction = bus.listenResponseStream(channelName,
-//
-//            );
 
-           // openSubscriptions.put(subId, new BifrostSubscription(channelName, subId, sessionId, transaction));
+            openSubscriptions.put(subId, new BifrostSubscription(channelName, subId, sessionId, transaction));
             openChannels.add(channelName);
 
             // check if this user has other channel subscriptions
@@ -106,9 +103,8 @@ public class BifrostSubscriptionService extends Loggable {
             List<String> chans = sessionChannels.get(sessionId);
 
             for (String chan : chans) {
-                // close bus channels to silence any long running streams.
-                // there are two subscriptions, one by the producer and one by the subscription handler.
-                bus.close(chan, this.getClass().getName());
+
+                // close subscription.
                 bus.close(chan, this.getClass().getName());
                 openChannels.remove(chan);
 
@@ -124,7 +120,7 @@ public class BifrostSubscriptionService extends Loggable {
                     openSubscriptions.remove(subId);
                 }
 
-                logger.info("[-] Bifröst Bus: closing channel '" + chan + "' after disconnect");
+                logger.info("[-] Bifröst Bus: closing subscription to channel '" + chan + "' after disconnect");
             }
         }
     }

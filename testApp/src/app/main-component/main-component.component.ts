@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { MessagebusService, StompParser } from '@vmw/bifrost';
 import { AbstractComponent } from '../abstract.component';
 import { GalacticRequest } from '@vmw/bifrost/bus/model/request.model';
 import { GalacticResponse } from '@vmw/bifrost/bus/model/response.model';

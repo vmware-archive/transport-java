@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { MessagebusService, StompService } from '@vmw/bifrost';
+import { EventBus, BifrostEventBus } from '@vmw/bifrost';
+import { LogLevel } from '../../../../bifrost-symlink/log';
 
 @Component({
     selector: 'app-root',
@@ -11,8 +12,9 @@ export class AppComponent {
 
     toasts = [];
     fade = true;
-
-    constructor(private bus: MessagebusService) {
+    bus: EventBus;
+    constructor() {
+        this.bus = new BifrostEventBus(LogLevel.Debug);
         this.bus.api.enableMonitorDump(true);
         this.bus.api.silenceLog(false);
         this.toasts = [];

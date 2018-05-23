@@ -1,5 +1,6 @@
 package samples;
 
+import com.vmware.bifrost.bridge.Response;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.SeedApi;
 import io.swagger.client.model.Seed;
@@ -25,14 +26,16 @@ public class SeedServiceMock extends SeedService implements ApplicationListener<
     }
 
     @Override
-    protected void getSeeds(Request request) {
+    protected Response getSeeds(Request request) {
         this.logDebugMessage("Running Mock API Method", "getSeeds()");
 
         if (!this.mockFail) {
             List<Seed> result = mockModel.seed;
 
             this.logDebugMessage("Mock API call success","getSeeds()");
-            this.sendResponse(new SeedResponse(request.getId(), result));
+            Response response = new SeedResponse(request.getId(), result);
+            this.sendResponse(response);
+            return response;
 
         } else {
             this.apiFailedHandler(
@@ -40,6 +43,7 @@ public class SeedServiceMock extends SeedService implements ApplicationListener<
                     new ApiException("Mock API call failed"),
                     "getSeeds()");
         }
+        return null;
     }
 
     @Override

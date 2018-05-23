@@ -6,17 +6,17 @@ export abstract class AbstractComponent extends ServiceApi implements OnInit {
 
     ngOnInit() {
         this.bus.connectBridge(
-            () => {
-                this.tellEveryoneTheBridgeIsReady();
-            },
-            '/bifrost',
-            '/topic',
-            '/queue',
-            1,
-            'localhost',
-            8080,
-            '/pub'
-        );
+        () => {
+          this.tellEveryoneTheBridgeIsReady();
+        },
+        '/bifrost',
+        '/topic',
+        '/queue',
+        1,
+        'localhost',
+        8080,
+        '/pub'
+      );
     }
 
     constructor() {

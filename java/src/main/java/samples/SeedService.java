@@ -7,14 +7,19 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import samples.model.SeedRequest;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+
 
 @Service("seedService")
 @Profile("prod")
+@RestController
+@RequestMapping("/seed")
 public class SeedService extends AbstractService {
 
     public static String Channel = "service-seed";
@@ -25,6 +30,12 @@ public class SeedService extends AbstractService {
         super(SeedService.Channel);
         this.seedApi = seedApi;
     }
+
+    @GetMapping
+    Response<List<Seed>> getSeedRestRequest() throws Exception {
+        return this.getSeeds(new SeedRequest("GetSeeds"));
+    }
+
 
     @Override
     public void handleServiceRequest(Request request) {
@@ -44,7 +55,7 @@ public class SeedService extends AbstractService {
         }
     }
 
-    protected void getSeeds(Request request) {
+    protected Response getSeeds(Request request) {
         super.logDebugMessage("Running API Method", "getSeeds()");
         this.runCustomCodeBefore("SeedService","getSeeds", request);
         try {
@@ -55,11 +66,13 @@ public class SeedService extends AbstractService {
 
             this.runCustomCodeAfter("SeedService","getSeeds", response);
             this.sendResponse(response);
+            return response;
 
         } catch (ApiException e) {
             this.apiFailedHandler(
                     new Response(request.getVersion(), request.getId(), true), e, "getSeeds()");
         }
+        return null;
 
     }
 

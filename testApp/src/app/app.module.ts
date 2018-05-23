@@ -3,8 +3,6 @@ import { NgModule } from '@angular/core';
 import { ClarityModule } from '@clr/angular';
 import { AppComponent } from './app.component';
 import { MainComponentComponent } from './main-component/main-component.component';
-import { PeerListComponent } from './peer-list/peer-list.component';
-import { MessagebusService, StompService } from '@vmw/bifrost';
 import { VmwComponentsModule } from '@vmw/ngx-components';
 
 
@@ -19,8 +17,6 @@ import { VmwComponentsModule } from '@vmw/ngx-components';
     VmwComponentsModule.forRoot(),
   ],
   providers: [
-    MessagebusService,
-    StompService
   ],
   bootstrap: [AppComponent]
 })
