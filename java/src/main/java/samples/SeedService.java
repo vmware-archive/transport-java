@@ -36,6 +36,12 @@ public class SeedService extends AbstractService {
         return this.getSeeds(new SeedRequest("GetSeeds"));
     }
 
+    @GetMapping("/custom")
+    Response<Seed> nonExternalApiMethod() throws Exception {
+        return this.customBusinessLogic(new SeedRequest("CustomLogic"));
+    }
+
+
 
     @Override
     public void handleServiceRequest(Request request) {
@@ -52,8 +58,24 @@ public class SeedService extends AbstractService {
                 this.killPlant(request);
                 break;
 
+            case "CustomLogic":
+                this.customBusinessLogic(request);
+                break;
+
         }
     }
+
+    protected Response customBusinessLogic(Request request) {
+        super.logDebugMessage("Running Custom API Method", "customBusinessLogic()");
+
+        // really want to do something useful here.
+        Seed seed = new Seed();
+        seed.setId(new Random().nextLong());
+        seed.setType(Seed.TypeEnum.BUSH);
+        return new Response(request.getId(), Arrays.asList(seed));
+    }
+
+
 
     protected Response getSeeds(Request request) {
         super.logDebugMessage("Running API Method", "getSeeds()");
