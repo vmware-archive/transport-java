@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Copyright(c) VMware Inc. 2017-2018
@@ -156,12 +157,20 @@ public abstract class AbstractService extends Loggable
         }
     }
 
+    private Response handleCustomDropInMethod(Object container, Method method, Object data) {
+        try {
+            return (Response) method.invoke(container, data);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void registerBeforeHandler(String service, String method, Consumer<Request> request) {
         if (customMethodHandlers.containsKey(service)) {
             ServiceMethodHandler handler = customMethodHandlers.get(service);
             handler.setRunBeforeMethod(method, request);
         } else {
-            customMethodHandlers.put(service, new ServiceMethodHandler(method, request, null));
+            customMethodHandlers.put(service, new ServiceMethodHandler(method, request, null, null));
         }
     }
 
@@ -170,7 +179,16 @@ public abstract class AbstractService extends Loggable
             ServiceMethodHandler handler = customMethodHandlers.get(service);
             handler.setRunAfterMethod(method, response);
         } else {
-            customMethodHandlers.put(service, new ServiceMethodHandler(method, null, response));
+            customMethodHandlers.put(service, new ServiceMethodHandler(method, null, response, null));
+        }
+    }
+
+    private void registerDropInHandler(String service, String method, Function<Request, Response> func) {
+        if (customMethodHandlers.containsKey(service)) {
+            ServiceMethodHandler handler = customMethodHandlers.get(service);
+            handler.setDropInMethod(method, func);
+        } else {
+            customMethodHandlers.put(service, new ServiceMethodHandler(method, null, null, func));
         }
     }
 
@@ -200,6 +218,22 @@ public abstract class AbstractService extends Loggable
         } else {
             this.logTraceMessage("Skipping post handling custom code for [" + serviceName + "]", "no handlers registered");
         }
+    }
+
+    protected Response runCustomCodeAndReturnResponse(String serviceName, String methodName, Request request) {
+        Response response = null;
+        if (customMethodHandlers.containsKey(serviceName)) {
+            ServiceMethodHandler handler = customMethodHandlers.get(serviceName);
+            if (handler.getDropInMethod(methodName) != null) {
+                this.logDebugMessage("Running drop in custom code for service [" + serviceName + "] method", methodName);
+                response = handler.getDropInMethod(methodName).apply(request);
+            } else {
+                this.logTraceMessage("Skipping drop in custom code for [" + serviceName + "]", "no handler for method " + methodName);
+            }
+        } else {
+            this.logTraceMessage("Skipping drop in custom code for [" + serviceName + "]", "no handlers registered");
+        }
+        return response;
     }
 
 
@@ -232,6 +266,13 @@ public abstract class AbstractService extends Loggable
                                     serviceAnnotation.serviceName(),
                                     annotation.methodName(),
                                     frame -> handleCustomMethod(service, method, frame));
+                            break;
+
+                        case DropIn:
+                            registerDropInHandler(
+                                    serviceAnnotation.serviceName(),
+                                    annotation.methodName(),
+                                    frame -> handleCustomDropInMethod(service, method, frame));
                             break;
 
                     }

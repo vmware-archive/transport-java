@@ -6,14 +6,20 @@ import com.vmware.bifrost.bridge.Response;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ServiceMethodHandler {
 
     private Map<String, Consumer<Request>> methodBeforeHandlers;
     private Map<String, Consumer<Response>> methodAfterHandlers;
+    private Map<String, Function<Request, Response>> dropInMethodHandlers;
 
     public Consumer<Response> getRunAfterForMethod(String methodName) {
         return methodAfterHandlers.get(methodName);
+    }
+
+    public Function<Request, Response> getDropInMethod(String methodName) {
+        return dropInMethodHandlers.get(methodName);
     }
 
     public Consumer<Request> getRunBeforeForMethod(String methodName) {
@@ -28,14 +34,22 @@ public class ServiceMethodHandler {
         this.methodAfterHandlers.put(methodName, response);
     }
 
-    ServiceMethodHandler(String methodName, Consumer<Request> runBefore, Consumer<Response> runAfter) {
+    public void setDropInMethod(String methodName, Function<Request, Response> response) {
+        this.dropInMethodHandlers.put(methodName, response);
+    }
+
+    ServiceMethodHandler(String methodName, Consumer<Request> runBefore, Consumer<Response> runAfter, Function<Request, Response> dropIn) {
         methodBeforeHandlers = new HashMap<>();
         methodAfterHandlers = new HashMap<>();
+        dropInMethodHandlers = new HashMap<>();
         if (runBefore != null) {
             methodBeforeHandlers.put(methodName, runBefore);
         }
         if (runAfter != null) {
             methodAfterHandlers.put(methodName, runAfter);
+        }
+        if (dropInMethodHandlers != null) {
+            dropInMethodHandlers.put(methodName, dropIn);
         }
     }
 }

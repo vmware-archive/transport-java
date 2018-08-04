@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Service("servbotService")
+@Service("ServbotService")
 @Profile("prod")
 @RestController
 @RequestMapping("/servbot")
@@ -24,9 +24,13 @@ public class ServbotService extends AbstractService {
     public static String Channel = "servbot";
     private List<ChatMessage> chatMessageList;
 
+    private List<String> helpList;
+
     public ServbotService() {
         super(ServbotService.Channel);
         this.chatMessageList = new ArrayList<>();
+        this.helpList = new ArrayList<>();
+        //this.populateHelpList();
     }
 
     @Override
@@ -54,11 +58,16 @@ public class ServbotService extends AbstractService {
         Response response = new Response(request.getId(),
                 Arrays.asList("No such command as " + request.getType()));
 
+        this.runCustomCodeBefore("ServbotService", "postError", request);
+
         // push to bus and return response (for any restful callers)
         this.sendResponse(response);
     }
 
     private Response postMessageStats(Request request) {
+
+        this.runCustomCodeBefore("ServbotService", "postMessageStats", request);
+
         Response response = new Response(request.getId(),
                 Arrays.asList("Total of " + this.chatMessageList.size() + " messages"));
 
@@ -67,9 +76,12 @@ public class ServbotService extends AbstractService {
         return response;
     }
 
-    private void recordChat(Request request) {
-        ChatMessage msg = this.castPayload(ChatMessage.class, request);
-        this.chatMessageList.add(msg);
+    private Response recordChat(Request request) {
+        return this.runCustomCodeAndReturnResponse(
+                "ServbotService", "recordChat", request);
+//
+//        ChatMessage msg = this.castPayload(ChatMessage.class, request);
+//        this.chatMessageList.add(msg);
     }
 
     private Response postHelp(Request request) {

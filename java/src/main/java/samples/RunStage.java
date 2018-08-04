@@ -2,5 +2,6 @@ package samples;
 
 public enum RunStage {
     Before,
-    After
+    After,
+    DropIn,
 }
