@@ -44,7 +44,18 @@ public class ServbotService extends AbstractService {
                 this.postHelp(request);
                 break;
 
+            default:
+                this.postError(request);
+
         }
+    }
+
+    private void postError(Request request) {
+        Response response = new Response(request.getId(),
+                Arrays.asList("No such command as " + request.getType()));
+
+        // push to bus and return response (for any restful callers)
+        this.sendResponse(response);
     }
 
     private Response postMessageStats(Request request) {
