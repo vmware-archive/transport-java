@@ -17,7 +17,7 @@ import java.util.*;
 
 
 @Service("seedService")
-@Profile("prod")
+@Profile("dev")
 @RestController
 @RequestMapping("/seed")
 public class SeedService extends AbstractService {
@@ -72,7 +72,11 @@ public class SeedService extends AbstractService {
         Seed seed = new Seed();
         seed.setId(new Random().nextLong());
         seed.setType(Seed.TypeEnum.BUSH);
-        return new Response(request.getId(), Arrays.asList(seed));
+
+        Response response = new Response(request.getId(), Arrays.asList(seed));
+        // push to bus and return response (for any restful callers)
+        this.sendResponse(response);
+        return response;
     }
 
 

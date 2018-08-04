@@ -11,6 +11,7 @@ public class Response<RespP> extends AbstractFrame {
     protected String errorMessage;
     protected List<RespP> payload;
 
+
     public Response(Integer version, UUID uuid, List<RespP> payload) {
         super(version, uuid);
         this.payload = payload;

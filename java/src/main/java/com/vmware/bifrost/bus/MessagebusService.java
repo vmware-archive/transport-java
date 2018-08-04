@@ -406,7 +406,7 @@ public class MessagebusService extends Loggable {
         config.setSendChannel(channel);
         config.setSchema(schema);
 
-        MessageHandler messageHandler = this.createMessageHandler(config, true);
+        MessageHandler messageHandler = this.createMessageHandler(config, false);
         Disposable sub = messageHandler.handle(successHandler, errorHandler);
 
         return new BusHandlerTransaction(sub, messageHandler);
