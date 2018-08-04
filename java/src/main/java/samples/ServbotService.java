@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import samples.model.ChatCommand;
 import samples.model.ChatMessage;
 
 import java.util.ArrayList;
@@ -30,13 +31,17 @@ public class ServbotService extends AbstractService {
 
     @Override
     public void handleServiceRequest(Request request) {
-        this.logDebugMessage("I AM A REQUEST " + request.getType());
         switch (request.getType()) {
-            case "PostMessage":
+            case ChatCommand.PostMessage:
                 this.recordChat(request);
                 break;
-            case "MessageStats":
+
+            case ChatCommand.MessageStats:
                 this.postMessageStats(request);
+                break;
+
+            case ChatCommand.Help:
+                this.postHelp(request);
                 break;
 
         }
@@ -54,5 +59,15 @@ public class ServbotService extends AbstractService {
     private void recordChat(Request request) {
         ChatMessage msg = this.castPayload(ChatMessage.class, request);
         this.chatMessageList.add(msg);
+    }
+
+    private Response postHelp(Request request) {
+
+        Response response = new Response(request.getId(),
+                Arrays.asList("There is no help."));
+
+        // push to bus and return response (for any restful callers)
+        this.sendResponse(response);
+        return response;
     }
 }
