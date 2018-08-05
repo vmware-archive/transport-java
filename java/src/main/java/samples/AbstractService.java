@@ -61,6 +61,7 @@ public abstract class AbstractService extends Loggable
     }
 
     //protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    //protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public String getServiceChannel() {
         return this.serviceChannel;
@@ -99,7 +100,9 @@ public abstract class AbstractService extends Loggable
         this.serviceTransaction.unsubscribe();
     }
 
-    public abstract void handleServiceRequest(Request request);
+    public void handleServiceRequest(Request request) {
+        throw new RuntimeException("Service must implement handleServiceRequest()");
+    }
 
     public void sendResponse(Response response) {
         this.logInfoMessage(
