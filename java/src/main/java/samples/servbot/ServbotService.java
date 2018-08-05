@@ -30,7 +30,7 @@ public class ServbotService {
     }
 
     private void buildHelp() {
-        this.helpList.add("/msg-stats message statistics");
+        this.helpList.add("/messageStats message statistics");
         this.helpList.add("/motd message of the day");
         this.helpList.add("/joke tell a joke");
     }
