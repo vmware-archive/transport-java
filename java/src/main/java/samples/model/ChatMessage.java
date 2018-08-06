@@ -7,6 +7,7 @@ public class ChatMessage {
     private Long time;
     private String controlEvent;
     private boolean error;
+    private Object task;
 
     public String getFrom() {
         return from;
@@ -32,8 +33,17 @@ public class ChatMessage {
         this.body = body;
     }
 
+    public Object getTask() {
+        return task;
+    }
+
+    public void setTask(Object task) {
+        this.task = task;
+    }
+
     public Long getTime() {
         return time;
+
     }
 
     public void setTime(Long time) {
