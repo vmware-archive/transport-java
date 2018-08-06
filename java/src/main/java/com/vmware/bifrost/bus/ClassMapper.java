@@ -10,4 +10,9 @@ public class ClassMapper {
         return (T) mapper.convertValue(request.getPayload(), clazz);
     }
 
+    public static <T> T CastPayload(Class clazz, String string) throws ClassCastException {
+        ObjectMapper mapper = new ObjectMapper();
+        return (T) mapper.convertValue(string, clazz);
+    }
+
 }

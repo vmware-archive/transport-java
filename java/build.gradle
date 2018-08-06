@@ -62,6 +62,7 @@ dependencies {
     compile 'com.squareup.okhttp:logging-interceptor:2.7.5'
     compile 'com.google.code.gson:gson:2.8.1'
     compile 'joda-time:joda-time:2.9.9'
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.6'
     testCompile group: 'org.springframework', name: 'spring-web', version: '5.0.3.RELEASE'
     testCompile 'org.mockito:mockito-core:2.+'
 

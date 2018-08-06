@@ -3,16 +3,20 @@ package samples.servbot;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.ClassMapper;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 import samples.CustomServiceCode;
 import samples.CustomServiceCodeHandler;
 import samples.RunStage;
 import samples.model.ChatMessage;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 
 @CustomServiceCode(serviceName = "ServbotService")
 @Component
@@ -21,18 +25,19 @@ public class ServbotService {
 
     private List<ChatMessage> chatMessageList;
     private List<String> helpList;
+    private HttpComponentsClientHttpRequestFactory requestFactory;
 
     ServbotService() {
         super();
         this.chatMessageList = new ArrayList<>();
         this.helpList = new ArrayList<>();
         this.buildHelp();
-    }
 
-    private void buildHelp() {
-        this.helpList.add("/messageStats message statistics");
-        this.helpList.add("/motd message of the day");
-        this.helpList.add("/joke tell a joke");
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setSSLHostnameVerifier(new NoopHostnameVerifier())
+                .build();
+        requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setHttpClient(httpClient);
     }
 
     @CustomServiceCodeHandler(stage = RunStage.DropIn, methodName = "PostMessage")
@@ -48,7 +53,7 @@ public class ServbotService {
     public Response messageStats(Request request) {
 
         return new Response(request.getId(),
-                Arrays.asList("A total of " + this.chatMessageList.size() + " messages sent"));
+                Arrays.asList("Total of " + this.chatMessageList.size() + " messages sent"));
 
     }
 
@@ -63,7 +68,7 @@ public class ServbotService {
     public Response getMotd(Request request) {
 
         return new Response(request.getId(),
-                Arrays.asList("A chicken in the bush, is worth twelve in the eye"));
+                Arrays.asList("You should enable VMCBot. It's pretty cool."));
 
     }
 
@@ -71,8 +76,19 @@ public class ServbotService {
     public Response getAJoke(Request request) {
 
         return new Response(request.getId(),
-                Arrays.asList("the fact I have not been fucking promoted yet, look at what I can do!"));
+                Arrays.asList(getAJoke().joke));
 
+    }
+
+    private Joke getAJoke() {
+        return new RestTemplate(requestFactory).exchange(
+                "https://icanhazdadjoke.com", HttpMethod.GET, null, Joke.class).getBody();
+    }
+
+    private void buildHelp() {
+        this.helpList.add("/messageStats");
+        this.helpList.add("/motd");
+        this.helpList.add("/joke");
     }
 
 }
