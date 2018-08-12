@@ -3,14 +3,18 @@ package samples.servbot;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
 
+import io.swagger.client.model.Seed;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import samples.AbstractService;
 import samples.model.ChatCommand;
+import samples.model.SeedRequest;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Service("ServbotService")
 @Profile("prod")
@@ -25,6 +29,12 @@ public class BaseServbotService extends AbstractService {
         super(BaseServbotService.Channel);
     }
 
+
+    /**
+     * Bus Enabled Handling.
+     *
+     * @param request
+     */
     @Override
     public void handleServiceRequest(Request request) {
         switch (request.getType()) {
@@ -54,6 +64,28 @@ public class BaseServbotService extends AbstractService {
 
         }
     }
+
+    // REST Mappings.
+    @GetMapping(ChatCommand.Motd)
+    Response restMotd() throws Exception {
+        return this.motd(new Request(ChatCommand.Motd));
+    }
+
+    @GetMapping(ChatCommand.Help)
+    Response restHelp() throws Exception {
+        return this.help(new Request(ChatCommand.Help));
+    }
+
+    @GetMapping(ChatCommand.Joke)
+    Response restJoke() throws Exception {
+        return this.joke(new Request(ChatCommand.Joke));
+    }
+
+    @GetMapping(ChatCommand.MessageStats)
+    Response restMessageStats() throws Exception {
+        return this.messageStats(new Request(ChatCommand.MessageStats));
+    }
+
 
     private void error(Request request) {
         Response response = new Response(request.getId(),
