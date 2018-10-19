@@ -6,15 +6,13 @@ import com.vmware.bifrost.bus.MessagebusService;
 public class Metrics implements Runnable {
 
     private MessagebusService bus;
-    private int interval;
     private String channel;
 
     OpenSimplexNoise noise;
-    double x,y;
+    double x, y;
 
-    public Metrics(MessagebusService bus, int interval, String channel) {
+    public Metrics(MessagebusService bus, String channel) {
         this.bus = bus;
-        this.interval = interval;
         this.channel = channel;
 
         noise = new OpenSimplexNoise();
@@ -33,17 +31,7 @@ public class Metrics implements Runnable {
 
     @Override
     public void run() {
-
-        try {
-
-            while(true) {
-                Thread.sleep(this.interval);
-                bus.sendResponse(this.channel, new SampleMetric(this.generateValue()));
-            }
-
-        } catch (InterruptedException exp) {
-
-        }
+        bus.sendResponse(this.channel, new SampleMetric(this.generateValue()));
     }
 }
 
