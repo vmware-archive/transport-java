@@ -2,7 +2,6 @@ package com.vmware.bifrost.bridge.spring.controllers;
 
 import com.vmware.bifrost.bridge.RequestException;
 import com.vmware.bifrost.bridge.Response;
-import com.vmware.bifrost.bridge.util.BifrostUtil;
 import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.MessagebusService;
 import io.reactivex.exceptions.OnErrorNotImplementedException;
@@ -28,8 +27,7 @@ public class MessageController extends Loggable {
 
         valiateRequest(request);
         this.logTraceMessage("New inbound message received for channel: ", topicDestination);
-        bus.sendRequest(BifrostUtil.convertTopicToChannel(topicDestination), request);
-
+        bus.sendRequest(topicDestination, request);
     }
 
     @MessageExceptionHandler

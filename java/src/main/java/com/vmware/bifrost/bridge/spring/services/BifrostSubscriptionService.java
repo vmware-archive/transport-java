@@ -1,6 +1,5 @@
 package com.vmware.bifrost.bridge.spring.services;
 
-import com.vmware.bifrost.bridge.util.BifrostUtil;
 import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bus.MessagebusService;
@@ -41,7 +40,7 @@ public class BifrostSubscriptionService extends Loggable {
         return openChannels;
     }
 
-    public void addSubscription(String subId, String sessionId, String channelName) {
+    public void addSubscription(String subId, String sessionId, String channelName, String destinationPrefix) {
 
         if (!openChannels.contains(channelName)) {
 
@@ -51,7 +50,7 @@ public class BifrostSubscriptionService extends Loggable {
             BusTransaction transaction = bus.listenResponseStream(channelName,
                     (Message msg) -> {
                         this.logDebugMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
-                        msgTmpl.convertAndSend(BifrostUtil.convertChannelToTopic(channelName), msg.getPayload());
+                        msgTmpl.convertAndSend(destinationPrefix + channelName, msg.getPayload());
                     }
 
             );
