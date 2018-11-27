@@ -38,7 +38,7 @@ public class ServiceMethodHandler {
         this.dropInMethodHandlers.put(methodName, response);
     }
 
-    ServiceMethodHandler(String methodName, Consumer<Request> runBefore, Consumer<Response> runAfter, Function<Request, Response> dropIn) {
+    public ServiceMethodHandler(String methodName, Consumer<Request> runBefore, Consumer<Response> runAfter, Function<Request, Response> dropIn) {
         methodBeforeHandlers = new HashMap<>();
         methodAfterHandlers = new HashMap<>();
         dropInMethodHandlers = new HashMap<>();

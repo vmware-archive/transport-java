@@ -3,18 +3,15 @@ package samples.servbot;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
 
-import io.swagger.client.model.Seed;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import samples.AbstractService;
+import com.vmware.bifrost.core.AbstractService;
 import samples.model.ChatCommand;
-import samples.model.SeedRequest;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Service("ServbotService")
 @Profile("prod")

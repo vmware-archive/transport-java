@@ -1,5 +1,6 @@
 package samples;
 
+import com.vmware.bifrost.core.AbstractService;
 import io.swagger.client.ApiException;
 import io.swagger.client.api.SeedApi;
 import io.swagger.client.model.Seed;

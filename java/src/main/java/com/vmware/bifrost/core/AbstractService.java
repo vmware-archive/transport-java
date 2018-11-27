@@ -1,4 +1,7 @@
-package samples;
+/**
+ * Copyright(c) VMware Inc. 2018
+ */
+package com.vmware.bifrost.core;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +21,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
+import samples.*;
 
 
 import java.io.IOException;
@@ -29,9 +33,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Copyright(c) VMware Inc. 2017-2018
- */
 @BifrostService
 public abstract class AbstractService extends Loggable
         implements Mockable, BifrostEnabled, ApplicationListener<ContextRefreshedEvent> {
@@ -56,7 +57,6 @@ public abstract class AbstractService extends Loggable
     public AbstractService(String serviceChannel) {
         super();
         this.serviceChannel = serviceChannel;
-        mapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
         mapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES);
     }
 
