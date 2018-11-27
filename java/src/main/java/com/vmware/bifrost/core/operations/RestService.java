@@ -2,11 +2,12 @@ package com.vmware.bifrost.core.operations;
 
 import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.core.model.RestOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -16,12 +17,13 @@ import org.springframework.web.client.RestTemplate;
  */
 
 
-@Service
+@Component
 public class RestService extends Loggable {
 
     private final RestTemplate restTemplate;
     private final RestTemplateBuilder builder;
 
+    @Autowired
     public RestService(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplate = restTemplateBuilder.build();
         this.builder = restTemplateBuilder;
@@ -57,7 +59,7 @@ public class RestService extends Loggable {
             switch (operation.getMethod()) {
                 case GET:
                     operation.getSuccessHandler().accept(
-                            (Resp) this.restTemplate.getForObject(operation.getUri(), Class.forName(operation.getApiClass()))
+                            (Resp)this.restTemplate.getForObject(operation.getUri(), Class.forName(operation.getApiClass()))
                     );
                     break;
 
