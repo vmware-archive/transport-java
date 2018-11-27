@@ -113,6 +113,30 @@ public class RestServiceTest {
 
     }
 
+    @Test
+    public void testPost() throws Exception {
+
+        MockResponseB mock = buildMockResponseB();
+
+        configureMockRestServer(
+                "/user",
+                mapResponseToSting(mock)
+        );
+
+        RestOperation<Object, MockResponseB> operation = new RestOperation<>();
+        operation.setApiClass(MockResponseB.class.getName());
+        operation.setUri(new URI("/user"));
+        operation.setMethod(HttpMethod.POST);
+        operation.setSuccessHandler(
+                (MockResponseB response) -> {
+                    assertThat(response.getId()).isEqualTo(mock.getId());
+                    assertThat(response.getValue()).isEqualTo("Melody");
+                }
+        );
+
+        restService.restServiceRequest(operation);
+
+    }
 
 
 
