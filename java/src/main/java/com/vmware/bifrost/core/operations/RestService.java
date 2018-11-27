@@ -56,7 +56,7 @@ public class RestService extends Loggable {
         }
 
         try {
-
+            ResponseEntity resp;
             switch (operation.getMethod()) {
                 case GET:
                     operation.getSuccessHandler().accept(
@@ -65,25 +65,31 @@ public class RestService extends Loggable {
                     break;
 
                 case POST:
-                    ResponseEntity resp = this.restTemplate.exchange(operation.getUri(), HttpMethod.POST, entity, Class.forName(operation.getApiClass()));
+                    resp = this.restTemplate.exchange(operation.getUri(), HttpMethod.POST, entity, Class.forName(operation.getApiClass()));
                     operation.getSuccessHandler().accept(
                             (Resp)resp.getBody()
                     );
+                    break;
 
                 case PUT:
+                    resp = this.restTemplate.exchange(operation.getUri(), HttpMethod.PUT, entity, Class.forName(operation.getApiClass()));
                     operation.getSuccessHandler().accept(
-                            (Resp) this.restTemplate.exchange(operation.getUri(), HttpMethod.PUT, entity, Class.forName(operation.getApiClass()))
+                            (Resp)resp.getBody()
                     );
+                    break;
 
                 case PATCH:
+                    resp = this.restTemplate.exchange(operation.getUri(), HttpMethod.PATCH, entity, Class.forName(operation.getApiClass()));
                     operation.getSuccessHandler().accept(
-                            (Resp) this.restTemplate.exchange(operation.getUri(), HttpMethod.PATCH, entity, Class.forName(operation.getApiClass()))
+                            (Resp)resp.getBody()
                     );
+                    break;
 
                 case DELETE:
                     operation.getSuccessHandler().accept(
                             (Resp) this.restTemplate.exchange(operation.getUri(), HttpMethod.DELETE, entity, Class.forName(operation.getApiClass()))
                     );
+                    break;
             }
 
         } catch (ClassNotFoundException exp) {

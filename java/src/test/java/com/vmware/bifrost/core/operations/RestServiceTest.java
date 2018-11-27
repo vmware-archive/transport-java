@@ -15,12 +15,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestTemplate;
 import samples.Application;
 
 import java.net.URI;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.client.ExpectedCount.manyTimes;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -62,9 +64,15 @@ public class RestServiceTest {
 
 
     private void configureMockRestServer(String uri, String response) {
-        this.server.expect(requestTo(uri))
+        this.server.expect(manyTimes(), requestTo(uri))
                 .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
     }
+
+//    @Before
+//    public void setUp() {
+//        RestTemplate restTemplate = new RestTemplate();
+//        this.server  = MockRestServiceServer.createServer(restTemplate);
+//    }
 
     @Test
     public void testGet() throws Exception {
@@ -77,30 +85,6 @@ public class RestServiceTest {
         RestOperation<Object, MockResponseA> operation = new RestOperation<>();
         operation.setApiClass(MockResponseA.class.getName());
         operation.setUri(new URI("/user/1"));
-        operation.setMethod(HttpMethod.GET);
-        operation.setSuccessHandler(
-                (MockResponseA response) -> {
-                    assertThat(response.getName()).isEqualTo("John Smith");
-                    assertThat(response.getValue()).isEqualTo("123 Fancy Street");
-                }
-        );
-
-        restService.restServiceRequest(operation);
-
-    }
-
-    @Test
-    public void testGetWithFullURI() throws Exception {
-
-        configureMockRestServer(
-                "http://what-a-lovely.domain/user/1",
-                mapResponseToSting(buildMockResponseA())
-        );
-
-
-        RestOperation<Object, MockResponseA> operation = new RestOperation<>();
-        operation.setApiClass(MockResponseA.class.getName());
-        operation.setUri(new URI("http://what-a-lovely.domain/user/1"));
         operation.setMethod(HttpMethod.GET);
         operation.setSuccessHandler(
                 (MockResponseA response) -> {
@@ -127,6 +111,56 @@ public class RestServiceTest {
         operation.setApiClass(MockResponseB.class.getName());
         operation.setUri(new URI("/user"));
         operation.setMethod(HttpMethod.POST);
+        operation.setSuccessHandler(
+                (MockResponseB response) -> {
+                    assertThat(response.getId()).isEqualTo(mock.getId());
+                    assertThat(response.getValue()).isEqualTo("Melody");
+                }
+        );
+
+        restService.restServiceRequest(operation);
+
+    }
+
+    @Test
+    public void testPatch() throws Exception {
+
+        MockResponseB mock = buildMockResponseB();
+
+        configureMockRestServer(
+                "/user",
+                mapResponseToSting(mock)
+        );
+
+        RestOperation<Object, MockResponseB> operation = new RestOperation<>();
+        operation.setApiClass(MockResponseB.class.getName());
+        operation.setUri(new URI("/user"));
+        operation.setMethod(HttpMethod.PATCH);
+        operation.setSuccessHandler(
+                (MockResponseB response) -> {
+                    assertThat(response.getId()).isEqualTo(mock.getId());
+                    assertThat(response.getValue()).isEqualTo("Melody");
+                }
+        );
+
+        restService.restServiceRequest(operation);
+
+    }
+
+    @Test
+    public void testPut() throws Exception {
+
+        MockResponseB mock = buildMockResponseB();
+
+        configureMockRestServer(
+                "/user",
+                mapResponseToSting(mock)
+        );
+
+        RestOperation<Object, MockResponseB> operation = new RestOperation<>();
+        operation.setApiClass(MockResponseB.class.getName());
+        operation.setUri(new URI("/user"));
+        operation.setMethod(HttpMethod.PUT);
         operation.setSuccessHandler(
                 (MockResponseB response) -> {
                     assertThat(response.getId()).isEqualTo(mock.getId());
