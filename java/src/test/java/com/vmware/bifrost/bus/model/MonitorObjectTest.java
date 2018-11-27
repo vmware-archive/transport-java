@@ -11,10 +11,10 @@ public class MonitorObjectTest {
 
     @Test
     public void testModel() {
-        MonitorObject obj = new MonitorObject(MonitorType.MonitorNewChannel, "#chan","me", "samples");
+        MonitorObject obj = new MonitorObject(MonitorType.MonitorNewChannel, "#chan","me", "oldsamples");
         Assert.assertEquals("#chan", obj.getChannel());
         Assert.assertEquals("me", obj.getFrom());
-        Assert.assertEquals("samples", obj.getData());
+        Assert.assertEquals("oldsamples", obj.getData());
         Assert.assertEquals(MonitorType.MonitorNewChannel, obj.getType());
         Assert.assertTrue(obj.isNewChannel());
         Assert.assertTrue(obj.hasData());

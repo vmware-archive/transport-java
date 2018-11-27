@@ -30,7 +30,7 @@ jar {
     version =  '0.0.1'
     manifest {
         attributes(
-                'Main-Class': 'samples.Application'
+                'Main-Class': 'oldsamples.Application'
         )
     }
 }
@@ -62,9 +62,6 @@ dependencies {
     compile "com.fasterxml.jackson.module:jackson-module-jsonSchema:2.9.4"
     compile group: "org.slf4j", name: "slf4j-api", version: "1.7.25"
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
-    compile 'io.swagger:swagger-annotations:1.5.15'
-    compile 'com.squareup.okhttp:okhttp:2.7.5'
-    compile 'com.squareup.okhttp:logging-interceptor:2.7.5'
     compile 'com.google.code.gson:gson:2.8.1'
     compile 'joda-time:joda-time:2.9.9'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.6'

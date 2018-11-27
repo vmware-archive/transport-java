@@ -12,7 +12,10 @@ import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.MessagebusService;
 import com.vmware.bifrost.bus.model.Message;
-import io.swagger.client.ApiException;
+import com.vmware.bifrost.core.interfaces.CustomServiceCode;
+import com.vmware.bifrost.core.interfaces.CustomServiceCodeHandler;
+import com.vmware.bifrost.core.interfaces.Mockable;
+import com.vmware.bifrost.core.interfaces.ServiceMethodHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -21,7 +24,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
-import samples.*;
 
 
 import java.io.IOException;
@@ -117,31 +119,30 @@ public abstract class AbstractService extends Loggable
     }
 
 
-    public void apiFailedHandler(Response response, ApiException e, String methodName) {
-        response.setError(true);
-        response.setErrorCode(e.getCode());
-        response.setErrorMessage(e.getMessage());
-        this.logErrorMessage("API call failed for " + methodName, e.getMessage());
-        this.sendResponse(response);
-    }
-
-
-    protected <T> T getModels(Class<T> clazz) throws IOException {
-        return this.getModels(clazz, mapper, res);
-    }
-
-    protected MockModel mockModel;
-
-    protected void loadSampleModels() {
-
-        this.logDebugMessage("Loading sample mock models.");
-        res = this.loadResources(this.resourceLoader);
-        try {
-            mockModel = this.getModels(MockModel.class);
-        } catch (IOException e) {
-            this.logErrorMessage("Unable to load mock model data", e.getMessage());
-        }
-    }
+//    public void apiFailedHandler(Response response, ApiException e, String methodName) {
+//        response.setError(true);
+//        response.setErrorCode(e.getCode());
+//        response.setErrorMessage(e.getMessage());
+//        this.logErrorMessage("API call failed for " + methodName, e.getMessage());
+//        this.sendResponse(response);
+//    }
+//
+//
+//    protected <T> T getModels(Class<T> clazz) throws IOException {
+//        return this.getModels(clazz, mapper, res);
+//    }
+//
+//    protected MockModel mockModel;
+//    protected void loadSampleModels() {
+//
+//        this.logDebugMessage("Loading sample mock models.");
+//        res = this.loadResources(this.resourceLoader);
+//        try {
+//            mockModel = this.getModels(MockModel.class);
+//        } catch (IOException e) {
+//            this.logErrorMessage("Unable to load mock model data", e.getMessage());
+//        }
+//    }
 
     protected <T> T castPayload(Class clazz, Request request) throws ClassCastException {
         return (T) this.mapper.convertValue(request.getPayload(), clazz);
