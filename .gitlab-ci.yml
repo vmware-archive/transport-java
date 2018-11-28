@@ -1,0 +1,42 @@
+image: java:8-jdk
+
+stages:
+- test
+- build
+
+cache: {}
+
+test:unit:
+  stage: test
+  script:
+  - echo "Run unit tests"  
+  - cd ./java 
+  - ./gradlew test  
+  - ./gradlew jacocoTestReport
+  - cat ./build/reports/jacoco/test/html/index.html
+  artifacts:
+    paths:
+    - java/build/reports/jacoco/
+    reports:
+      junit: java/build/test-results/test/TEST-*.xml
+
+    expire_in: 1 week
+  when: always
+  only:
+  - pushes
+  - web
+
+build:bifrost:
+  stage: build
+  script:
+  - echo "Building vmw-bifrost"
+  - cd ./java
+  - ./gradlew assemble
+  artifacts:
+    paths:
+    - java/build/libs
+    expire_in: 1 week
+  when: on_success
+  only:
+  - pushes
+  - web
