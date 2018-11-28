@@ -5,6 +5,7 @@ package com.vmware.bifrost.core.util;
 
 
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -78,6 +79,9 @@ public class RestControllerReflection {
 
             case "org.springframework.web.bind.annotation.RequestParam":
                 return param.getAnnotation(RequestParam.class);
+
+            case "org.springframework.web.bind.annotation.RequestBody":
+                return param.getAnnotation(RequestBody.class);
 
             default:
                 return null;

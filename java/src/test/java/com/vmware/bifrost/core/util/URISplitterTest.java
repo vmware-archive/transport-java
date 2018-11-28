@@ -1,6 +1,5 @@
 package com.vmware.bifrost.core.util;
 
-import com.vmware.bifrost.core.util.URISplitter;
 import org.junit.Assert;
 import org.junit.Test;
 

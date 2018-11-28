@@ -47,7 +47,7 @@ public class RestControllerReflectionTest {
                 RestControllerReflection.locateRestControllers(context).get("MockRestController")
         );
 
-        Assert.assertEquals(2, methods.size());
+        Assert.assertEquals(3, methods.size());
         Assert.assertTrue(methods.containsKey("simpleGetPath"));
         Assert.assertTrue(methods.containsKey("normalGetPath"));
 
@@ -110,8 +110,6 @@ public class RestControllerReflectionTest {
 
         Assert.assertEquals(RequestParam.class, annotationTypes.get("bozQuery"));
         Assert.assertEquals("boz", ((RequestParam)annotationValues.get("bozQuery")).value());
-
-
     }
 
 }

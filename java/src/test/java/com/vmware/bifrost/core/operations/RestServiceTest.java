@@ -2,6 +2,7 @@ package com.vmware.bifrost.core.operations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vmware.bifrost.core.model.RestOperation;
+import com.vmware.bifrost.core.util.RestControllerInvoker;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,9 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @RunWith(SpringRunner.class)
 @RestClientTest(RestService.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {
-        RestService.class, MockRestController.class
+        RestService.class,
+        MockRestController.class,
+        RestControllerInvoker.class
 })
 public class RestServiceTest {
 
@@ -35,6 +38,9 @@ public class RestServiceTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private RestControllerInvoker invoker;
 
 
     private MockResponseA buildMockResponseA() {
@@ -195,6 +201,16 @@ public class RestServiceTest {
         restService.locateRestControllerForURIAndMethod();
 
     }
+
+
+
+    @Test
+    public void testLocalMethodInvoke() throws Exception {
+
+       // restService.locateRestControllerForURIAndMethod();
+
+    }
+
 
 
 }
