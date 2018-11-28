@@ -17,8 +17,6 @@ test:unit:
   artifacts:
     paths:
     - java/build/reports/jacoco/
-    reports:
-      junit: java/build/test-results/test/TEST-*.xml
 
     expire_in: 1 week
   when: always
