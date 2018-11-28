@@ -1,3 +1,6 @@
+/**
+ * Copyright(c) VMware Inc. 2018
+ */
 package com.vmware.bifrost.core.operations;
 
 import com.vmware.bifrost.bridge.util.Loggable;
@@ -5,30 +8,22 @@ import com.vmware.bifrost.core.model.RestOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.DefaultParameterNameDiscoverer;
-import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.net.URI;
 import java.util.Collection;
 
-/**
- * Copyright(c) VMware Inc. 2018
- */
 
-
-@Component
+@Service
 public class RestService extends Loggable {
 
     private final RestTemplate restTemplate;
