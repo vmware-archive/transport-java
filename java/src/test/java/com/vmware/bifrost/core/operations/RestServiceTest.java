@@ -1,9 +1,7 @@
 package com.vmware.bifrost.core.operations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vmware.bifrost.bus.MessagebusService;
 import com.vmware.bifrost.core.model.RestOperation;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +9,8 @@ import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
-import samples.Application;
 
 import java.net.URI;
 import java.util.UUID;
@@ -28,14 +22,13 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 @RunWith(SpringRunner.class)
 @RestClientTest(RestService.class)
-@ContextConfiguration(classes={Application.class})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {
+        RestService.class, MockRestController.class
+})
 public class RestServiceTest {
 
     @Autowired
     private RestService restService;
-
-    @Autowired
-    private MessagebusService bus;
 
     @Autowired
     private MockRestServiceServer server;
@@ -46,15 +39,15 @@ public class RestServiceTest {
 
     private MockResponseA buildMockResponseA() {
         MockResponseA mockResponseA = new MockResponseA();
-        mockResponseA.setName("John Smith");
-        mockResponseA.setValue("123 Fancy Street");
+        mockResponseA.setName("Prettiest Baby");
+        mockResponseA.setValue("Melody");
         return mockResponseA;
     }
 
     private MockResponseB buildMockResponseB() {
         MockResponseB mockResponseB = new MockResponseB();
         mockResponseB.setId(UUID.randomUUID());
-        mockResponseB.setValue("Melody");
+        mockResponseB.setValue("Pizza");
         return mockResponseB;
     }
 
@@ -88,8 +81,8 @@ public class RestServiceTest {
         operation.setMethod(HttpMethod.GET);
         operation.setSuccessHandler(
                 (MockResponseA response) -> {
-                    assertThat(response.getName()).isEqualTo("John Smith");
-                    assertThat(response.getValue()).isEqualTo("123 Fancy Street");
+                    assertThat(response.getName()).isEqualTo("Prettiest Baby");
+                    assertThat(response.getValue()).isEqualTo("Melody");
                 }
         );
 
@@ -114,7 +107,7 @@ public class RestServiceTest {
         operation.setSuccessHandler(
                 (MockResponseB response) -> {
                     assertThat(response.getId()).isEqualTo(mock.getId());
-                    assertThat(response.getValue()).isEqualTo("Melody");
+                    assertThat(response.getValue()).isEqualTo("Pizza");
                 }
         );
 
@@ -139,7 +132,7 @@ public class RestServiceTest {
         operation.setSuccessHandler(
                 (MockResponseB response) -> {
                     assertThat(response.getId()).isEqualTo(mock.getId());
-                    assertThat(response.getValue()).isEqualTo("Melody");
+                    assertThat(response.getValue()).isEqualTo("Pizza");
                 }
         );
 
@@ -164,6 +157,29 @@ public class RestServiceTest {
         operation.setSuccessHandler(
                 (MockResponseB response) -> {
                     assertThat(response.getId()).isEqualTo(mock.getId());
+                    assertThat(response.getValue()).isEqualTo("Pizza");
+                }
+        );
+
+        restService.restServiceRequest(operation);
+
+    }
+
+    @Test
+    public void testDelete() throws Exception {
+
+        configureMockRestServer(
+                "/user",
+                mapResponseToSting(buildMockResponseA())
+        );
+
+        RestOperation<Object, MockResponseA> operation = new RestOperation<>();
+        operation.setApiClass(MockResponseA.class.getName());
+        operation.setUri(new URI("/user"));
+        operation.setMethod(HttpMethod.DELETE);
+        operation.setSuccessHandler(
+                (MockResponseA response) -> {
+                    assertThat(response.getName()).isEqualTo("Prettiest Baby");
                     assertThat(response.getValue()).isEqualTo("Melody");
                 }
         );
@@ -172,6 +188,13 @@ public class RestServiceTest {
 
     }
 
+
+    @Test
+    public void testUriMappings() throws Exception {
+
+        restService.locateRestControllerForURIAndMethod();
+
+    }
 
 
 }

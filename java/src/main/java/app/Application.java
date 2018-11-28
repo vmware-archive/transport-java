@@ -1,4 +1,4 @@
-package samples;
+package app;
 
 /*
  * Copyright(c) VMware Inc. 2017-2018
@@ -6,7 +6,6 @@ package samples;
 
 import com.vmware.bifrost.bridge.spring.config.annotation.EnableBifrost;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -14,7 +13,7 @@ import org.springframework.context.annotation.ComponentScan;
 @EnableBifrost
 @ComponentScan(basePackages = {
         "samples",
-        "com."
+        "oldsamples"
 })
 public class Application {
 

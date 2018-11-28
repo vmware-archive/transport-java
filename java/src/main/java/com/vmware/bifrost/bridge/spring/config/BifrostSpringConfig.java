@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
 
 /**
  * Loads Bifrost message bus and bridge components.
@@ -33,6 +35,11 @@ public class BifrostSpringConfig implements SmartInitializingSingleton {
     @Bean
     public BifrostBridgeConfiguration bifrostBridgeConfiguration() {
         return bridgeConfiguration;
+    }
+
+    @Bean
+    public ParameterNameDiscoverer parameterNameDiscoverer() {
+        return new DefaultParameterNameDiscoverer();
     }
 
     @Override

@@ -4,14 +4,24 @@ import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.core.model.RestOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.net.URI;
+import java.util.Collection;
 
 /**
  * Copyright(c) VMware Inc. 2018
@@ -25,12 +35,49 @@ public class RestService extends Loggable {
     private final RestTemplateBuilder builder;
 
     @Autowired
+    private ConfigurableApplicationContext context;
+
+    @Autowired
     public RestService(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplate = restTemplateBuilder.build();
         this.builder = restTemplateBuilder;
     }
 
+    public void locateRestControllerForURIAndMethod() {
+
+        Collection<Object> restControllers = context.getBeansWithAnnotation(RestController.class).values();
+
+        for (Object controller : restControllers) {
+
+            final RestController controllerAnnotation = controller.getClass().getAnnotation(RestController.class);
+
+            for (Method method : controller.getClass().getDeclaredMethods()) {
+
+
+
+                for (Parameter param: method.getParameters()) {
+                    System.out.println("Name: " + param.getName());
+                    System.out.println("Annotation " + param.getAnnotations()[0].annotationType().getName());
+
+                }
+
+
+                RequestMapping annotation = method.getAnnotation(RequestMapping.class);
+                if (annotation != null) {
+
+                    // Register a handler for this method
+                    this.logInfoMessage("⚙","Found URI mapping in controller: ", annotation.value()[0]);
+
+                }
+            }
+        }
+
+
+    }
+
+
     public <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) {
+
         HttpEntity<Req> entity = null;
         HttpHeaders headers = null;
 
@@ -86,8 +133,9 @@ public class RestService extends Loggable {
                     break;
 
                 case DELETE:
+                    resp = this.restTemplate.exchange(operation.getUri(), HttpMethod.DELETE, entity, Class.forName(operation.getApiClass()));
                     operation.getSuccessHandler().accept(
-                            (Resp) this.restTemplate.exchange(operation.getUri(), HttpMethod.DELETE, entity, Class.forName(operation.getApiClass()))
+                            (Resp)resp.getBody()
                     );
                     break;
             }
