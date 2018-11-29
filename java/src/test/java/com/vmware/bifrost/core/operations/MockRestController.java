@@ -66,9 +66,13 @@ public class MockRestController {
     }
 
     @GetMapping(value = "/get-mapping/{id}")
-    public String patchMappingWithParams(@PathVariable String id) {
+    public String getMappingWithParams(@PathVariable String id) {
         return "getMappingWithParams-" + id;
     }
 
+    @DeleteMapping(value = "/delete-mapping/{id}")
+    public String deleteMappingMappingWithParams(@PathVariable UUID id) {
+        return "deleteMappingWithParams-" + id;
+    }
 
 }

@@ -276,5 +276,27 @@ public class RestControllerInvokerTest {
         invoker.invokeMethod(result, operation);
     }
 
+    @Test
+    public void testInvokeDeleteMapping() throws Exception {
+
+        UUID randId = UUID.randomUUID();
+        URI uri = new URI("/delete-mapping/" + randId.toString());
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.DELETE);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.DELETE);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("deleteMappingWithParams-" + randId.toString(), response);
+                }
+
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
+
 
 }
