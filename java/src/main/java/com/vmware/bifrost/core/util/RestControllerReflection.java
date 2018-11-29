@@ -26,6 +26,14 @@ public class RestControllerReflection {
         return extractControllerByAnnotation(controller, PatchMapping.class);
     }
 
+    public static Map<String, Method> extractControllerGetMappings(Object controller) {
+        return extractControllerByAnnotation(controller, GetMapping.class);
+    }
+
+    public static Map<String, Method> extractControllerMappings(Object controller) {
+        return extractControllerByAnnotation(controller, GetMapping.class);
+    }
+
     public static Map<String, Method> extractControllerByAnnotation(Object controller, Class annotationType) {
         List<Method> rawMethods = Arrays.asList(controller.getClass().getDeclaredMethods());
         Map<String, Method> cleanedMethods = new HashMap<>();
