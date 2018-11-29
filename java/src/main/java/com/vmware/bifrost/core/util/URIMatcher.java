@@ -74,7 +74,8 @@ public class URIMatcher {
         return result;
     }
 
-    private static URIMethodResult checkRequestMappingMethods(URI uri, RequestMethod requestMethod, Object controller, Map<String, Method> methods) {
+    private static URIMethodResult checkRequestMappingMethods(URI uri, RequestMethod requestMethod,
+                                                              Object controller, Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
 
@@ -83,12 +84,14 @@ public class URIMatcher {
             String uriSring = mappingAnnotation.value()[0];
             RequestMethod annotationMethod = mappingAnnotation.method()[0];
 
-            result = checkForControllerMatch(uri, requestMethod, controller, true, result, method, annotationMethod, uriSring);
+            result = checkForControllerMatch(uri, requestMethod, controller, true,
+                    result, method, annotationMethod, uriSring);
         }
         return result;
     }
 
-    private static URIMethodResult checkPatchMappingMethods(URI uri, RequestMethod requestMethod, Object controller, Map<String, Method> methods) {
+    private static URIMethodResult checkPatchMappingMethods(URI uri, RequestMethod requestMethod,
+                                                            Object controller, Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
 
@@ -96,12 +99,14 @@ public class URIMatcher {
             PatchMapping mappingAnnotation = method.getAnnotation(PatchMapping.class);
             String uriSring = mappingAnnotation.value()[0];
 
-            result = checkForControllerMatch(uri, requestMethod, controller, false, result, method, null, uriSring);
+            result = checkForControllerMatch(uri, requestMethod, controller, false, result,
+                    method, null, uriSring);
         }
         return result;
     }
 
-    private static URIMethodResult checkGetMappingMethods(URI uri, RequestMethod requestMethod, Object controller, Map<String, Method> methods) {
+    private static URIMethodResult checkGetMappingMethods(URI uri, RequestMethod requestMethod, Object controller,
+                                                          Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
 
@@ -109,12 +114,14 @@ public class URIMatcher {
             GetMapping mappingAnnotation = method.getAnnotation(GetMapping.class);
             String uriSring = mappingAnnotation.value()[0];
 
-            result = checkForControllerMatch(uri, requestMethod, controller, false, result, method, null, uriSring);
+            result = checkForControllerMatch(uri, requestMethod, controller, false, result,
+                    method, null, uriSring);
         }
         return result;
     }
 
-    private static URIMethodResult checkPutMappingMethods(URI uri, RequestMethod requestMethod, Object controller, Map<String, Method> methods) {
+    private static URIMethodResult checkPutMappingMethods(URI uri, RequestMethod requestMethod, Object controller,
+                                                          Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
 
@@ -122,12 +129,14 @@ public class URIMatcher {
             PutMapping mappingAnnotation = method.getAnnotation(PutMapping.class);
             String uriSring = mappingAnnotation.value()[0];
 
-            result = checkForControllerMatch(uri, requestMethod, controller, false, result, method, null, uriSring);
+            result = checkForControllerMatch(uri, requestMethod, controller, false, result,
+                    method, null, uriSring);
         }
         return result;
     }
 
-    private static URIMethodResult checkPostMappingMethods(URI uri, RequestMethod requestMethod, Object controller, Map<String, Method> methods) {
+    private static URIMethodResult checkPostMappingMethods(URI uri, RequestMethod requestMethod, Object controller,
+                                                           Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
 
@@ -135,12 +144,14 @@ public class URIMatcher {
             PostMapping mappingAnnotation = method.getAnnotation(PostMapping.class);
             String uriSring = mappingAnnotation.value()[0];
 
-            result = checkForControllerMatch(uri, requestMethod, controller, false, result, method, null, uriSring);
+            result = checkForControllerMatch(uri, requestMethod, controller, false, result,
+                    method, null, uriSring);
         }
         return result;
     }
 
-    private static URIMethodResult checkDeleteMappingMethods(URI uri, RequestMethod requestMethod, Object controller, Map<String, Method> methods) {
+    private static URIMethodResult checkDeleteMappingMethods(URI uri, RequestMethod requestMethod, Object controller,
+                                                             Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
 
@@ -148,13 +159,16 @@ public class URIMatcher {
             DeleteMapping mappingAnnotation = method.getAnnotation(DeleteMapping.class);
             String uriSring = mappingAnnotation.value()[0];
 
-            result = checkForControllerMatch(uri, requestMethod, controller, false, result, method, null, uriSring);
+            result = checkForControllerMatch(uri, requestMethod, controller, false, result, method,
+                    null, uriSring);
         }
         return result;
     }
 
 
-    private static URIMethodResult checkForControllerMatch(URI uri, RequestMethod requestMethod, Object controller, boolean checkMethod, URIMethodResult result, Method method, RequestMethod annotationMethod, String uriSring) {
+    private static URIMethodResult checkForControllerMatch(URI uri, RequestMethod requestMethod, Object controller,
+                                                           boolean checkMethod, URIMethodResult result, Method method,
+                                                           RequestMethod annotationMethod, String uriSring) {
         List<String> requestedPathItems = URISplitter.split(uri);
         List<String> controllerPathItems = URISplitter.split(uriSring);
 
@@ -172,7 +186,8 @@ public class URIMatcher {
         return result;
     }
 
-    private static URIMethodResult buildURIMethodResult(URI uri, Object controller, Method method, List<String> requestedPathItems, List<String> controllerPathItems) {
+    private static URIMethodResult buildURIMethodResult(URI uri, Object controller, Method method, List<String>
+            requestedPathItems, List<String> controllerPathItems) {
         URIMethodResult result;
         result = new URIMethodResult();
         result.setPathItems(controllerPathItems);
@@ -181,7 +196,13 @@ public class URIMatcher {
         result.setMethodAnnotationTypes(RestControllerReflection.extractMethodAnnotationTypes(method));
         result.setMethodAnnotationValues(RestControllerReflection.extractMethodAnnotationValues(method));
         result.setQueryString(URISplitter.extractQueryString(uri));
-        result.setPathItemMap(createPathItemMap(controllerPathItems, requestedPathItems, RestControllerReflection.extractMethodParameters(method)));
+        result.setPathItemMap(
+                createPathItemMap(
+                        controllerPathItems,
+                        requestedPathItems,
+                        RestControllerReflection.extractMethodParameters(method)
+                )
+        );
         result.setMethod(method);
         result.setController(controller);
         return result;
@@ -194,7 +215,8 @@ public class URIMatcher {
      * @param methodArgs
      * @return
      */
-    public static Map<String, Object> createPathItemMap(List<String> controllerPathItems, List<String> requestedPathItems, Map<String, Class> methodArgs) {
+    public static Map<String, Object> createPathItemMap(List<String> controllerPathItems, List<String>
+            requestedPathItems, Map<String, Class> methodArgs) {
 
         Map<String, Object> map = new HashMap<>();
         if (controllerPathItems.size() == requestedPathItems.size()) {

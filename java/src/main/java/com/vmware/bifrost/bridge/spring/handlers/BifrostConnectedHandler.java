@@ -20,7 +20,6 @@ public class BifrostConnectedHandler implements ApplicationListener<SessionConne
     public void onApplicationEvent(SessionConnectedEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
         logger.info("[@] Bifröst Bridge: connected with sessionId:" + sha.getSessionId());
-        System.out.print("FUCK");
         // subService.removeSubscription(sha.getSubscriptionId());
     }
 

@@ -5,6 +5,9 @@ package com.vmware.bifrost.core.operations;
 
 import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.core.model.RestOperation;
+import com.vmware.bifrost.core.util.RestControllerInvoker;
+import com.vmware.bifrost.core.util.URIMatcher;
+import com.vmware.bifrost.core.util.URIMethodResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -13,61 +16,54 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.Collection;
 
 
 @Service
 public class RestService extends Loggable {
 
     private final RestTemplate restTemplate;
-    private final RestTemplateBuilder builder;
+
 
     @Autowired
     private ConfigurableApplicationContext context;
 
     @Autowired
+    private RestControllerInvoker controllerInvoker;
+
+    @Autowired
     public RestService(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplate = restTemplateBuilder.build();
-        this.builder = restTemplateBuilder;
     }
 
-    public void locateRestControllerForURIAndMethod() {
+    public URIMethodResult locateRestControllerForURIAndMethod(RestOperation operation) {
 
-        Collection<Object> restControllers = context.getBeansWithAnnotation(RestController.class).values();
+        URIMethodResult result = URIMatcher.findControllerMatch(
+                context,
+                operation.getUri(),
+                RequestMethod.valueOf(operation.getMethod().toString())
+        );
 
-        for (Object controller : restControllers) {
-
-            final RestController controllerAnnotation = controller.getClass().getAnnotation(RestController.class);
-
-            for (Method method : controller.getClass().getDeclaredMethods()) {
-
-
-
-//                for (Parameter param: method.getParameters()) {
-//                    System.out.println("Name: " + param.getName());
-//                    System.out.println("Annotation " + param.getAnnotations()[0].annotationType().getName());
-//
-//                }
-
-
-                RequestMapping annotation = method.getAnnotation(RequestMapping.class);
-                if (annotation != null) {
-
-                    // Register a handler for this method
-                    this.logInfoMessage("⚙","Found URI mapping in controller: ", annotation.value()[0]);
-
-                }
-            }
+        if (result != null) {
+            this.logDebugMessage("Located handling method for URI: "
+                    + operation.getUri().getRawPath(), result.getMethod().getName());
+        } else {
+            this.logDebugMessage("Unable to locate a local handler for for URI: "
+                    + operation.getUri().getRawPath(), result.getMethod().getName());
         }
+        return result;
+    }
 
+    public void invokeRestController(URIMethodResult result, RestOperation operation) {
+        try {
+            controllerInvoker.invokeMethod(result, operation);
+        } catch (RuntimeException rexp) {
 
+            // do something here.
+        }
     }
 
 
@@ -102,36 +98,52 @@ public class RestService extends Loggable {
             switch (operation.getMethod()) {
                 case GET:
                     operation.getSuccessHandler().accept(
-                            (Resp)this.restTemplate.getForObject(operation.getUri(), Class.forName(operation.getApiClass()))
+                            (Resp)this.restTemplate.getForObject(
+                                    operation.getUri(),
+                                    Class.forName(operation.getApiClass()
+                                    )
+                            )
                     );
                     break;
 
                 case POST:
-                    resp = this.restTemplate.exchange(operation.getUri(), HttpMethod.POST, entity, Class.forName(operation.getApiClass()));
-                    operation.getSuccessHandler().accept(
-                            (Resp)resp.getBody()
+                    resp = this.restTemplate.exchange(
+                            operation.getUri(),
+                            HttpMethod.POST,
+                            entity,
+                            Class.forName(operation.getApiClass())
                     );
+                    operation.getSuccessHandler().accept((Resp) resp.getBody());
                     break;
 
                 case PUT:
-                    resp = this.restTemplate.exchange(operation.getUri(), HttpMethod.PUT, entity, Class.forName(operation.getApiClass()));
-                    operation.getSuccessHandler().accept(
-                            (Resp)resp.getBody()
+                    resp = this.restTemplate.exchange(
+                            operation.getUri(),
+                            HttpMethod.PUT,
+                            entity,
+                            Class.forName(operation.getApiClass())
                     );
+                    operation.getSuccessHandler().accept((Resp) resp.getBody());
                     break;
 
                 case PATCH:
-                    resp = this.restTemplate.exchange(operation.getUri(), HttpMethod.PATCH, entity, Class.forName(operation.getApiClass()));
-                    operation.getSuccessHandler().accept(
-                            (Resp)resp.getBody()
+                    resp = this.restTemplate.exchange(
+                            operation.getUri(),
+                            HttpMethod.PATCH,
+                            entity,
+                            Class.forName(operation.getApiClass())
                     );
+                    operation.getSuccessHandler().accept((Resp)resp.getBody());
                     break;
 
                 case DELETE:
-                    resp = this.restTemplate.exchange(operation.getUri(), HttpMethod.DELETE, entity, Class.forName(operation.getApiClass()));
-                    operation.getSuccessHandler().accept(
-                            (Resp)resp.getBody()
+                    resp = this.restTemplate.exchange(
+                            operation.getUri(),
+                            HttpMethod.DELETE,
+                            entity,
+                            Class.forName(operation.getApiClass())
                     );
+                    operation.getSuccessHandler().accept((Resp) resp.getBody());
                     break;
             }
 

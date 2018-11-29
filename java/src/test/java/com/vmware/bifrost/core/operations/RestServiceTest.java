@@ -3,6 +3,8 @@ package com.vmware.bifrost.core.operations;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
+import com.vmware.bifrost.core.util.URIMethodResult;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
+
 
 import java.net.URI;
 import java.util.UUID;
@@ -198,16 +201,54 @@ public class RestServiceTest {
     @Test
     public void testUriMappings() throws Exception {
 
-        restService.locateRestControllerForURIAndMethod();
+
+        RestOperation<Object, MockResponseA> operation = new RestOperation<>();
+        operation.setApiClass(MockResponseA.class.getName());
+        operation.setUri(new URI("/foo/bar"));
+        operation.setMethod(HttpMethod.GET);
+
+        URIMethodResult result = restService.locateRestControllerForURIAndMethod(operation);
+        Assert.assertNotNull(result);
 
     }
 
 
+    @Test
+    public void testLocalMethodInvokeSimple() throws Exception {
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/foo/bar?boz=baz"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("FooBarSimple:/foo/bar?boz=baz", response);
+                }
+        );
+
+        URIMethodResult result = restService.locateRestControllerForURIAndMethod(operation);
+        restService.invokeRestController(result, operation);
+
+    }
 
     @Test
-    public void testLocalMethodInvoke() throws Exception {
+    public void testLocalMethodInvokeNormal() throws Exception {
 
-       // restService.locateRestControllerForURIAndMethod();
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/foo/someVar/bar/123?someQuery=something&anotherQuery=nothing"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals(
+                            "FooBarNormal:/foo/someVar/bar/123?someQuery=something&anotherQuery=nothing",
+                            response
+                    );
+                }
+        );
+
+        URIMethodResult result = restService.locateRestControllerForURIAndMethod(operation);
+        restService.invokeRestController(result, operation);
 
     }
 
