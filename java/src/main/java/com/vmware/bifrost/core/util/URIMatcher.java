@@ -42,6 +42,7 @@ public class URIMatcher {
                     result = new URIMethodResult();
                     result.setPathItems(controllerPathItems);
                     result.setMethodArgs(RestControllerReflection.extractMethodParameters(method));
+                    result.setMethogArgList(RestControllerReflection.extractMethodParameterList(method));
                     result.setMethodAnnotationTypes(RestControllerReflection.extractMethodAnnotationTypes(method));
                     result.setMethodAnnotationValues(RestControllerReflection.extractMethodAnnotationValues(method));
                     result.setQueryString(URISplitter.extractQueryString(uri));

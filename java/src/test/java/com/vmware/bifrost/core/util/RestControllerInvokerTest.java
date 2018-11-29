@@ -52,24 +52,44 @@ public class RestControllerInvokerTest {
         invoker.invokeMethod(result, operation);
     }
 
-//    @Test
-//    public void testInvokeMethodSimple() throws Exception {
-//
-//        URI uri = new URI("/foo/melody");
-//
-//        URIMethodResult result = URIMatcher.findControllerMatch(context, uri);
-//
-//        RestOperation<Object, String> operation = new RestOperation<>();
-//        operation.setApiClass(String.class.getName());
-//        operation.setUri(uri);
-//        operation.setMethod(HttpMethod.GET);
-//        operation.setSuccessHandler(
-//                (String response) -> {
-//                    assertThat(response).isEqualTo("FooBarSimple-melody");
-//                }
-//        );
-//
-//        invoker.invokeMethod(result, operation);
-//    }
+    @Test
+    public void testInvokeMethodSimple() throws Exception {
+
+        URI uri = new URI("/foo/melody?boz=isAPrettyBaby");
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    assertThat(response).isEqualTo("FooBarSimple:/foo/melody?boz=isAPrettyBaby");
+                }
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
+
+    @Test
+    public void testInvokeMethodNormal() throws Exception {
+
+        URI uri = new URI("/foo/someValue/bar/123?someQuery=hello&anotherQuery=goodbye");
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    assertThat(response).isEqualTo("FooBarNormal:/foo/someValue/bar/123?someQuery=hello&anotherQuery=goodbye");
+                }
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
 
 }

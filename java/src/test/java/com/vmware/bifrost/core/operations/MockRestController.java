@@ -12,19 +12,20 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 public class MockRestController {
 
 
-    @RequestMapping(value = "/foo/{bar}", method = GET)
+    @RequestMapping(value = "/foo/{baz}", method = GET)
     @ResponseBody
     public String simpleGetPath(@PathVariable String baz,
                                 @RequestParam(value = "boz", required = false) String bozQuery) {
-        return "FooBarSimple-" + baz + bozQuery;
+        return "FooBarSimple:/foo/" + baz + "?boz=" + bozQuery;
     }
 
-    @RequestMapping(value = "/foo/{bar}/bar/{orgId}", method = GET)
+    @RequestMapping(value = "/foo/{baz}/bar/{orgId}", method = GET)
     @ResponseBody
     public String normalGetPath(@PathVariable String baz,
                                 @PathVariable String orgId,
-                                @RequestParam(value = "boz", required = false) String bozQuery) {
-        return "FooBarNormal-" + baz + orgId + bozQuery;
+                                @RequestParam(value = "someQuery", required = false) String bozQuery,
+                                @RequestParam(value = "anotherQuery", required = false) String bizzleQuery) {
+        return "FooBarNormal:/foo/" + baz + "/bar/" + orgId + "?someQuery=" + bozQuery + "&anotherQuery=" + bizzleQuery;
     }
 
     @RequestMapping(value = "/foo", method = GET)

@@ -104,10 +104,7 @@ public class RestControllerReflectionTest {
 
 
         Assert.assertEquals(2, annotationTypes.size());
-
         Assert.assertEquals(PathVariable.class, annotationTypes.get("baz"));
-        Assert.assertNull(annotationValues.get("baz"));
-
         Assert.assertEquals(RequestParam.class, annotationTypes.get("bozQuery"));
         Assert.assertEquals("boz", ((RequestParam)annotationValues.get("bozQuery")).value());
     }

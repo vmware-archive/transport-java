@@ -5,12 +5,7 @@ package com.vmware.bifrost.core.util;
 
 
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.websocket.server.PathParam;
+import org.springframework.web.bind.annotation.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -48,6 +43,16 @@ public class RestControllerReflection {
         return paramMap;
     }
 
+    public static List<String> extractMethodParameterList(Method method) {
+        Parameter[] params = method.getParameters();
+        List<String> paramList = new ArrayList<>();
+
+        for (Parameter param : params) {
+            paramList.add(param.getName());
+        }
+        return paramList;
+    }
+
     public static Map<String, Class> extractMethodAnnotationTypes(Method method) {
         Parameter[] params = method.getParameters();
         Map<String, Class> paramMap = new HashMap<>();
@@ -74,8 +79,8 @@ public class RestControllerReflection {
     public static Object extractMethodAnnotation(Parameter param, Class annotation) {
 
         switch (annotation.getName()) {
-            case "org.springframework.web.bind.annotation.PathParam":
-                return param.getAnnotation(PathParam.class);
+            case "org.springframework.web.bind.annotation.PathVariable":
+                return param.getAnnotation(PathVariable.class);
 
             case "org.springframework.web.bind.annotation.RequestParam":
                 return param.getAnnotation(RequestParam.class);

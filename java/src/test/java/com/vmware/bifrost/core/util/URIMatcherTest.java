@@ -42,9 +42,9 @@ public class URIMatcherTest {
         URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo/puppy/bar/baby"));
         Assert.assertNotNull(result);
         Assert.assertEquals(4, result.getPathItems().size());
-        Assert.assertEquals(3, result.getMethodArgs().size());
-        Assert.assertEquals(3, result.getMethodAnnotationTypes().size());
-        Assert.assertEquals(3, result.getMethodAnnotationValues().size());
+        Assert.assertEquals(4, result.getMethodArgs().size());
+        Assert.assertEquals(4, result.getMethodAnnotationTypes().size());
+        Assert.assertEquals(4, result.getMethodAnnotationValues().size());
 
     }
 
@@ -54,10 +54,10 @@ public class URIMatcherTest {
         URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo/puppy/bar/baby?query=something"));
         Assert.assertNotNull(result);
         Assert.assertEquals(4, result.getPathItems().size());
-        Assert.assertEquals(3, result.getMethodArgs().size());
+        Assert.assertEquals(4, result.getMethodArgs().size());
         Assert.assertEquals(1, result.getQueryString().size());
-        Assert.assertEquals(3, result.getMethodAnnotationTypes().size());
-        Assert.assertEquals(3, result.getMethodAnnotationValues().size());
+        Assert.assertEquals(4, result.getMethodAnnotationTypes().size());
+        Assert.assertEquals(4, result.getMethodAnnotationValues().size());
 
     }
 
