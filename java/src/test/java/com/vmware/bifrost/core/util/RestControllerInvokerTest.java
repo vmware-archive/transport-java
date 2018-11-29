@@ -3,8 +3,8 @@
  */
 package com.vmware.bifrost.core.util;
 
+import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
-import com.vmware.bifrost.core.operations.MockResponseA;
 import com.vmware.bifrost.core.operations.MockRestController;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -86,6 +86,48 @@ public class RestControllerInvokerTest {
         operation.setSuccessHandler(
                 (String response) -> {
                     assertThat(response).isEqualTo("FooBarNormal:/foo/someValue/bar/123?someQuery=hello&anotherQuery=goodbye");
+                }
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
+
+    @Test
+    public void testInvokeMethodNormalMissingQueryParam() throws Exception {
+
+        URI uri = new URI("/foo/someValue/bar/123?anotherQuery=goodbye");
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.GET);
+        operation.setErrorHandler(
+                (RestError error) -> {
+                    assertThat(error.message).isEqualTo("Method requires request param 'someQuery', This maps to method argument 'bozQuery', but wasn't supplied with URI properties.");
+                    assertThat(error.status).isEqualTo("REST Error: Invalid Request Parameters");
+                }
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
+
+    @Test
+    public void testInvokeMethodNormalMissingAllQueryParams() throws Exception {
+
+        URI uri = new URI("/foo/someValue/bar/123");
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.GET);
+        operation.setErrorHandler(
+                (RestError error) -> {
+                    assertThat(error.message).isEqualTo("Method requires request parameters, however none have been supplied.");
+                    assertThat(error.status).isEqualTo("REST Error: Missing Request Parameters");
                 }
         );
 

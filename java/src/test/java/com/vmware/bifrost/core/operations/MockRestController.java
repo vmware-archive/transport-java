@@ -23,7 +23,7 @@ public class MockRestController {
     @ResponseBody
     public String normalGetPath(@PathVariable String baz,
                                 @PathVariable String orgId,
-                                @RequestParam(value = "someQuery", required = false) String bozQuery,
+                                @RequestParam(value = "someQuery", required = true) String bozQuery,
                                 @RequestParam(value = "anotherQuery", required = false) String bizzleQuery) {
         return "FooBarNormal:/foo/" + baz + "/bar/" + orgId + "?someQuery=" + bozQuery + "&anotherQuery=" + bizzleQuery;
     }

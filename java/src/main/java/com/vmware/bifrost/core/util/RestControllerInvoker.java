@@ -4,6 +4,7 @@
 package com.vmware.bifrost.core.util;
 
 import com.vmware.bifrost.core.error.GeneralError;
+import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,7 +36,7 @@ public class RestControllerInvoker {
                 String requestBodyArgName = methodResult.getRequestBodyArgumentName();
 
                 Object[] formulatedMethodArgs = new Object[methodResult.getMethogArgList().size()];
-                GeneralError error = null;
+                RestError error = null;
 
                 // iterate through all our data and construct the correct signature to call.
                 int index = 0;
@@ -50,29 +51,79 @@ public class RestControllerInvoker {
                         RequestParam requestParam = (RequestParam) methodResult.getMethodAnnotationValues().get(paramName);
 
                         if (requestParam != null && !requestParam.value().isEmpty()) {
+                            if (requestParam.required()) {
+                                if (methodResult.getQueryString() == null) {
 
-                            if(!requestParam.required() && methodResult.getQueryString() != null) {
-                                formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+                                    error = getRestError(
+                                            "Method requires request parameters, however none have been supplied.",
+                                            "REST Error: Missing Request Parameters"
+                                    );
+
+                                } else {
+
+                                    if (methodResult.getQueryString().get(requestParam.value()) == null) {
+
+                                        error = getRestError(
+                                                "Method requires request param '" + requestParam.value() +
+                                                "', This maps to method argument '" + paramName + "', but wasn't supplied with URI properties.",
+                                                "REST Error: Invalid Request Parameters");
+
+                                    } else {
+
+                                        // cannot be null.
+                                        formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+
+                                    }
+                                }
                             } else {
-                                error = new GeneralError("REST Error","Unable to call, missing query params!");
 
+                                if(checkForNullQueryString(methodResult)) {
+
+                                    // can be null
+                                    formulatedMethodArgs[index] = null;
+                                } else {
+
+                                    if (methodResult.getQueryString().get(requestParam.value()) == null) {
+
+                                        // can be null
+                                        formulatedMethodArgs[index] = null;
+
+                                    } else {
+
+                                        formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+
+                                    }
+                                }
                             }
-
-
                         } else {
 
-                            if(!requestParam.required() && methodResult.getQueryString() != null) {
-                                formulatedMethodArgs[index] = methodResult.getQueryString().get(paramName);
+                            if(checkForNullQueryString(methodResult)) {
+
+                                // can be null
+                                formulatedMethodArgs[index] = null;
+
                             } else {
-                                error = new GeneralError("REST Error","Unable to call, missing query params!");
 
+                                if (methodResult.getQueryString().get(paramName) == null) {
+
+                                    // can be null
+                                    formulatedMethodArgs[index] = null;
+
+                                } else {
+
+                                    formulatedMethodArgs[index] = methodResult.getQueryString().get(paramName);
+
+                                }
                             }
-
-
                         }
                     }
                     index++;
+                }
 
+                // send error instead of invoking method, bypass completely.
+                if (error != null) {
+                    operation.getErrorHandler().accept(error);
+                    return;
                 }
 
                 Method method = methodResult.getMethod();
@@ -87,8 +138,7 @@ public class RestControllerInvoker {
                 }
 
 
-
-               // operation.getSuccessHandler().accept("funky spunky!" + requestParamArgName);
+                // operation.getSuccessHandler().accept("funky spunky!" + requestParamArgName);
 
             } else {
 
@@ -107,9 +157,22 @@ public class RestControllerInvoker {
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
-
-
         }
+    }
+
+    private boolean checkForNullQueryString(URIMethodResult methodResult) {
+        if (methodResult.getQueryString() == null)
+            return true;
+
+        return false;
+    }
+
+    private RestError getRestError(String message, String status) {
+        RestError error;
+        error = new RestError(
+                message,
+                status);
+        return error;
     }
 
     public boolean doPathItemsAndMethodArgsMatch(
