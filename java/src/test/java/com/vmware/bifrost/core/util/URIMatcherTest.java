@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.net.URI;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class URIMatcherTest {
     @Test
     public void testBasicURIMatch() throws Exception {
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo"));
+        URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo"), RequestMethod.GET);
         Assert.assertNotNull(result);
         Assert.assertEquals(1, result.getPathItems().size());
         Assert.assertEquals(0, result.getMethodArgs().size());
@@ -39,7 +40,7 @@ public class URIMatcherTest {
     @Test
     public void testComplexURIMatch() throws Exception {
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo/puppy/bar/baby"));
+        URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo/puppy/bar/baby"), RequestMethod.GET);
         Assert.assertNotNull(result);
         Assert.assertEquals(4, result.getPathItems().size());
         Assert.assertEquals(4, result.getMethodArgs().size());
@@ -51,7 +52,7 @@ public class URIMatcherTest {
     @Test
     public void testComplexURIMatchWithQuery() throws Exception {
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo/puppy/bar/baby?query=something"));
+        URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo/puppy/bar/baby?query=something"), RequestMethod.GET);
         Assert.assertNotNull(result);
         Assert.assertEquals(4, result.getPathItems().size());
         Assert.assertEquals(4, result.getMethodArgs().size());

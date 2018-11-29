@@ -6,6 +6,7 @@ package com.vmware.bifrost.core.util;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.operations.MockRestController;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.net.URI;
 
@@ -37,7 +39,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/foo");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri);
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -57,7 +59,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/foo/melody?boz=isAPrettyBaby");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri);
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -77,7 +79,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/foo/someValue/bar/123?someQuery=hello&anotherQuery=goodbye");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri);
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -97,7 +99,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/foo/someValue/bar/123?anotherQuery=goodbye");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri);
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -118,7 +120,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/foo/someValue/bar/123");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri);
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -133,5 +135,49 @@ public class RestControllerInvokerTest {
 
         invoker.invokeMethod(result, operation);
     }
+
+    @Test
+    public void testInvokeMultiMethodURIGet() throws Exception {
+
+        URI uri = new URI("/multi");
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("multiMethodURIGet", response);
+                }
+
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
+
+    @Test
+    public void testInvokeMultiMethodURIPost() throws Exception {
+
+        URI uri = new URI("/multi");
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.POST);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.POST);
+        operation.setBody("SplishySplashy");
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("multiMethodURIPost-SplishySplashy", response);
+                }
+
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
+
 
 }

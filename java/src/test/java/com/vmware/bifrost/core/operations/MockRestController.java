@@ -7,6 +7,7 @@ package com.vmware.bifrost.core.operations;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController(value = "MockRestController")
 public class MockRestController {
@@ -32,6 +33,19 @@ public class MockRestController {
     @ResponseBody
     public String simplestGetPath() {
         return "FooBarSimplest";
+    }
+
+
+    @RequestMapping(value = "/multi", method = GET)
+    @ResponseBody
+    public String multiMethodURIGET() {
+        return "multiMethodURIGet";
+    }
+
+    @RequestMapping(value = "/multi", method = POST)
+    @ResponseBody
+    public String multiMethodURIPost(@RequestBody String postedData) {
+        return "multiMethodURIPost-" + postedData;
     }
 
 }

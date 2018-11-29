@@ -47,7 +47,7 @@ public class RestControllerReflectionTest {
                 RestControllerReflection.locateRestControllers(context).get("MockRestController")
         );
 
-        Assert.assertEquals(3, methods.size());
+        Assert.assertEquals(5, methods.size());
         Assert.assertTrue(methods.containsKey("simpleGetPath"));
         Assert.assertTrue(methods.containsKey("normalGetPath"));
 

@@ -8,6 +8,7 @@ import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.lang.reflect.InvocationTargetException;
@@ -23,141 +24,167 @@ public class RestControllerInvoker {
 
     public void invokeMethod(URIMethodResult methodResult, RestOperation operation) throws RuntimeException {
 
+        Object[] formulatedMethodArgs = new Object[methodResult.getMethogArgList().size()];
+        RestError error = null;
+
         if (methodResult.getMethodArgs().size() >= 1) {
 
             Map<String, String> pathItemMap = methodResult.getPathItemMap();
             Map<String, Class> methodArgs = methodResult.getMethodArgs();
             Map<String, Class> methodAnnotationTypes = methodResult.getMethodAnnotationTypes();
 
+
             // check if path items and method args match
-            if (doPathItemsAndMethodArgsMatch(pathItemMap, methodArgs, methodAnnotationTypes)) {
+            if(pathItemMap.size() >= 1) {
 
-                String requestParamArgName = methodResult.getRequestParamArgumentName();
-                String requestBodyArgName = methodResult.getRequestBodyArgumentName();
+                if (doPathItemsAndMethodArgsMatch(pathItemMap, methodArgs, methodAnnotationTypes)) {
 
-                Object[] formulatedMethodArgs = new Object[methodResult.getMethogArgList().size()];
-                RestError error = null;
+                  // String requestParamArgName = methodResult.getRequestParamArgumentName();
+                   // String requestBodyArgName = methodResult.getRequestBodyArgumentName();
 
-                // iterate through all our data and construct the correct signature to call.
-                int index = 0;
-                for (String paramName : methodResult.getMethogArgList()) {
 
-                    if (methodResult.getMethodAnnotationTypes().get(paramName).equals(PathVariable.class)) {
-                        formulatedMethodArgs[index] = pathItemMap.get(paramName);
+                    // iterate through all our data and construct the correct signature to call.
+                    error = processMethod(methodResult, pathItemMap, formulatedMethodArgs, operation);
+
+                    // send error instead of invoking method, bypass completely.
+                    if (error != null) {
+                        operation.getErrorHandler().accept(error);
+                        return;
                     }
 
-                    if (methodResult.getMethodAnnotationTypes().get(paramName).equals(RequestParam.class)) {
+                    callControllerMethod(methodResult, operation, formulatedMethodArgs);
 
-                        RequestParam requestParam = (RequestParam) methodResult.getMethodAnnotationValues().get(paramName);
 
-                        if (requestParam != null && !requestParam.value().isEmpty()) {
-                            if (requestParam.required()) {
-                                if (methodResult.getQueryString() == null) {
+                } else {
 
-                                    error = getRestError(
-                                            "Method requires request parameters, however none have been supplied.",
-                                            "REST Error: Missing Request Parameters"
-                                    );
+                    operation.getSuccessHandler().accept("sad munkey :(");
+                }
 
-                                } else {
+            } else {
 
-                                    if (methodResult.getQueryString().get(requestParam.value()) == null) {
+                error = processMethod(methodResult, pathItemMap, formulatedMethodArgs, operation);
 
-                                        error = getRestError(
-                                                "Method requires request param '" + requestParam.value() +
-                                                "', This maps to method argument '" + paramName + "', but wasn't supplied with URI properties.",
-                                                "REST Error: Invalid Request Parameters");
+                if (error != null) {
+                    operation.getErrorHandler().accept(error);
+                    return;
+                }
 
-                                    } else {
+                callControllerMethod(methodResult, operation, formulatedMethodArgs);
+            }
 
-                                        // cannot be null.
-                                        formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+        } else {
 
-                                    }
-                                }
-                            } else {
+            callControllerMethod(methodResult, operation, null);
+        }
+    }
 
-                                if(checkForNullQueryString(methodResult)) {
+    private void callControllerMethod(URIMethodResult methodResult, RestOperation operation, Object[] formulatedMethodArgs) {
+        Method method = methodResult.getMethod();
+        Object controller = methodResult.getController();
 
-                                    // can be null
-                                    formulatedMethodArgs[index] = null;
-                                } else {
+        try {
 
-                                    if (methodResult.getQueryString().get(requestParam.value()) == null) {
+            if(formulatedMethodArgs!= null) {
+                operation.getSuccessHandler().accept(method.invoke(controller, formulatedMethodArgs));
+            } else {
+                operation.getSuccessHandler().accept(method.invoke(controller));
+            }
 
-                                        // can be null
-                                        formulatedMethodArgs[index] = null;
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-                                    } else {
+    private RestError processMethod(URIMethodResult methodResult, Map<String, String> pathItemMap, Object[] formulatedMethodArgs, RestOperation operation) {
 
-                                        formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+        RestError error = null;
+        int index = 0;
+        for (String paramName : methodResult.getMethogArgList()) {
 
-                                    }
-                                }
-                            }
+            // check PathVariable argument.
+            if (methodResult.getMethodAnnotationTypes().get(paramName).equals(PathVariable.class)) {
+                formulatedMethodArgs[index] = pathItemMap.get(paramName);
+            }
+
+            // check RequestBody argument.
+            if (methodResult.getMethodAnnotationTypes().get(paramName).equals(RequestBody.class)) {
+                formulatedMethodArgs[index] = operation.getBody();
+            }
+
+            if (methodResult.getMethodAnnotationTypes().get(paramName).equals(RequestParam.class)) {
+
+                RequestParam requestParam = (RequestParam) methodResult.getMethodAnnotationValues().get(paramName);
+
+                if (requestParam != null && !requestParam.value().isEmpty()) {
+                    if (requestParam.required()) {
+                        if (methodResult.getQueryString() == null) {
+
+                            error = getRestError(
+                                    "Method requires request parameters, however none have been supplied.",
+                                    "REST Error: Missing Request Parameters"
+                            );
+
                         } else {
 
-                            if(checkForNullQueryString(methodResult)) {
+                            if (methodResult.getQueryString().get(requestParam.value()) == null) {
+
+                                error = getRestError(
+                                        "Method requires request param '" + requestParam.value() +
+                                                "', This maps to method argument '" + paramName + "', but wasn't supplied with URI properties.",
+                                        "REST Error: Invalid Request Parameters");
+
+                            } else {
+
+                                // cannot be null.
+                                formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+
+                            }
+                        }
+                    } else {
+
+                        if (checkForNullQueryString(methodResult)) {
+
+                            // can be null
+                            formulatedMethodArgs[index] = null;
+                        } else {
+
+                            if (methodResult.getQueryString().get(requestParam.value()) == null) {
 
                                 // can be null
                                 formulatedMethodArgs[index] = null;
 
                             } else {
 
-                                if (methodResult.getQueryString().get(paramName) == null) {
+                                formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
 
-                                    // can be null
-                                    formulatedMethodArgs[index] = null;
-
-                                } else {
-
-                                    formulatedMethodArgs[index] = methodResult.getQueryString().get(paramName);
-
-                                }
                             }
                         }
                     }
-                    index++;
+                } else {
+
+                    if (checkForNullQueryString(methodResult)) {
+
+                        // can be null
+                        formulatedMethodArgs[index] = null;
+
+                    } else {
+
+                        if (methodResult.getQueryString().get(paramName) == null) {
+
+                            // can be null
+                            formulatedMethodArgs[index] = null;
+
+                        } else {
+
+                            formulatedMethodArgs[index] = methodResult.getQueryString().get(paramName);
+
+                        }
+                    }
                 }
-
-                // send error instead of invoking method, bypass completely.
-                if (error != null) {
-                    operation.getErrorHandler().accept(error);
-                    return;
-                }
-
-                Method method = methodResult.getMethod();
-                Object controller = methodResult.getController();
-
-                try {
-
-                    operation.getSuccessHandler().accept(method.invoke(controller, formulatedMethodArgs));
-
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-
-
-                // operation.getSuccessHandler().accept("funky spunky!" + requestParamArgName);
-
-            } else {
-
-                operation.getSuccessHandler().accept("sad munkey :(");
             }
-
-
-        } else {
-            Method method = methodResult.getMethod();
-            Object controller = methodResult.getController();
-
-            try {
-
-                operation.getSuccessHandler().accept(method.invoke(controller));
-
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
+            index++;
         }
+        return error;
     }
 
     private boolean checkForNullQueryString(URIMethodResult methodResult) {

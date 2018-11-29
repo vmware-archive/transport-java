@@ -5,6 +5,7 @@ package com.vmware.bifrost.core.util;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -15,7 +16,7 @@ import java.util.Map;
 
 public class URIMatcher {
 
-    public static URIMethodResult findControllerMatch(ConfigurableApplicationContext context, URI uri) {
+    public static URIMethodResult findControllerMatch(ConfigurableApplicationContext context, URI uri, RequestMethod requestMethod) {
 
         Map<String, Object> controllers = RestControllerReflection.locateRestControllers(context);
 
@@ -39,16 +40,20 @@ public class URIMatcher {
 
                 if (comparePaths(controllerPathItems, requestedPathItems)) {
 
-                    result = new URIMethodResult();
-                    result.setPathItems(controllerPathItems);
-                    result.setMethodArgs(RestControllerReflection.extractMethodParameters(method));
-                    result.setMethogArgList(RestControllerReflection.extractMethodParameterList(method));
-                    result.setMethodAnnotationTypes(RestControllerReflection.extractMethodAnnotationTypes(method));
-                    result.setMethodAnnotationValues(RestControllerReflection.extractMethodAnnotationValues(method));
-                    result.setQueryString(URISplitter.extractQueryString(uri));
-                    result.setPathItemMap(createPathItemMap(controllerPathItems, requestedPathItems));
-                    result.setMethod(method);
-                    result.setController(controller);
+                    // check method matches!
+                    if(mappingAnnotation.method()[0].equals(requestMethod)) {
+
+                        result = new URIMethodResult();
+                        result.setPathItems(controllerPathItems);
+                        result.setMethodArgs(RestControllerReflection.extractMethodParameters(method));
+                        result.setMethogArgList(RestControllerReflection.extractMethodParameterList(method));
+                        result.setMethodAnnotationTypes(RestControllerReflection.extractMethodAnnotationTypes(method));
+                        result.setMethodAnnotationValues(RestControllerReflection.extractMethodAnnotationValues(method));
+                        result.setQueryString(URISplitter.extractQueryString(uri));
+                        result.setPathItemMap(createPathItemMap(controllerPathItems, requestedPathItems));
+                        result.setMethod(method);
+                        result.setController(controller);
+                    }
                 }
             }
         }
@@ -86,7 +91,7 @@ public class URIMatcher {
                     index++;
                     continue;
                 }
-                if (pathItem.equals(controllerPathItems.get(index))) {
+                if (pathItem.equals(requestedPathItems.get(index))) {
                     match = true;
                 } else {
                     match = false;
