@@ -18,6 +18,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.net.URI;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -245,6 +246,29 @@ public class RestControllerInvokerTest {
         operation.setSuccessHandler(
                 (String response) -> {
                     Assert.assertEquals("patchMappingWithParams-630360ba-fb59-4571-b08d-2d5f219691de-Melody is:0.5", response);
+                }
+
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
+
+
+    @Test
+    public void testInvokeGetMapping() throws Exception {
+
+        UUID randId = UUID.randomUUID();
+        URI uri = new URI("/get-mapping/" + randId.toString());
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("getMappingWithParams-" + randId.toString(), response);
                 }
 
         );

@@ -65,5 +65,10 @@ public class MockRestController {
         return "patchMappingWithParams-" + id + "-" + dto.getName() + ':' + dto.getValue();
     }
 
+    @GetMapping(value = "/get-mapping/{id}")
+    public String patchMappingWithParams(@PathVariable String id) {
+        return "getMappingWithParams-" + id;
+    }
+
 
 }
