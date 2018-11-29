@@ -59,15 +59,29 @@ public class RestControllerReflection {
         return extractControllerByAnnotation(controller, PostMapping.class);
     }
 
+    /**
+     * Extract controller methods for @PutMapping annotations.
+     * @param controller
+     * @return
+     */
     public static Map<String, Method> extractControllerPutMappings(Object controller) {
         return extractControllerByAnnotation(controller, PutMapping.class);
     }
 
+    /**
+     * Extract controller methods for @DeleteMapping annotations.
+     * @param controller
+     * @return
+     */
     public static Map<String, Method> extractControllerDeleteMappings(Object controller) {
         return extractControllerByAnnotation(controller, DeleteMapping.class);
     }
 
-
+    /**
+     * Extract controller by a specific Annotation type
+     * @param controller
+     * @return
+     */
     public static Map<String, Method> extractControllerByAnnotation(Object controller, Class annotationType) {
         List<Method> rawMethods = Arrays.asList(controller.getClass().getDeclaredMethods());
         Map<String, Method> cleanedMethods = new HashMap<>();
@@ -81,6 +95,11 @@ public class RestControllerReflection {
         return cleanedMethods;
     }
 
+    /**
+     * Extract a method's args/parameters and the types of those arguments
+     * @param method
+     * @return
+     */
     public static Map<String, Class> extractMethodParameters(Method method) {
         Parameter[] params = method.getParameters();
         Map<String, Class> paramMap = new HashMap<>();
@@ -93,6 +112,11 @@ public class RestControllerReflection {
         return paramMap;
     }
 
+    /**
+     * Extract an ordered list of the paramter/arg names for a method.
+     * @param method
+     * @return
+     */
     public static List<String> extractMethodParameterList(Method method) {
         Parameter[] params = method.getParameters();
         List<String> paramList = new ArrayList<>();
@@ -103,6 +127,11 @@ public class RestControllerReflection {
         return paramList;
     }
 
+    /**
+     * Extract the method's arguments annotations (if used)
+     * @param method
+     * @return
+     */
     public static Map<String, Class> extractMethodAnnotationTypes(Method method) {
         Parameter[] params = method.getParameters();
         Map<String, Class> paramMap = new HashMap<>();
@@ -117,6 +146,11 @@ public class RestControllerReflection {
         return paramMap;
     }
 
+    /**
+     * Extract all annotation object value for a methods args/params annotation.
+     * @param method
+     * @return
+     */
     public static Map<String, Object> extractMethodAnnotationValues(Method method) {
         Parameter[] params = method.getParameters();
         Map<String, Object> paramMap = new HashMap<>();
@@ -135,7 +169,12 @@ public class RestControllerReflection {
         return paramMap;
     }
 
-
+    /**
+     * Extract a specific annotation value from a method parameter.
+     * @param param
+     * @param annotation
+     * @return
+     */
     public static Object extractMethodAnnotation(Parameter param, Class annotation) {
 
         switch (annotation.getName()) {

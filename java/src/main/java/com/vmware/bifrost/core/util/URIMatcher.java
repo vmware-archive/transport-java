@@ -13,8 +13,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Performs controller matching to incoming REST Requests.
+ */
 public class URIMatcher {
 
+    /**
+     * Generate a URIMethodResult if a local URI for a specific request method can be located.
+     * @param context
+     * @param uri
+     * @param requestMethod
+     * @return
+     */
     public static URIMethodResult findControllerMatch(ConfigurableApplicationContext context, URI uri, RequestMethod requestMethod) {
 
         Map<String, Object> controllers = RestControllerReflection.locateRestControllers(context);
@@ -177,6 +187,13 @@ public class URIMatcher {
         return result;
     }
 
+    /**
+     * Create a Path Item Map (maps path variable names, to the actual values submitted as a part of the URI);
+     * @param controllerPathItems
+     * @param requestedPathItems
+     * @param methodArgs
+     * @return
+     */
     public static Map<String, Object> createPathItemMap(List<String> controllerPathItems, List<String> requestedPathItems, Map<String, Class> methodArgs) {
 
         Map<String, Object> map = new HashMap<>();
@@ -219,6 +236,12 @@ public class URIMatcher {
 
     }
 
+    /**
+     * Compare paths to see if they match, skipping over variables as they are wildcards.
+     * @param controllerPathItems
+     * @param requestedPathItems
+     * @return
+     */
     public static boolean comparePaths(List<String> controllerPathItems, List<String> requestedPathItems) {
 
         boolean match = false;
