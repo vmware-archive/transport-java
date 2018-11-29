@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Copyright(c) VMware Inc. 2017
  */
-@Ignore
 @SuppressWarnings("unchecked")
 public class MessageHandlerImplTest {
 

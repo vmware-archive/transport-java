@@ -15,7 +15,6 @@ import org.junit.Test;
 /**
  * Copyright(c) VMware Inc. 2017
  */
-@Ignore
 public class BusHandlerTransactionTest {
 
     private MessagebusService bus;
