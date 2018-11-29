@@ -30,9 +30,18 @@ public class RestControllerReflection {
         return extractControllerByAnnotation(controller, GetMapping.class);
     }
 
-    public static Map<String, Method> extractControllerMappings(Object controller) {
-        return extractControllerByAnnotation(controller, GetMapping.class);
+    public static Map<String, Method> extractControllerPostMappings(Object controller) {
+        return extractControllerByAnnotation(controller, PostMapping.class);
     }
+
+    public static Map<String, Method> extractControllerPutMappings(Object controller) {
+        return extractControllerByAnnotation(controller, PutMapping.class);
+    }
+
+    public static Map<String, Method> extractControllerDeleteMappings(Object controller) {
+        return extractControllerByAnnotation(controller, DeleteMapping.class);
+    }
+
 
     public static Map<String, Method> extractControllerByAnnotation(Object controller, Class annotationType) {
         List<Method> rawMethods = Arrays.asList(controller.getClass().getDeclaredMethods());

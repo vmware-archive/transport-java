@@ -4,9 +4,7 @@
 package com.vmware.bifrost.core.util;
 
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -28,14 +26,40 @@ public class URIMatcher {
             Object controller = controllers.get(key);
             Map<String, Method> methods;
 
-
+            // RequestMapping check
             methods = RestControllerReflection.extractControllerRequestMappings(controller);
             result = checkRequestMappingMethods(uri, requestMethod, controller, methods);
 
             if (result != null) break;
 
+            // PatchMapping check
             methods = RestControllerReflection.extractControllerPatchMappings(controller);
             result = checkPatchMappingMethods(uri, requestMethod, controller, methods);
+
+            if (result != null) break;
+
+            // GetMapping Check
+            methods = RestControllerReflection.extractControllerGetMappings(controller);
+            result = checkGetMappingMethods(uri, requestMethod, controller, methods);
+
+            if (result != null) break;
+
+            // PutMapping Check
+            methods = RestControllerReflection.extractControllerPutMappings(controller);
+            result = checkPutMappingMethods(uri, requestMethod, controller, methods);
+
+            if (result != null) break;
+
+            // PostMapping Check
+            methods = RestControllerReflection.extractControllerPostMappings(controller);
+            result = checkPostMappingMethods(uri, requestMethod, controller, methods);
+
+            if (result != null) break;
+
+            // DeleteMapping Check
+            methods = RestControllerReflection.extractControllerDeleteMappings(controller);
+            result = checkDeleteMappingMethods(uri, requestMethod, controller, methods);
+
         }
         return result;
     }
@@ -45,9 +69,6 @@ public class URIMatcher {
         for (String methodKey : methods.keySet()) {
 
             Method method = methods.get(methodKey);
-
-            // check for RequestMapping instances;
-
             RequestMapping mappingAnnotation = method.getAnnotation(RequestMapping.class);
             String uriSring = mappingAnnotation.value()[0];
             RequestMethod annotationMethod = mappingAnnotation.method()[0];
@@ -62,10 +83,59 @@ public class URIMatcher {
         for (String methodKey : methods.keySet()) {
 
             Method method = methods.get(methodKey);
-
-            // check for RequestMapping instances;
-
             PatchMapping mappingAnnotation = method.getAnnotation(PatchMapping.class);
+            String uriSring = mappingAnnotation.value()[0];
+
+            result = checkForControllerMatch(uri, requestMethod, controller, false, result, method, null, uriSring);
+        }
+        return result;
+    }
+
+    private static URIMethodResult checkGetMappingMethods(URI uri, RequestMethod requestMethod, Object controller, Map<String, Method> methods) {
+        URIMethodResult result = null;
+        for (String methodKey : methods.keySet()) {
+
+            Method method = methods.get(methodKey);
+            GetMapping mappingAnnotation = method.getAnnotation(GetMapping.class);
+            String uriSring = mappingAnnotation.value()[0];
+
+            result = checkForControllerMatch(uri, requestMethod, controller, false, result, method, null, uriSring);
+        }
+        return result;
+    }
+
+    private static URIMethodResult checkPutMappingMethods(URI uri, RequestMethod requestMethod, Object controller, Map<String, Method> methods) {
+        URIMethodResult result = null;
+        for (String methodKey : methods.keySet()) {
+
+            Method method = methods.get(methodKey);
+            PutMapping mappingAnnotation = method.getAnnotation(PutMapping.class);
+            String uriSring = mappingAnnotation.value()[0];
+
+            result = checkForControllerMatch(uri, requestMethod, controller, false, result, method, null, uriSring);
+        }
+        return result;
+    }
+
+    private static URIMethodResult checkPostMappingMethods(URI uri, RequestMethod requestMethod, Object controller, Map<String, Method> methods) {
+        URIMethodResult result = null;
+        for (String methodKey : methods.keySet()) {
+
+            Method method = methods.get(methodKey);
+            PostMapping mappingAnnotation = method.getAnnotation(PostMapping.class);
+            String uriSring = mappingAnnotation.value()[0];
+
+            result = checkForControllerMatch(uri, requestMethod, controller, false, result, method, null, uriSring);
+        }
+        return result;
+    }
+
+    private static URIMethodResult checkDeleteMappingMethods(URI uri, RequestMethod requestMethod, Object controller, Map<String, Method> methods) {
+        URIMethodResult result = null;
+        for (String methodKey : methods.keySet()) {
+
+            Method method = methods.get(methodKey);
+            DeleteMapping mappingAnnotation = method.getAnnotation(DeleteMapping.class);
             String uriSring = mappingAnnotation.value()[0];
 
             result = checkForControllerMatch(uri, requestMethod, controller, false, result, method, null, uriSring);
@@ -122,7 +192,7 @@ public class URIMatcher {
 
                     try {
 
-                        if(methodArgs != null) {
+                        if (methodArgs != null) {
 
                             Class methodArgClass = methodArgs.get(argName);
                             if (methodArgClass.equals(UUID.class)) {
