@@ -3,33 +3,58 @@
  */
 package com.vmware.bifrost.core.util;
 
-
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.bind.annotation.*;
-
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
+/**
+ *
+ */
 public class RestControllerReflection {
 
+    /**
+     * Locate RestControllers inside the Spring Context
+     * @param context
+     * @return
+     */
     public static Map<String, Object> locateRestControllers(ConfigurableApplicationContext context) {
         return context.getBeansWithAnnotation(RestController.class);
     }
 
+    /**
+     * Extract controller methods for @RequestMapping annotations.
+     * @param controller
+     * @return
+     */
     public static Map<String, Method> extractControllerRequestMappings(Object controller) {
         return extractControllerByAnnotation(controller, RequestMapping.class);
     }
 
+    /**
+     * Extract controller methods for @PatchMapping annotations.
+     * @param controller
+     * @return
+     */
     public static Map<String, Method> extractControllerPatchMappings(Object controller) {
         return extractControllerByAnnotation(controller, PatchMapping.class);
     }
 
+    /**
+     * Extract controller methods for @GetMapping annotations.
+     * @param controller
+     * @return
+     */
     public static Map<String, Method> extractControllerGetMappings(Object controller) {
         return extractControllerByAnnotation(controller, GetMapping.class);
     }
 
+    /**
+     * Extract controller methods for @PostMapping annotations.
+     * @param controller
+     * @return
+     */
     public static Map<String, Method> extractControllerPostMappings(Object controller) {
         return extractControllerByAnnotation(controller, PostMapping.class);
     }
@@ -100,7 +125,8 @@ public class RestControllerReflection {
 
             if(param.getAnnotations() != null && param.getAnnotations().length >= 1) {
                 paramMap.put(param.getName(),
-                        RestControllerReflection.extractMethodAnnotation(param, param.getAnnotations()[0].annotationType())
+                        RestControllerReflection.extractMethodAnnotation(param,
+                                param.getAnnotations()[0].annotationType())
                 );
             } else {
                 paramMap.put(param.getName(), null);

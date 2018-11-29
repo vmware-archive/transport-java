@@ -75,4 +75,9 @@ public class MockRestController {
         return "deleteMappingWithParams-" + id;
     }
 
+    @PutMapping(value = "/put-mapping/{id}")
+    public String putMappingMappingWithParams(@PathVariable UUID id) {
+        return "putMappingWithParams-" + id;
+    }
+
 }

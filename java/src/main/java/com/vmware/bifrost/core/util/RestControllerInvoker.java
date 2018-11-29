@@ -2,10 +2,9 @@
  * Copyright(c) VMware Inc. 2018
  */
 package com.vmware.bifrost.core.util;
-
-import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +21,12 @@ public class RestControllerInvoker {
 
     }
 
+    /**
+     * Check method can be called and invoke accordingly.
+     * @param methodResult
+     * @param operation
+     * @throws RuntimeException
+     */
     public void invokeMethod(URIMethodResult methodResult, RestOperation operation) throws RuntimeException {
 
         Object[] formulatedMethodArgs = new Object[methodResult.getMethogArgList().size()];
@@ -38,10 +43,6 @@ public class RestControllerInvoker {
             if(pathItemMap.size() >= 1) {
 
                 if (doPathItemsAndMethodArgsMatch(pathItemMap, methodArgs, methodAnnotationTypes)) {
-
-                  // String requestParamArgName = methodResult.getRequestParamArgumentName();
-                   // String requestBodyArgName = methodResult.getRequestBodyArgumentName();
-
 
                     // iterate through all our data and construct the correct signature to call.
                     error = processMethod(methodResult, pathItemMap, formulatedMethodArgs, operation);
@@ -78,6 +79,40 @@ public class RestControllerInvoker {
         }
     }
 
+    /**
+     * Validate path and method arguements align
+     * @param pathItemMap
+     * @param methodArgs
+     * @param methodAnnotations
+     * @return
+     */
+    public boolean doPathItemsAndMethodArgsMatch(
+            Map<String, Object> pathItemMap,
+            Map<String, Class> methodArgs,
+            Map<String, Class> methodAnnotations
+    ) {
+
+        boolean match = false;
+
+        for (String pathItem : pathItemMap.keySet()) {
+
+            String className = methodAnnotations.get(pathItem).getName();
+            switch (className) {
+                case "org.springframework.web.bind.annotation.PathVariable":
+                    if (methodArgs.get(pathItem) != null) {
+                        match = true;
+                        continue;
+                    } else {
+                        match = false;
+                        break;
+                    }
+                default:
+                    break;
+            }
+        }
+        return match;
+    }
+
     private void callControllerMethod(URIMethodResult methodResult, RestOperation operation, Object[] formulatedMethodArgs) {
         Method method = methodResult.getMethod();
         Object controller = methodResult.getController();
@@ -99,7 +134,8 @@ public class RestControllerInvoker {
         }
     }
 
-    private RestError processMethod(URIMethodResult methodResult, Map<String, Object> pathItemMap, Object[] formulatedMethodArgs, RestOperation operation) {
+    private RestError processMethod(URIMethodResult methodResult, Map<String, Object> pathItemMap,
+                                    Object[] formulatedMethodArgs, RestOperation operation) {
 
         RestError error = null;
         int index = 0;
@@ -136,14 +172,16 @@ public class RestControllerInvoker {
                                 if (methodResult.getQueryString().get(requestParam.value()) == null) {
 
                                     error = getRestError(
-                                            "Method requires request param '" + requestParam.value() +
-                                                    "', This maps to method argument '" + paramName + "', but wasn't supplied with URI properties.",
+                                            "Method requires request param '" + requestParam.value()
+                                                    + "', This maps to method argument '" + paramName
+                                                    + "', but wasn't supplied with URI properties.",
                                             "REST Error: Invalid Request Parameters");
 
                                 } else {
 
                                     // cannot be null.
-                                    formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+                                    formulatedMethodArgs[index] =
+                                            methodResult.getQueryString().get(requestParam.value());
 
                                 }
                             }
@@ -162,7 +200,8 @@ public class RestControllerInvoker {
 
                                 } else {
 
-                                    formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+                                    formulatedMethodArgs[index] =
+                                            methodResult.getQueryString().get(requestParam.value());
 
                                 }
                             }
@@ -214,32 +253,4 @@ public class RestControllerInvoker {
                 status);
         return error;
     }
-
-    public boolean doPathItemsAndMethodArgsMatch(
-            Map<String, Object> pathItemMap,
-            Map<String, Class> methodArgs,
-            Map<String, Class> methodAnnotations
-    ) {
-
-        boolean match = false;
-
-        for (String pathItem : pathItemMap.keySet()) {
-
-            String className = methodAnnotations.get(pathItem).getName();
-            switch (className) {
-                case "org.springframework.web.bind.annotation.PathVariable":
-                    if (methodArgs.get(pathItem) != null) {
-                        match = true;
-                        continue;
-                    } else {
-                        match = false;
-                        break;
-                    }
-                default:
-                    break;
-            }
-        }
-        return match;
-    }
-
 }
