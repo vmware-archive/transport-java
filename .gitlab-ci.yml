@@ -13,7 +13,8 @@ test:unit:
   - cd ./java 
   - ./gradlew test  
   - ./gradlew jacocoTestReport
-  - cat ./build/reports/jacoco/test/html/index.html
+  - cat ./build/reports/jacoco/test/html/index.html | sed -rn 's/.*Total[^%]*([0-9]{1,3})%.*/Total test coverage:\1%\n/p'
+
   artifacts:
     paths:
     - java/build/reports/jacoco/
