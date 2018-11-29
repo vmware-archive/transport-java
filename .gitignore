@@ -10,3 +10,7 @@ tmp
 /java/build
 .DS_Store
 /java/out
+/java/bin
+.vscode
+.classpath
+.project
