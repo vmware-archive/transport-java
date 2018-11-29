@@ -179,5 +179,48 @@ public class RestControllerInvokerTest {
         invoker.invokeMethod(result, operation);
     }
 
+    @Test
+    public void testInvokeMultiMethodURIPatch() throws Exception {
+
+        URI uri = new URI("/multi?query=naughtyPuppy");
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.PATCH);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.PATCH);
+        operation.setBody("Ember");
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("multiMethodURIPatch-naughtyPuppy-Ember", response);
+                }
+
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
+
+    @Test
+    public void testInvokeMultiMethodURIPatchNoQuery() throws Exception {
+
+        URI uri = new URI("/multi");
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.PATCH);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.PATCH);
+        operation.setBody("Ember");
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("multiMethodURIPatch-null-Ember", response);
+                }
+
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
 
 }
