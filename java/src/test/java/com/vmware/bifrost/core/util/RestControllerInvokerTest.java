@@ -6,6 +6,7 @@ package com.vmware.bifrost.core.util;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.operations.MockRestController;
+import com.vmware.bifrost.core.operations.SampleDTO;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -222,5 +223,34 @@ public class RestControllerInvokerTest {
 
         invoker.invokeMethod(result, operation);
     }
+
+
+    @Test
+    public void testInvokePatchMapping() throws Exception {
+
+        URI uri = new URI("/patch-mapping/630360ba-fb59-4571-b08d-2d5f219691de");
+
+        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.PATCH);
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(uri);
+        operation.setMethod(HttpMethod.PATCH);
+
+        SampleDTO dto = new SampleDTO();
+        dto.setName("Melody is");
+        dto.setValue(0.5);
+
+        operation.setBody(dto);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("patchMappingWithParams-630360ba-fb59-4571-b08d-2d5f219691de-Melody is:0.5", response);
+                }
+
+        );
+
+        invoker.invokeMethod(result, operation);
+    }
+
 
 }

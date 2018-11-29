@@ -29,7 +29,7 @@ public class RestControllerInvoker {
 
         if (methodResult.getMethodArgs().size() >= 1) {
 
-            Map<String, String> pathItemMap = methodResult.getPathItemMap();
+            Map<String, Object> pathItemMap = methodResult.getPathItemMap();
             Map<String, Class> methodArgs = methodResult.getMethodArgs();
             Map<String, Class> methodAnnotationTypes = methodResult.getMethodAnnotationTypes();
 
@@ -85,9 +85,13 @@ public class RestControllerInvoker {
         try {
 
             if(formulatedMethodArgs!= null) {
-                operation.getSuccessHandler().accept(method.invoke(controller, formulatedMethodArgs));
+                operation.getSuccessHandler().accept(
+                        method.invoke(controller, formulatedMethodArgs)
+                );
             } else {
-                operation.getSuccessHandler().accept(method.invoke(controller));
+                operation.getSuccessHandler().accept(
+                        method.invoke(controller)
+                );
             }
 
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -95,49 +99,72 @@ public class RestControllerInvoker {
         }
     }
 
-    private RestError processMethod(URIMethodResult methodResult, Map<String, String> pathItemMap, Object[] formulatedMethodArgs, RestOperation operation) {
+    private RestError processMethod(URIMethodResult methodResult, Map<String, Object> pathItemMap, Object[] formulatedMethodArgs, RestOperation operation) {
 
         RestError error = null;
         int index = 0;
         for (String paramName : methodResult.getMethogArgList()) {
 
-            // check PathVariable argument.
-            if (methodResult.getMethodAnnotationTypes().get(paramName).equals(PathVariable.class)) {
-                formulatedMethodArgs[index] = pathItemMap.get(paramName);
-            }
+            // check we have an annotation.
+            if (methodResult.getMethodAnnotationTypes().get(paramName) != null) {
 
-            // check RequestBody argument.
-            if (methodResult.getMethodAnnotationTypes().get(paramName).equals(RequestBody.class)) {
-                formulatedMethodArgs[index] = operation.getBody();
-            }
+                // check PathVariable argument.
+                if (methodResult.getMethodAnnotationTypes().get(paramName).equals(PathVariable.class)) {
+                    formulatedMethodArgs[index] = pathItemMap.get(paramName);
+                }
 
-            if (methodResult.getMethodAnnotationTypes().get(paramName).equals(RequestParam.class)) {
+                // check RequestBody argument.
+                if (methodResult.getMethodAnnotationTypes().get(paramName).equals(RequestBody.class)) {
+                    formulatedMethodArgs[index] = operation.getBody();
+                }
 
-                RequestParam requestParam = (RequestParam) methodResult.getMethodAnnotationValues().get(paramName);
+                if (methodResult.getMethodAnnotationTypes().get(paramName).equals(RequestParam.class)) {
 
-                if (requestParam != null && !requestParam.value().isEmpty()) {
-                    if (requestParam.required()) {
-                        if (methodResult.getQueryString() == null) {
+                    RequestParam requestParam = (RequestParam) methodResult.getMethodAnnotationValues().get(paramName);
 
-                            error = getRestError(
-                                    "Method requires request parameters, however none have been supplied.",
-                                    "REST Error: Missing Request Parameters"
-                            );
-
-                        } else {
-
-                            if (methodResult.getQueryString().get(requestParam.value()) == null) {
+                    if (requestParam != null && !requestParam.value().isEmpty()) {
+                        if (requestParam.required()) {
+                            if (methodResult.getQueryString() == null) {
 
                                 error = getRestError(
-                                        "Method requires request param '" + requestParam.value() +
-                                                "', This maps to method argument '" + paramName + "', but wasn't supplied with URI properties.",
-                                        "REST Error: Invalid Request Parameters");
+                                        "Method requires request parameters, however none have been supplied.",
+                                        "REST Error: Missing Request Parameters"
+                                );
 
                             } else {
 
-                                // cannot be null.
-                                formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+                                if (methodResult.getQueryString().get(requestParam.value()) == null) {
 
+                                    error = getRestError(
+                                            "Method requires request param '" + requestParam.value() +
+                                                    "', This maps to method argument '" + paramName + "', but wasn't supplied with URI properties.",
+                                            "REST Error: Invalid Request Parameters");
+
+                                } else {
+
+                                    // cannot be null.
+                                    formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+
+                                }
+                            }
+                        } else {
+
+                            if (checkForNullQueryString(methodResult)) {
+
+                                // can be null
+                                formulatedMethodArgs[index] = null;
+                            } else {
+
+                                if (methodResult.getQueryString().get(requestParam.value()) == null) {
+
+                                    // can be null
+                                    formulatedMethodArgs[index] = null;
+
+                                } else {
+
+                                    formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+
+                                }
                             }
                         }
                     } else {
@@ -146,43 +173,29 @@ public class RestControllerInvoker {
 
                             // can be null
                             formulatedMethodArgs[index] = null;
+
                         } else {
 
-                            if (methodResult.getQueryString().get(requestParam.value()) == null) {
+                            if (methodResult.getQueryString().get(paramName) == null) {
 
                                 // can be null
                                 formulatedMethodArgs[index] = null;
 
                             } else {
 
-                                formulatedMethodArgs[index] = methodResult.getQueryString().get(requestParam.value());
+                                formulatedMethodArgs[index] = methodResult.getQueryString().get(paramName);
 
                             }
                         }
                     }
-                } else {
-
-                    if (checkForNullQueryString(methodResult)) {
-
-                        // can be null
-                        formulatedMethodArgs[index] = null;
-
-                    } else {
-
-                        if (methodResult.getQueryString().get(paramName) == null) {
-
-                            // can be null
-                            formulatedMethodArgs[index] = null;
-
-                        } else {
-
-                            formulatedMethodArgs[index] = methodResult.getQueryString().get(paramName);
-
-                        }
-                    }
                 }
+                index++;
+            } else {
+
+                // object without annotation is a request body.
+                formulatedMethodArgs[index] = operation.getBody();
+                index++;
             }
-            index++;
         }
         return error;
     }
@@ -203,7 +216,7 @@ public class RestControllerInvoker {
     }
 
     public boolean doPathItemsAndMethodArgsMatch(
-            Map<String, String> pathItemMap,
+            Map<String, Object> pathItemMap,
             Map<String, Class> methodArgs,
             Map<String, Class> methodAnnotations
     ) {

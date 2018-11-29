@@ -6,6 +6,8 @@ package com.vmware.bifrost.core.util;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.bind.annotation.*;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -17,13 +19,19 @@ public class RestControllerReflection {
     }
 
     public static Map<String, Method> extractControllerRequestMappings(Object controller) {
+        return extractControllerByAnnotation(controller, RequestMapping.class);
+    }
+
+    public static Map<String, Method> extractControllerPatchMappings(Object controller) {
+        return extractControllerByAnnotation(controller, PatchMapping.class);
+    }
+
+    public static Map<String, Method> extractControllerByAnnotation(Object controller, Class annotationType) {
         List<Method> rawMethods = Arrays.asList(controller.getClass().getDeclaredMethods());
         Map<String, Method> cleanedMethods = new HashMap<>();
 
         for (Method method : rawMethods) {
-
-            RequestMapping annotation = method.getAnnotation(RequestMapping.class);
-            if (annotation != null) {
+            if (method.getAnnotation(annotationType) != null) {
                 cleanedMethods.put(method.getName(), method);
             }
         }
@@ -58,7 +66,11 @@ public class RestControllerReflection {
         Map<String, Class> paramMap = new HashMap<>();
 
         for (Parameter param : params) {
-            paramMap.put(param.getName(), param.getAnnotations()[0].annotationType());
+            if(param.getAnnotations() != null && param.getAnnotations().length >= 1) {
+                paramMap.put(param.getName(), param.getAnnotations()[0].annotationType());
+            } else {
+                paramMap.put(param.getName(), null);
+            }
         }
         return paramMap;
     }
@@ -68,9 +80,14 @@ public class RestControllerReflection {
         Map<String, Object> paramMap = new HashMap<>();
 
         for (Parameter param : params) {
-            paramMap.put(param.getName(),
-                    RestControllerReflection.extractMethodAnnotation(param, param.getAnnotations()[0].annotationType())
-            );
+
+            if(param.getAnnotations() != null && param.getAnnotations().length >= 1) {
+                paramMap.put(param.getName(),
+                        RestControllerReflection.extractMethodAnnotation(param, param.getAnnotations()[0].annotationType())
+                );
+            } else {
+                paramMap.put(param.getName(), null);
+            }
         }
         return paramMap;
     }

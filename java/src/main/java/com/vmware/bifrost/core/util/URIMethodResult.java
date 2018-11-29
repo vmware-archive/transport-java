@@ -18,7 +18,7 @@ public class URIMethodResult {
     private Map<String, String> queryString;
 
     @Getter @Setter
-    private Map<String, String> pathItemMap;
+    private Map<String, Object> pathItemMap;
 
     @Getter @Setter
     private List<String> pathItems;

@@ -69,9 +69,10 @@ public class URIMatcherTest {
         String url1 = "/manufacturer/{mId}/cars/{carId}/colors/{carColorId}";
         String url2 = "/manufacturer/ford/cars/mustang/colors/123";
 
-        Map<String, String> pathMap = URIMatcher.createPathItemMap(
+        Map<String, Object> pathMap = URIMatcher.createPathItemMap(
                 URISplitter.split(url1),
-                URISplitter.split(url2)
+                URISplitter.split(url2),
+                null
         );
 
         Assert.assertEquals(3, pathMap.size());

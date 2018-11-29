@@ -50,11 +50,11 @@ public class RestService extends Loggable {
 
 
 
-                for (Parameter param: method.getParameters()) {
-                    System.out.println("Name: " + param.getName());
-                    System.out.println("Annotation " + param.getAnnotations()[0].annotationType().getName());
-
-                }
+//                for (Parameter param: method.getParameters()) {
+//                    System.out.println("Name: " + param.getName());
+//                    System.out.println("Annotation " + param.getAnnotations()[0].annotationType().getName());
+//
+//                }
 
 
                 RequestMapping annotation = method.getAnnotation(RequestMapping.class);

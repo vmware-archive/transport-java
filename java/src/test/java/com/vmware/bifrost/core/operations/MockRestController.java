@@ -6,6 +6,8 @@ package com.vmware.bifrost.core.operations;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -57,5 +59,11 @@ public class MockRestController {
     ) {
         return "multiMethodURIPatch-" + paramQuery + "-" + postedData;
     }
+
+    @PatchMapping(value = "/patch-mapping/{id}")
+    public String patchMappingWithParams(@PathVariable String id, SampleDTO dto) {
+        return "patchMappingWithParams-" + id + "-" + dto.getName() + ':' + dto.getValue();
+    }
+
 
 }
