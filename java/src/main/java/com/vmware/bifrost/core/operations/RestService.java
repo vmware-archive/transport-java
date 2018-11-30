@@ -39,7 +39,7 @@ public class RestService extends Loggable {
         this.restTemplate = restTemplateBuilder.build();
     }
 
-    public URIMethodResult locateRestControllerForURIAndMethod(RestOperation operation) {
+    private URIMethodResult locateRestControllerForURIAndMethod(RestOperation operation) {
 
         URIMethodResult result = URIMatcher.findControllerMatch(
                 context,
@@ -56,7 +56,7 @@ public class RestService extends Loggable {
         return result;
     }
 
-    public void invokeRestController(URIMethodResult result, RestOperation operation) {
+    private void invokeRestController(URIMethodResult result, RestOperation operation) {
         try {
             controllerInvoker.invokeMethod(result, operation);
 
