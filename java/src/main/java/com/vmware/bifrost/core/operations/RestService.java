@@ -21,7 +21,19 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
-
+/**
+ * RestService is responsible for handling UI Rest requests. It operates in two modes:
+ *
+ * 1. As a simple REST client that translates a RestOperation object into a Rest Call to an external URI
+ * 2. As a dispatch engine that checks if there are any RestController instances that serve the requested URI.
+ *    If there is a match, the method arguments are extracted from all the meta data provided via annotations to the
+ *    method, and then calls the method using the correct sequence of arguments, with the correct types, in the correct
+ *    order.
+ *
+ * //TODO: This service will eventually be called from any class implementing AbstractService via the bus
+ *
+ * @see com.vmware.bifrost.core.model.RestOperation
+ */
 @Service
 public class RestService extends Loggable {
 
@@ -39,34 +51,14 @@ public class RestService extends Loggable {
         this.restTemplate = restTemplateBuilder.build();
     }
 
-    private URIMethodResult locateRestControllerForURIAndMethod(RestOperation operation) {
-
-        URIMethodResult result = URIMatcher.findControllerMatch(
-                context,
-                operation.getUri(),
-                RequestMethod.valueOf(operation.getMethod().toString())
-        );
-
-        if (result != null) {
-            this.logDebugMessage("Located handling method for URI: "
-                    + operation.getUri().getRawPath(), result.getMethod().getName());
-        } else {
-            this.logDebugMessage("Unable to locate a local handler for for URI: ", operation.getUri().getRawPath());
-        }
-        return result;
-    }
-
-    private void invokeRestController(URIMethodResult result, RestOperation operation) {
-        try {
-            controllerInvoker.invokeMethod(result, operation);
-
-        } catch (RuntimeException rexp) {
-
-            // do something here.
-        }
-    }
-
-
+    /**
+     * If calling the service via DI, then make the requested Rest Request locally via controller, or externally
+     * via a standard rest call.
+     *
+     * @param operation
+     * @param <Req> request body type
+     * @param <Resp> return body type
+     */
     public <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) {
 
         // check if the URI is local to the system
@@ -173,6 +165,33 @@ public class RestService extends Loggable {
         }
 
 
+    }
+
+    private URIMethodResult locateRestControllerForURIAndMethod(RestOperation operation) {
+
+        URIMethodResult result = URIMatcher.findControllerMatch(
+                context,
+                operation.getUri(),
+                RequestMethod.valueOf(operation.getMethod().toString())
+        );
+
+        if (result != null) {
+            this.logDebugMessage("Located handling method for URI: "
+                    + operation.getUri().getRawPath(), result.getMethod().getName());
+        } else {
+            this.logDebugMessage("Unable to locate a local handler for for URI: ", operation.getUri().getRawPath());
+        }
+        return result;
+    }
+
+    private void invokeRestController(URIMethodResult result, RestOperation operation) {
+        try {
+            controllerInvoker.invokeMethod(result, operation);
+
+        } catch (RuntimeException rexp) {
+
+            // do something here.
+        }
     }
 
 }

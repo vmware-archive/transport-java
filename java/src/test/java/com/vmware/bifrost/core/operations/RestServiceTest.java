@@ -194,7 +194,7 @@ public class RestServiceTest {
 
     }
 
-    
+
     @Test
     public void testLocalURIGetExecuted() throws Exception {
 
