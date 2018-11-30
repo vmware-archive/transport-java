@@ -71,6 +71,11 @@ dependencies {
 test {
     testLogging {
         showStandardStreams = true
+        afterSuite { desc, result ->
+            if (!desc.parent) { // true after all suites have executed and final result available.
+                println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+            }
+        }
     }
 }
 
