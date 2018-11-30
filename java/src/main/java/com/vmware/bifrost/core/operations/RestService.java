@@ -51,8 +51,7 @@ public class RestService extends Loggable {
             this.logDebugMessage("Located handling method for URI: "
                     + operation.getUri().getRawPath(), result.getMethod().getName());
         } else {
-            this.logDebugMessage("Unable to locate a local handler for for URI: "
-                    + operation.getUri().getRawPath(), result.getMethod().getName());
+            this.logDebugMessage("Unable to locate a local handler for for URI: ", operation.getUri().getRawPath());
         }
         return result;
     }
@@ -60,6 +59,7 @@ public class RestService extends Loggable {
     public void invokeRestController(URIMethodResult result, RestOperation operation) {
         try {
             controllerInvoker.invokeMethod(result, operation);
+
         } catch (RuntimeException rexp) {
 
             // do something here.
@@ -68,6 +68,14 @@ public class RestService extends Loggable {
 
 
     public <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) {
+
+        // check if the URI is local to the system
+        URIMethodResult methodResult = locateRestControllerForURIAndMethod(operation);
+        if(methodResult != null && methodResult.getMethod() != null) {
+            invokeRestController(methodResult, operation);
+            return;
+        }
+
 
         HttpEntity<Req> entity = null;
         HttpHeaders headers = null;

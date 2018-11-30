@@ -253,5 +253,25 @@ public class RestServiceTest {
     }
 
 
+    @Test
+    public void testLocalURIExecuted() throws Exception {
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/foo/milk/bar/cake123?someQuery=happy&anotherQuery=baby"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals(
+                            "FooBarNormal:/foo/milk/bar/cake123?someQuery=happy&anotherQuery=baby",
+                            response
+                    );
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+
 
 }
