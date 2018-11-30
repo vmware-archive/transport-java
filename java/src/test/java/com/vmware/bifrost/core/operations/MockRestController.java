@@ -93,4 +93,21 @@ public class MockRestController {
         return dto;
     }
 
+    @RequestMapping(value = "/header-check", method = GET)
+    public String headerCheckSingleHeader(@RequestHeader("Some-Header") String header) {
+        return "headerCheckSingle-" + header;
+    }
+
+    @RequestMapping(value = "/header-check-multi", method = GET)
+    public String headerCheckMultiHeader(@RequestHeader("Some-Header") String someHeader,
+                                         @RequestHeader("Another-Header") String anotherHeader) {
+        return "headerCheckMulti-" + someHeader + "-" + anotherHeader;
+    }
+
+    @RequestMapping(value = "/header-check-multi-noname", method = GET)
+    public String headerCheckMultiHeaderNoAnnotationValue(@RequestHeader String someHeader,
+                                         @RequestHeader String anotherHeader) {
+        return "headerCheckMultiNoName-" + someHeader + "-" + anotherHeader;
+    }
+
 }

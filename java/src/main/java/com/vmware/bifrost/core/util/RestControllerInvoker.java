@@ -2,12 +2,14 @@
  * Copyright(c) VMware Inc. 2018
  */
 package com.vmware.bifrost.core.util;
+
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.lang.reflect.InvocationTargetException;
@@ -23,6 +25,7 @@ public class RestControllerInvoker {
 
     /**
      * Check method can be called and invoke accordingly.
+     *
      * @param methodResult
      * @param operation
      * @throws RuntimeException
@@ -40,7 +43,7 @@ public class RestControllerInvoker {
 
 
             // check if path items and method args match
-            if(pathItemMap.size() >= 1) {
+            if (pathItemMap.size() >= 1) {
 
                 if (doPathItemsAndMethodArgsMatch(pathItemMap, methodArgs, methodAnnotationTypes)) {
 
@@ -58,7 +61,11 @@ public class RestControllerInvoker {
 
                 } else {
 
-                    operation.getSuccessHandler().accept("sad munkey :(");
+                    operation.getErrorHandler().accept(
+                            getRestError(
+                                    "Supplied method can't be used, the params and path items don't align.",
+                                    "REST Error: Internal Method Issue")
+                    );
                 }
 
             } else {
@@ -81,6 +88,7 @@ public class RestControllerInvoker {
 
     /**
      * Validate path and method arguements align
+     *
      * @param pathItemMap
      * @param methodArgs
      * @param methodAnnotations
@@ -119,7 +127,7 @@ public class RestControllerInvoker {
 
         try {
 
-            if(formulatedMethodArgs!= null) {
+            if (formulatedMethodArgs != null) {
                 operation.getSuccessHandler().accept(
                         method.invoke(controller, formulatedMethodArgs)
                 );
@@ -153,6 +161,56 @@ public class RestControllerInvoker {
                 if (methodResult.getMethodAnnotationTypes().get(paramName).equals(RequestBody.class)) {
                     formulatedMethodArgs[index] = operation.getBody();
                 }
+
+                // check RequestHeader argument.
+                if (methodResult.getMethodAnnotationTypes().get(paramName).equals(RequestHeader.class)) {
+
+                    RequestHeader requestHeader = (RequestHeader) methodResult.getMethodAnnotationValues().get(paramName);
+                    if (requestHeader != null && !requestHeader.value().isEmpty()) {
+                        if (requestHeader.required()) {
+
+                            if (!operation.getHeaders().containsKey(requestHeader.value())) {
+                                error = getRestError(
+                                        "Method requires headers parameters, however no header with key '"
+                                                + requestHeader.value() + "' was found",
+                                        "REST Error: Missing Header Parameters");
+                            } else {
+
+                                formulatedMethodArgs[index] = operation.getHeaders().get(requestHeader.value());
+
+                            }
+
+                        } else {
+
+                            if (!operation.getHeaders().containsKey(paramName)) {
+
+                                formulatedMethodArgs[index] = null;
+
+                            } else {
+
+                                formulatedMethodArgs[index] = operation.getHeaders().get(paramName);
+
+                            }
+                        }
+                    } else {
+
+                        // no value supplied, use param name as key.
+
+                        if (!operation.getHeaders().containsKey(paramName)) {
+
+                            error = getRestError(
+                                    "Method requires headers parameters, however no header with key '"
+                                            + paramName + "' was found",
+                                    "REST Error: Missing Header Parameters");
+
+                        } else {
+
+                            formulatedMethodArgs[index] = operation.getHeaders().get(paramName);
+
+                        }
+                    }
+                }
+
 
                 if (methodResult.getMethodAnnotationTypes().get(paramName).equals(RequestParam.class)) {
 

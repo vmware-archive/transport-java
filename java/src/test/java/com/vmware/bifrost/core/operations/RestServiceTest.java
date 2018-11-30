@@ -1,6 +1,7 @@
 package com.vmware.bifrost.core.operations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
 import com.vmware.bifrost.core.util.URIMethodResult;
@@ -17,6 +18,8 @@ import org.springframework.test.web.client.MockRestServiceServer;
 
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,12 +72,6 @@ public class RestServiceTest {
         this.server.expect(manyTimes(), requestTo(uri))
                 .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
     }
-
-//    @Before
-//    public void setUp() {
-//        RestTemplate restTemplate = new RestTemplate();
-//        this.server  = MockRestServiceServer.createServer(restTemplate);
-//    }
 
     @Test
     public void testGet() throws Exception {
@@ -297,6 +294,68 @@ public class RestServiceTest {
                 (SampleDTO dto) -> {
                     Assert.assertEquals("My Lovely Melody", dto.getName());
                     Assert.assertEquals(99, dto.getValue());
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    public void testLocalURIHeaderExecuted() throws Exception {
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Some-Header","Melody");
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/header-check"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setHeaders(headers);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("headerCheckSingle-Melody", response);
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    public void testLocalURIHeaderMultipleExecuted() throws Exception {
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Some-Header","Happy");
+        headers.put("Another-Header","Baby");
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/header-check-multi"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setHeaders(headers);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("headerCheckMulti-Happy-Baby", response);
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    public void testLocalURIHeaderMultipleNoNameExecuted() throws Exception {
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("someHeader","Pretty");
+        headers.put("anotherHeader","Melody");
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/header-check-multi-noname"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setHeaders(headers);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("headerCheckMultiNoName-Pretty-Melody", response);
                 }
         );
 
