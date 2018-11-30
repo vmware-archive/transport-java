@@ -94,7 +94,7 @@ public class RestControllerInvoker {
      * @param methodAnnotations
      * @return
      */
-    public boolean doPathItemsAndMethodArgsMatch(
+    private boolean doPathItemsAndMethodArgsMatch(
             Map<String, Object> pathItemMap,
             Map<String, Class> methodArgs,
             Map<String, Class> methodAnnotations
