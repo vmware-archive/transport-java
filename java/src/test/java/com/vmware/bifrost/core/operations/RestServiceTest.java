@@ -221,9 +221,8 @@ public class RestServiceTest {
         operation.setUri(new URI("/foo/bar?boz=baz"));
         operation.setMethod(HttpMethod.GET);
         operation.setSuccessHandler(
-                (String response) -> {
-                    Assert.assertEquals("FooBarSimple:/foo/bar?boz=baz", response);
-                }
+                (String response) ->
+                    Assert.assertEquals("FooBarSimple:/foo/bar?boz=baz", response)
         );
 
         URIMethodResult result = restService.locateRestControllerForURIAndMethod(operation);
@@ -239,12 +238,11 @@ public class RestServiceTest {
         operation.setUri(new URI("/foo/someVar/bar/123?someQuery=something&anotherQuery=nothing"));
         operation.setMethod(HttpMethod.GET);
         operation.setSuccessHandler(
-                (String response) -> {
-                    Assert.assertEquals(
-                            "FooBarNormal:/foo/someVar/bar/123?someQuery=something&anotherQuery=nothing",
-                            response
-                    );
-                }
+                (String response) ->
+                        Assert.assertEquals(
+                                "FooBarNormal:/foo/someVar/bar/123?someQuery=something&anotherQuery=nothing",
+                                response
+                        )
         );
 
         URIMethodResult result = restService.locateRestControllerForURIAndMethod(operation);
@@ -254,24 +252,55 @@ public class RestServiceTest {
 
 
     @Test
-    public void testLocalURIExecuted() throws Exception {
+    public void testLocalURIGetExecuted() throws Exception {
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
         operation.setUri(new URI("/foo/milk/bar/cake123?someQuery=happy&anotherQuery=baby"));
         operation.setMethod(HttpMethod.GET);
         operation.setSuccessHandler(
-                (String response) -> {
-                    Assert.assertEquals(
-                            "FooBarNormal:/foo/milk/bar/cake123?someQuery=happy&anotherQuery=baby",
-                            response
-                    );
-                }
+                (String response) ->
+                        Assert.assertEquals(
+                                "FooBarNormal:/foo/milk/bar/cake123?someQuery=happy&anotherQuery=baby",
+                                response
+                        )
+
         );
 
         restService.restServiceRequest(operation);
     }
 
+    @Test
+    public void testLocalURIPostExecuted() throws Exception {
 
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/post-mapping"));
+        operation.setMethod(HttpMethod.POST);
+        operation.setBody("Pretty.Melody");
+        operation.setSuccessHandler(
+                (String response) -> Assert.assertEquals("postMapping-Pretty.Melody", response)
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    public void testLocalURIPostDTOAndQueryExecuted() throws Exception {
+
+        RestOperation<Object, SampleDTO> operation = new RestOperation<>();
+        operation.setApiClass(SampleDTO.class.getName());
+        operation.setUri(new URI("/post-mapping/dto/?value=99"));
+        operation.setMethod(HttpMethod.POST);
+        operation.setBody("My Lovely Melody");
+        operation.setSuccessHandler(
+                (SampleDTO dto) -> {
+                    Assert.assertEquals("My Lovely Melody", dto.getName());
+                    Assert.assertEquals(99, dto.getValue());
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
 
 }

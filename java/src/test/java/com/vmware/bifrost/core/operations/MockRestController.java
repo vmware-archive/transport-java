@@ -80,4 +80,17 @@ public class MockRestController {
         return "putMappingWithParams-" + id;
     }
 
+    @PostMapping(value = "/post-mapping")
+    public String postMapping(String payload) {
+        return "postMapping-" + payload;
+    }
+
+    @PostMapping(value = "/post-mapping/dto")
+    public SampleDTO postMappingWithDTOAndQuery(@RequestParam Integer value, String payload) {
+        SampleDTO dto = new SampleDTO();
+        dto.setName(payload);
+        dto.setValue(value);
+        return dto;
+    }
+
 }
