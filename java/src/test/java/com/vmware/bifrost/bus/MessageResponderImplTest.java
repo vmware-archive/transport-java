@@ -19,7 +19,6 @@ import java.util.function.Function;
 /**
  * Copyright(c) VMware Inc. 2017
  */
-@Ignore
 @SuppressWarnings("unchecked")
 public class MessageResponderImplTest {
 
