@@ -4,6 +4,7 @@
 
 package com.vmware.bifrost.core.operations;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -108,6 +109,18 @@ public class MockRestController {
     public String headerCheckMultiHeaderNoAnnotationValue(@RequestHeader String someHeader,
                                          @RequestHeader String anotherHeader) {
         return "headerCheckMultiNoName-" + someHeader + "-" + anotherHeader;
+    }
+
+    @RequestMapping(value = "/secured/preauth", method = GET)
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public String securedPreAuth() {
+        return "securedPreAuthUser-success";
+    }
+
+    @RequestMapping(value = "/secured-admin/preauth", method = GET)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public String securedPreAuthAdmin() {
+        return "securedPreAuthAdmin-success";
     }
 
 }

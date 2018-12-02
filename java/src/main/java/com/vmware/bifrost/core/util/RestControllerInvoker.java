@@ -6,6 +6,8 @@ package com.vmware.bifrost.core.util;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +20,8 @@ import java.util.Map;
 
 @Component
 public class RestControllerInvoker {
+
+    @Autowired private ApplicationContext context;
 
     RestControllerInvoker() {
 
@@ -124,7 +128,7 @@ public class RestControllerInvoker {
     private void callControllerMethod(URIMethodResult methodResult, RestOperation operation, Object[] formulatedMethodArgs) {
         Method method = methodResult.getMethod();
         Object controller = methodResult.getController();
-
+        Object bean = context.getBean(controller.getClass());
         try {
 
             if (formulatedMethodArgs != null) {
@@ -132,13 +136,17 @@ public class RestControllerInvoker {
                         method.invoke(controller, formulatedMethodArgs)
                 );
             } else {
+                Object resp = method.invoke(bean);
                 operation.getSuccessHandler().accept(
-                        method.invoke(controller)
+                        resp
                 );
             }
 
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (InvocationTargetException e) {
+            System.out.println("Runtime Exception! " + e.getTargetException().getMessage());
             throw new RuntimeException(e);
+        } catch (Exception exp) {
+            System.out.println("FART ERROR");
         }
     }
 

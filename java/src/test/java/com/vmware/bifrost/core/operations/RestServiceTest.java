@@ -11,8 +11,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 
@@ -29,12 +31,16 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 @RunWith(SpringRunner.class)
 @RestClientTest(RestService.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = {
+        SecurityConfiguration.class,
         RestService.class,
         MockRestController.class,
         RestControllerInvoker.class
 })
 public class RestServiceTest {
+
+    @Autowired
+    private ApplicationContext context;
 
     @Autowired
     private RestService restService;
@@ -47,6 +53,8 @@ public class RestServiceTest {
 
     @Autowired
     private RestControllerInvoker invoker;
+
+    @Autowired MockRestController controller;
 
 
     private MockResponseA buildMockResponseA() {
@@ -307,6 +315,33 @@ public class RestServiceTest {
         );
 
         restService.restServiceRequest(operation);
+    }
+
+    @Test
+    @WithMockUser(value = "someuser")
+    public void testSpringSecurityPreAuth() throws Exception {
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/secured/preauth"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("headerCheckMultiNoName-Pretty-Melody", response);
+                }
+        );
+
+        operation.setErrorHandler(
+                (RestError error) -> {
+                    Assert.assertEquals("headerCheckMultiNoName-Pretty-Melody", error.message);
+                }
+        );
+
+        restService.restServiceRequest(operation);
+
+        //Assert.assertEquals("happy", controller.securedPreAuthAdmin());
+
+
     }
 
 }

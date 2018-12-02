@@ -52,6 +52,10 @@ repositories {
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-webflux')
     compile('org.springframework.boot:spring-boot-starter-websocket')
+    compile('org.springframework.security:spring-security-web:5.0.0.RELEASE')
+    compile('org.springframework.security:spring-security-config:5.0.0.RELEASE')
+    compile('org.springframework.security:spring-security-test:5.0.0.RELEASE')
+
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('io.projectreactor:reactor-test')
 

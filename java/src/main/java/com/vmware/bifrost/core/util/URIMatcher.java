@@ -4,6 +4,7 @@
 package com.vmware.bifrost.core.util;
 
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Method;
@@ -80,12 +81,19 @@ public class URIMatcher {
         for (String methodKey : methods.keySet()) {
 
             Method method = methods.get(methodKey);
-            RequestMapping mappingAnnotation = method.getAnnotation(RequestMapping.class);
-            String uriSring = mappingAnnotation.value()[0];
-            RequestMethod annotationMethod = mappingAnnotation.method()[0];
+            RequestMapping annotation = AnnotationUtils.findAnnotation(method, RequestMapping.class);
+            if(annotation != null) {
+                String uriSring = annotation.path()[0];
+                RequestMethod annotationMethod = annotation.method()[0];
 
-            result = checkForControllerMatch(uri, requestMethod, controller, true,
-                    result, method, annotationMethod, uriSring);
+                result = checkForControllerMatch(uri, requestMethod, controller, true,
+                        result, method, annotationMethod, uriSring);
+
+            } else {
+                continue;
+            }
+
+            if(result != null) break;
         }
         return result;
     }

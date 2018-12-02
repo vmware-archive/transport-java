@@ -6,6 +6,7 @@ package com.vmware.bifrost.core.util;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -87,8 +88,13 @@ public class RestControllerReflection {
         List<Method> rawMethods = Arrays.asList(controller.getClass().getDeclaredMethods());
         Map<String, Method> cleanedMethods = new HashMap<>();
 
+        // extract all annotations available on this controller;
+        //Annotation[] controllerAnnotations = controllerClass.getAn
+
+
         for (Method method : rawMethods) {
-            if (method.getAnnotation(annotationType) != null) {
+
+            if (method.getAnnotationsByType(annotationType) != null) {
                 cleanedMethods.put(method.getName(), method);
             }
         }
