@@ -335,8 +335,27 @@ public class RestServiceTest {
         operation.setMethod(HttpMethod.GET);
         operation.setErrorHandler(
                 (RestError e) -> {
+                    Assert.assertEquals("An Authentication object was not found in the SecurityContext", e.message);
+                    Assert.assertEquals(new Integer(500), e.errorCode);
+
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    @WithMockUser(value = "someuser", roles = { "SOME_OTHER_ROLE" })
+    public void testSpringSecurityPreAuthUserWithUnauthenticatedRoles() throws Exception {
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/secured/preauth"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setErrorHandler(
+                (RestError e) -> {
                     Assert.assertEquals("Access is denied", e.message);
-                    Assert.assertEquals(new Integer(404), e.errorCode);
+                    Assert.assertEquals(new Integer(401), e.errorCode);
 
                 }
         );

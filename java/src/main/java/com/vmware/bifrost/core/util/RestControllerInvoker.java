@@ -8,6 +8,7 @@ import com.vmware.bifrost.core.model.RestOperation;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -141,9 +142,17 @@ public class RestControllerInvoker {
             }
 
         } catch (InvocationTargetException e) {
-            operation.getErrorHandler().accept(
-                    this.getRestError(e.getTargetException().getMessage(), 401)
-            );
+            if(e.getTargetException().getClass().equals(AuthenticationCredentialsNotFoundException.class)) {
+                operation.getErrorHandler().accept(
+                        this.getRestError(e.getTargetException().getMessage(), 500)
+                );
+            } else {
+                operation.getErrorHandler().accept(
+                        this.getRestError(e.getTargetException().getMessage(), 401)
+                );
+            }
+
+
         } catch (IllegalAccessException e) {
             operation.getErrorHandler().accept(
                     this.getRestError("Method cannot be called, method param mismatch", 500)
