@@ -40,9 +40,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 public class RestServiceTest {
 
     @Autowired
-    private ApplicationContext context;
-
-    @Autowired
     private RestService restService;
 
     @Autowired
@@ -50,11 +47,6 @@ public class RestServiceTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private RestControllerInvoker invoker;
-
-    @Autowired MockRestController controller;
 
 
     private MockResponseA buildMockResponseA() {
@@ -327,21 +319,29 @@ public class RestServiceTest {
         operation.setMethod(HttpMethod.GET);
         operation.setSuccessHandler(
                 (String response) -> {
-                    Assert.assertEquals("headerCheckMultiNoName-Pretty-Melody", response);
-                }
-        );
-
-        operation.setErrorHandler(
-                (RestError error) -> {
-                    Assert.assertEquals("headerCheckMultiNoName-Pretty-Melody", error.message);
+                    Assert.assertEquals("securedPreAuthUser-success", response);
                 }
         );
 
         restService.restServiceRequest(operation);
+    }
 
-        //Assert.assertEquals("happy", controller.securedPreAuthAdmin());
+    @Test
+    public void testSpringSecurityPreAuthWithoutValidUser() throws Exception {
 
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/secured/preauth"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setErrorHandler(
+                (RestError e) -> {
+                    Assert.assertEquals("Access is denied", e.message);
+                    Assert.assertEquals(new Integer(404), e.errorCode);
 
+                }
+        );
+
+        restService.restServiceRequest(operation);
     }
 
 }
