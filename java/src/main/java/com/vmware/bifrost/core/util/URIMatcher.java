@@ -28,8 +28,6 @@ public class URIMatcher {
     @Autowired
     private RestControllerReflection reflectionUtil;
 
-    @Autowired
-    private ParameterNameDiscoverer parameterNameDiscoverer;
 
     /**
      * Generate a URIMethodResult if a local URI for a specific request method can be located.
@@ -48,9 +46,16 @@ public class URIMatcher {
         for (String key : controllers.keySet()) {
 
             Object controllerBean  = controllers.get(key);
+            Object controller;
 
-            Advised advised = (Advised) controllerBean;
-            Object controller = advised.getTargetSource().getTarget();
+            try {
+                Advised advised = (Advised) controllerBean;
+                controller = advised.getTargetSource().getTarget();
+
+
+            } catch (ClassCastException exp) {
+                controller = controllerBean;
+            }
 
             Map<String, Method> methods;
 
