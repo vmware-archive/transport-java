@@ -1,17 +1,21 @@
+/*
+ * Copyright 2018 VMware, Inc. All rights reserved. -- VMware Confidential
+ */
 package com.vmware.bifrost.bus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import com.vmware.bifrost.bridge.RequestException;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bridge.util.Loggable;
-import com.vmware.bifrost.bus.model.*;
+import com.vmware.bifrost.bus.model.Channel;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
+import com.vmware.bifrost.bus.model.MessageSchema;
+import com.vmware.bifrost.bus.model.MessageType;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
-import io.reactivex.subjects.Subject;
-import io.reactivex.Observable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -22,16 +26,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.vmware.bifrost.bus.model.MonitorChannel.*;
+import static com.vmware.bifrost.bus.model.MonitorChannel.stream;
 
-
-/**
- * Copyright(c) VMware Inc. 2017
- */
-
-@SuppressWarnings("unchecked")
 @Component
-public class MessagebusService extends Loggable {
+@SuppressWarnings("unchecked")
+public class EventBusImpl extends Loggable implements EventBus {
+
+    private EventBusLowApi api;
 
     @Autowired
     private ApplicationContext context;
@@ -44,219 +45,79 @@ public class MessagebusService extends Loggable {
     private Map<String, Channel> channelMap;
     private Channel monitorStream;
     private String monitorChannel;
-    private boolean dumpMonitor;
 
     private JsonSchema schema;
-    private ObjectMapper mapper;
-    private JsonSchemaGenerator schemaGen;
 
-    public MessagebusService() throws Exception {
+    public EventBusImpl() throws Exception {
 
-        this.mapper = new ObjectMapper();
-        this.schemaGen = new JsonSchemaGenerator(mapper);
+        ObjectMapper mapper = new ObjectMapper();
+        JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
         this.schema = schemaGen.generateSchema(MessageSchema.class);
+
         this.channelMap = new HashMap<>();
         this.monitorChannel = stream;
         this.monitorStream = new Channel(this.monitorChannel);
         this.channelMap.put(this.monitorChannel, this.monitorStream);
 
-        this.enableMonitorDump(true);
+        this.api = new EventBusLowApiImpl(this.channelMap, this.schema);
+        this.api.enableMonitorDump(true);
     }
 
-
-    public boolean enableMonitorDump(boolean flag) {
-        this.dumpMonitor = flag;
-        return this.dumpMonitor;
+    @Override
+    public EventBusLowApi getApi() {
+        return api;
     }
 
-    public void init() {
-        this.logBannerMessage("\uD83C\uDF08","Starting Bifröst");
-        Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostService.class);
-        for (Map.Entry<String, Object> entry : peerBeans.entrySet()) {
-            Object value = entry.getValue();
-            if (value instanceof BifrostEnabled) {
-                ((BifrostEnabled) value).initializeSubscriptions();
-            }
-        }
-    }
-
-
-    public Map<String, Channel> getChannelMap() {
-        return this.channelMap;
-    }
-
-    public Subject<Message> getMonitor() {
-        return this.monitorStream.getStreamObject();
-    }
-
-    public boolean isLoggingEnabled() {
-        return this.dumpMonitor;
-    }
-
-    public Channel getChannelObject(String cname, String from) {
-        Channel channel;
-        String symbol = " [+] ";
-
-        if (this.channelMap.containsKey(cname)) {
-            channel = this.channelMap.get(cname);
-        } else {
-            channel = new Channel(cname);
-            this.channelMap.put(cname, channel);
-            symbol = " [+++] ";
-        }
-
-        MonitorObject mo = new MonitorObject(MonitorType.MonitorNewChannel, cname, from, symbol);
-        this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
-        channel.increment();
-        return channel;
-    }
-
-    public Observable<Message> getChannel(String channelName, String from) {
-        return this.getChannelObject(channelName, from)
-                .getStreamObject();
-    }
-
-    public void close(String cname, String from) {
-        if (!this.channelMap.containsKey(cname)) {
-            return;
-        }
-
-        Channel channel = this.channelMap.get(cname);
-        channel.decrement();
-        MonitorObject mo = new MonitorObject(
-                MonitorType.MonitorCloseChannel, cname, from,
-                "close [" + cname.trim() + "] " + channel.getRefCount() + " references remaining");
-
-        this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
-
-        if (channel.getRefCount() == 0) {
-            this.complete(channel, from);
-        }
-    }
-
-    public void complete(Channel channel, String from) {
-
-        MonitorObject mo = new MonitorObject(MonitorType.MonitorCompleteChannel, channel.getName(), from,
-                "completed [" + channel.getName() + "]");
-        this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
-        channel.complete();
-        this.destroy(channel, from);
-
-    }
-
-    public void complete(String channel, String from) {
-        Channel chan = this.getChannelObject(channel, from);
-        this.complete(chan, from);
-    }
-
-    private void destroy(Channel channel, String from) {
-        MonitorObject mo = new MonitorObject(MonitorType.MonitorDestroyChannel, channel.getName(), from);
-        this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
-        this.channelMap.remove(channel.getName());
-    }
-
-    public void send(String channel, MessageObject messageObject, String from) {
-        // TEMPORARY - flag all messages without schema
-        if (messageObject.getSchema() == null) {
-            //this.logger.warn("* No schema in messageObject to " + cname, from);
-        }
-        MonitorObject mo;
-
-        if (!this.channelMap.containsKey(channel)) {
-            mo = new MonitorObject(MonitorType.MonitorDropped, channel, from, messageObject);
-            this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
-            return;
-        }
-
-        MonitorType type = MonitorType.MonitorData;
-        switch (messageObject.getType()) {
-            case MessageTypeError:
-                type = MonitorType.MonitorError;
-        }
-
-        this.logTraceMessage("Sending payload to channel '" + channel + "'", messageObject.getPayload().toString());
-
-        mo = new MonitorObject(type, channel, from, messageObject);
-        this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
-        this.channelMap.get(channel).send(messageObject);
-
-    }
-
-    public void sendRequest(String channel, Object payload, JsonSchema schema) {
+    @Override
+    public void sendRequestMessage(String channel, Object payload, JsonSchema schema) {
 
         MessageObjectHandlerConfig config =
                 new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload, schema);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
-        this.send(config.getSendChannel(), config, this.getName());
+        this.api.send(config.getSendChannel(), config, this.getName());
 
     }
 
-    public void sendRequest(String channel, Object payload) {
-        this.sendRequest(channel, payload, this.schema);
+    @Override
+    public void sendRequestMessage(String channel, Object payload) {
+        this.sendRequestMessage(channel, payload, this.schema);
     }
 
-    public void sendResponse(String channel, Object payload, JsonSchema schema) {
+    @Override
+    public void sendResponseMessage(String channel, Object payload, JsonSchema schema) {
 
         MessageObjectHandlerConfig config =
                 new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload, schema);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
-        this.send(config.getSendChannel(), config, this.getName());
+        this.api.send(config.getSendChannel(), config, this.getName());
     }
 
-    public void sendResponse(String channel, Object payload) {
-        this.sendResponse(channel, payload, this.schema);
+    @Override
+    public void sendResponseMessage(String channel, Object payload) {
+        this.sendResponseMessage(channel, payload, this.schema);
     }
 
-    public void sendError(String channel, Object payload, JsonSchema schema) {
+    @Override
+    public void sendErrorMessage(String channel, Object payload, JsonSchema schema) {
 
         MessageObjectHandlerConfig config =
                 new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload, schema);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
-        this.send(config.getSendChannel(), config, this.getName());
+        this.api.send(config.getSendChannel(), config, this.getName());
     }
 
-    public void sendError(String channel, Object payload) {
-        this.sendError(channel, payload, this.schema);
+    @Override
+    public void sendErrorMessage(String channel, Object payload) {
+        this.sendErrorMessage(channel, payload, this.schema);
     }
 
-
-    public void error(String channel, Error error) {
-        if (!this.channelMap.containsKey(channel)) {
-            return;
-        }
-
-        MonitorObject mo = new MonitorObject(MonitorType.MonitorError, channel, "bus error", error);
-        this.monitorStream.send(new MessageObject(MessageType.MessageTypeError, mo, schema));
-        this.channelMap.get(channel).error(error);
-    }
-
-    public Observable<Message> getRequestChannel(String channel, String from) {
-        return this.getChannel(channel, from)
-                .filter(
-                        (Message message) -> message.isRequest()
-                );
-    }
-
-    public Observable<Message> getResponseChannel(String channel, String from) {
-        return this.getChannel(channel, from)
-                .filter(
-                        (Message message) -> message.isResponse()
-                );
-    }
-
-    public Observable<Message> getErrorChannel(String channel, String from) {
-        return this.getChannel(channel, from)
-                .filter(
-                        (Message message) -> message.isError()
-                );
-    }
-
+    @Override
     public BusTransaction requestOnce(String sendChannel,
                                       Object payload,
                                       String returnChannel,
@@ -266,7 +127,7 @@ public class MessagebusService extends Loggable {
                 returnChannel, null, this.getName(), successHandler, errorHandler);
     }
 
-
+    @Override
     public BusTransaction requestOnce(String sendChannel,
                                       Object payload,
                                       String returnChannel,
@@ -275,6 +136,7 @@ public class MessagebusService extends Loggable {
                 returnChannel, null, this.getName(), successHandler, null);
     }
 
+    @Override
     public BusTransaction requestOnce(String sendChannel,
                                       Object payload,
                                       Consumer<Message> successHandler) {
@@ -282,6 +144,7 @@ public class MessagebusService extends Loggable {
                 sendChannel, null, this.getName(), successHandler, null);
     }
 
+    @Override
     public BusTransaction requestOnce(String sendChannel,
                                       Object payload,
                                       String returnChannel,
@@ -300,13 +163,13 @@ public class MessagebusService extends Loggable {
 
         MessageHandler messageHandler = this.createMessageHandler(config, false);
         Disposable sub = messageHandler.handle(successHandler, errorHandler);
-        this.send(config.getSendChannel(), config, from);
+        this.api.send(config.getSendChannel(), config, from);
 
         BusTransaction transaction = new BusHandlerTransaction(sub, messageHandler);
         return transaction;
     }
 
-
+    @Override
     public BusTransaction requestStream(String sendChannel,
                                         Object payload,
                                         String returnChannel,
@@ -325,12 +188,13 @@ public class MessagebusService extends Loggable {
 
         MessageHandler messageHandler = this.createMessageHandler(config, false);
         Disposable sub = messageHandler.handle(successHandler, errorHandler);
-        this.send(config.getSendChannel(), config, from);
+        this.api.send(config.getSendChannel(), config, from);
 
         BusTransaction transaction = new BusHandlerTransaction(sub, messageHandler);
         return transaction;
     }
 
+    @Override
     public BusTransaction requestStream(String sendChannel,
                                         Object payload,
                                         String returnChannel,
@@ -340,6 +204,7 @@ public class MessagebusService extends Loggable {
                 returnChannel, null, this.getName(), successHandler, errorHandler);
     }
 
+    @Override
     public BusTransaction requestStream(String sendChannel,
                                         Object payload,
                                         String returnChannel,
@@ -348,6 +213,7 @@ public class MessagebusService extends Loggable {
                 returnChannel, null, this.getName(), successHandler, null);
     }
 
+    @Override
     public BusTransaction requestStream(String sendChannel,
                                         Object payload,
                                         Consumer<Message> successHandler) {
@@ -355,21 +221,22 @@ public class MessagebusService extends Loggable {
                 sendChannel, null, this.getName(), successHandler, null);
     }
 
-
-    public BusTransaction listenStream(String channel,
+    @Override
+    public BusTransaction listenRequestStream(String channel,
                                        Consumer<Message> successHandler,
                                        Consumer<Message> errorHandler) {
 
-        return this.listenStream(channel, null, successHandler, errorHandler);
+        return this.listenRequestStream(channel, null, successHandler, errorHandler);
     }
 
-
-    public BusTransaction listenStream(String channel,
+    @Override
+    public BusTransaction listenRequestStream(String channel,
                                        Consumer<Message> successHandler) {
-        return this.listenStream(channel, null, successHandler, null);
+        return this.listenRequestStream(channel, null, successHandler, null);
     }
 
-    public BusTransaction listenStream(String channel,
+    @Override
+    public BusTransaction listenRequestStream(String channel,
                                        JsonSchema schema,
                                        Consumer<Message> successHandler,
                                        Consumer<Message> errorHandler) {
@@ -388,12 +255,14 @@ public class MessagebusService extends Loggable {
         return new BusHandlerTransaction(sub, messageHandler);
     }
 
-    public BusTransaction listenResponseStream(String channel,
+    @Override
+    public BusTransaction listenStream(String channel,
                                        Consumer<Message> successHandler) {
-        return this.listenResponseStream(channel, null, successHandler, null);
+        return this.listenStream(channel, null, successHandler, null);
     }
 
-    public BusTransaction listenResponseStream(String channel,
+    @Override
+    public BusTransaction listenStream(String channel,
                                        JsonSchema schema,
                                        Consumer<Message> successHandler,
                                        Consumer<Message> errorHandler) {
@@ -412,7 +281,7 @@ public class MessagebusService extends Loggable {
         return new BusHandlerTransaction(sub, messageHandler);
     }
 
-
+    @Override
     public BusTransaction respondOnce(String sendChannel,
                                       String returnChannel,
                                       JsonSchema schema,
@@ -430,6 +299,7 @@ public class MessagebusService extends Loggable {
         return transaction;
     }
 
+    @Override
     public BusTransaction respondStream(String sendChannel,
                                         String returnChannel,
                                         JsonSchema schema,
@@ -447,27 +317,46 @@ public class MessagebusService extends Loggable {
         return transaction;
     }
 
-
+    @Override
     public BusTransaction respondOnce(String sendChannel,
                                       String returnChannel,
                                       Function<Message, Object> generateHandler) {
         return this.respondOnce(sendChannel, returnChannel, null, generateHandler);
     }
 
+    @Override
     public BusTransaction respondOnce(String sendChannel,
                                       Function<Message, Object> generateHandler) {
         return this.respondOnce(sendChannel, sendChannel, null, generateHandler);
     }
 
+    @Override
     public BusTransaction respondStream(String sendChannel,
                                         String returnChannel,
                                         Function<Message, Object> generateHandler) {
         return this.respondStream(sendChannel, returnChannel, null, generateHandler);
     }
 
+    @Override
     public BusTransaction respondStream(String sendChannel,
                                         Function<Message, Object> generateHandler) {
         return this.respondStream(sendChannel, sendChannel, null, generateHandler);
+    }
+
+    @Override
+    public void closeChannel(String channel, String from) {
+        this.api.close(channel, from);
+    }
+
+    private  void init() {
+        this.logBannerMessage("\uD83C\uDF08","Starting Bifröst");
+        Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostService.class);
+        for (Map.Entry<String, Object> entry : peerBeans.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof BifrostEnabled) {
+                ((BifrostEnabled) value).initializeSubscriptions();
+            }
+        }
     }
 
     private MessageHandler createMessageHandler(MessageObjectHandlerConfig config, boolean requestStream) {

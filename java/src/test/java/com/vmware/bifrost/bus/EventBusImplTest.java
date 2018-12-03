@@ -1,14 +1,23 @@
+/**
+ * Copyright(c) VMware Inc. 2018
+ */
 package com.vmware.bifrost.bus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import com.vmware.bifrost.bus.model.*;
+import com.vmware.bifrost.bus.model.Channel;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageObject;
+import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
+import com.vmware.bifrost.bus.model.MessageSchema;
+import com.vmware.bifrost.bus.model.MessageType;
+import com.vmware.bifrost.bus.model.MonitorObject;
+import com.vmware.bifrost.bus.model.MonitorType;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subjects.Subject;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import io.reactivex.Observable;
 import org.slf4j.Logger;
@@ -17,14 +26,10 @@ import org.slf4j.LoggerFactory;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.AnyOf.anyOf;
 
-/**
- * Copyright(c) VMware Inc. 2017
- */
-
 @SuppressWarnings("unchecked")
-public class MessagebusServiceTest {
+public class EventBusImplTest {
 
-    private MessagebusService bus;
+    private EventBus bus;
     private Logger logger;
 
     private JsonSchema schema;
@@ -36,7 +41,7 @@ public class MessagebusServiceTest {
 
     @Before
     public void before() throws Exception {
-        this.bus = new MessagebusService();
+        this.bus = new EventBusImpl();
         this.logger = LoggerFactory.getLogger(this.getClass());
 
         this.mapper = new ObjectMapper();
@@ -53,60 +58,58 @@ public class MessagebusServiceTest {
 
     @Test
     public void checkGetters() {
-        Assert.assertNotNull(this.bus.getMonitor());
-        Assert.assertNotNull(this.bus.getChannelMap());
-        Assert.assertEquals(1, this.bus.getChannelMap().size());
-        Assert.assertEquals("#fresh", this.bus.getChannelObject("#fresh", this.getClass().getName()).getName());
-        Assert.assertEquals(this.bus.getChannelMap().size(), 2);
-        Assert.assertNotNull(this.bus.getChannel("cats", this.getClass().getName()));
-        Assert.assertTrue(this.bus.isLoggingEnabled());
-        this.bus.enableMonitorDump(false);
-        Assert.assertFalse(this.bus.isLoggingEnabled());
+        Assert.assertNotNull(this.bus.getApi().getMonitor());
+        Assert.assertNotNull(this.bus.getApi().getChannelMap());
+        Assert.assertEquals(1, this.bus.getApi().getChannelMap().size());
+        Assert.assertEquals("#fresh", this.bus.getApi().getChannelObject("#fresh", this.getClass().getName()).getName());
+        Assert.assertEquals(this.bus.getApi().getChannelMap().size(), 2);
+        Assert.assertNotNull(this.bus.getApi().getChannel("cats", this.getClass().getName()));
+        Assert.assertTrue(this.bus.getApi().isLoggingEnabled());
+        this.bus.getApi().enableMonitorDump(false);
+        Assert.assertFalse(this.bus.getApi().isLoggingEnabled());
 
     }
 
     @Test
     public void checkChannelFilters() {
 
-        Observable<Message> chan = this.bus.getChannel("#local-1", "test");
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-1", "test");
 
         MessageObject test1 = new MessageObject(MessageType.MessageTypeRequest, "cakes");
         MessageObject test2 = new MessageObject(MessageType.MessageTypeResponse, "biscuits");
 
         TestObserver<Message> observer = chan.test();
 
-        this.bus.send("#local-1", test1, "ping");
-        this.bus.send("#local-1", test2, "pong");
+        this.bus.getApi().send("#local-1", test1, "ping");
+        this.bus.getApi().send("#local-1", test2, "pong");
 
         observer.assertSubscribed();
         observer.assertValues(test1, test2);
 
-        chan = this.bus.getRequestChannel("#local-1", "test");
+        chan = this.bus.getApi().getRequestChannel("#local-1", "test");
         observer = chan.test();
 
-        this.bus.send("#local-1", test1, "ping");
-        this.bus.send("#local-1", test2, "pong");
+        this.bus.getApi().send("#local-1", test1, "ping");
+        this.bus.getApi().send("#local-1", test2, "pong");
 
         observer.assertSubscribed();
         observer.assertValues(test1);
 
-        chan = this.bus.getResponseChannel("#local-1", "test");
+        chan = this.bus.getApi().getResponseChannel("#local-1", "test");
         observer = chan.test();
 
-        this.bus.send("#local-1", test1, "ping");
-        this.bus.send("#local-1", test2, "pong");
+        this.bus.getApi().send("#local-1", test1, "ping");
+        this.bus.getApi().send("#local-1", test2, "pong");
 
         observer.assertSubscribed();
         observer.assertValues(test2);
-
-
     }
 
     @Test
     public void checkChannelClosing() {
-        Observable<Message> chan1 = this.bus.getChannel("#local-channel", "test");
-        Observable<Message> chan2 = this.bus.getChannel("#local-channel", "test");
-        Channel chanRaw = this.bus.getChannelObject("#local-channel", "test");
+        Observable<Message> chan1 = this.bus.getApi().getChannel("#local-channel", "test");
+        Observable<Message> chan2 = this.bus.getApi().getChannel("#local-channel", "test");
+        Channel chanRaw = this.bus.getApi().getChannelObject("#local-channel", "test");
 
         TestObserver<Message> observer1 = chan1.test();
         TestObserver<Message> observer2 = chan2.test();
@@ -116,27 +119,26 @@ public class MessagebusServiceTest {
 
         Assert.assertEquals(3, (int) chanRaw.getRefCount());
 
-        this.bus.close("#local-channel", "test");
+        this.bus.closeChannel("#local-channel", "test");
 
         Assert.assertEquals(2, (int) chanRaw.getRefCount());
 
-        this.bus.close("#local-channel", "test");
+        this.bus.closeChannel("#local-channel", "test");
 
         Assert.assertEquals(1, (int) chanRaw.getRefCount());
 
-        this.bus.close("#local-channel", "test");
+        this.bus.closeChannel("#local-channel", "test");
 
         observer1.assertComplete();
         observer2.assertComplete();
 
-        this.bus.close("#no-channel", "test");
-
+        this.bus.closeChannel("#no-channel", "test");
     }
 
     @Test
     public void checkMessagePolymorphism() {
 
-        Observable<Message> chan = this.bus.getChannel("#local-1", "test");
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-1", "test");
 
         MessageObject<String> test1 = new MessageObject<>(MessageType.MessageTypeRequest, "cakes");
         MessageObjectHandlerConfig<String> test2 = new MessageObjectHandlerConfig<>(MessageType.MessageTypeRequest, "biscuits");
@@ -145,8 +147,8 @@ public class MessagebusServiceTest {
         test2.setSingleResponse(true);
 
         TestObserver<Message> observer = chan.test();
-        this.bus.send("#local-1", test1, "somewhere");
-        this.bus.send("#local-1", test2, "out there");
+        this.bus.getApi().send("#local-1", test1, "somewhere");
+        this.bus.getApi().send("#local-1", test2, "out there");
 
         observer.assertSubscribed();
         observer.assertValues(test1, test2);
@@ -165,11 +167,11 @@ public class MessagebusServiceTest {
     }
 
     @Test
-    public void testSendRequest() {
-        Observable<Message> chan = this.bus.getChannel("#local-channel", "test");
+    public void testSendRequestMessage() {
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-channel", "test");
         TestObserver<Message> observer = chan.test();
 
-        this.bus.sendRequest("#local-channel", "puppy!");
+        this.bus.sendRequestMessage("#local-channel", "puppy!");
 
         observer.assertSubscribed();
 
@@ -184,11 +186,11 @@ public class MessagebusServiceTest {
     }
 
     @Test
-    public void testSendResponse() {
-        Observable<Message> chan = this.bus.getChannel("#local-channel", "test");
+    public void testSendResponseMessage() {
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-channel", "test");
         TestObserver<Message> observer = chan.test();
 
-        this.bus.sendResponse("#local-channel", "kitty!");
+        this.bus.sendResponseMessage("#local-channel", "kitty!");
 
         observer.assertSubscribed();
 
@@ -203,11 +205,11 @@ public class MessagebusServiceTest {
     }
 
     @Test
-    public void testSendError() {
-        Observable<Message> chan = this.bus.getChannel("#local-channel", "test");
+    public void testSendErrorMessage() {
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-channel", "test");
         TestObserver<Message> observer = chan.test();
 
-        this.bus.sendError("#local-channel", "chickie!");
+        this.bus.sendErrorMessage("#local-channel", "chickie!");
 
         observer.assertSubscribed();
 
@@ -223,12 +225,12 @@ public class MessagebusServiceTest {
 
     @Test
     public void testErrorBus() {
-        Observable<Message> chan = this.bus.getChannel("#local-error", "test");
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-error", "test");
         TestObserver<Message> observer = chan.test();
 
         Error error = new Error("broke me glasses!");
-        this.bus.error("#local-error", error);
-        this.bus.error("#nochannel-error", error);
+        this.bus.getApi().error("#local-error", error);
+        this.bus.getApi().error("#nochannel-error", error);
 
         observer.assertSubscribed();
         observer.assertError(error);
@@ -241,30 +243,28 @@ public class MessagebusServiceTest {
             Assert.assertFalse(msg.isRequest());
             Assert.assertFalse(msg.isResponse());
             Assert.assertTrue(msg.isError());
-
         }
     }
 
     @Test
     public void testChannelCompletion() {
-        Channel chan = this.bus.getChannelObject("#local-channel", "test");
+        Channel chan = this.bus.getApi().getChannelObject("#local-channel", "test");
         TestObserver<Message> observer = chan.getStreamObject().test();
 
         observer.assertSubscribed();
 
-        this.bus.complete("#local-channel", "test");
+        this.bus.getApi().complete("#local-channel", "test");
         Assert.assertTrue(chan.isClosed());
 
-        this.bus.sendResponse("#local-channel", "kitty!");
-        this.bus.sendResponse("#local-channel", "kitty2 ");
-        this.bus.sendResponse("#local-channel", "kitty3");
+        this.bus.sendResponseMessage("#local-channel", "kitty!");
+        this.bus.sendResponseMessage("#local-channel", "kitty2 ");
+        this.bus.sendResponseMessage("#local-channel", "kitty3");
 
         observer.assertValueCount(0);
 
         Assert.assertTrue(chan.isClosed());
 
-        this.bus.complete("#nonexistent-channel", "test");
-
+        this.bus.getApi().complete("#nonexistent-channel", "test");
     }
 
     @Test
@@ -347,7 +347,7 @@ public class MessagebusServiceTest {
         config.setReturnChannel(chan);
 
         MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
-        TestObserver<Message> observer = this.bus.getErrorChannel(chan, "test").test();
+        TestObserver<Message> observer = this.bus.getApi().getErrorChannel(chan, "test").test();
         observer.assertSubscribed();
         observer.assertValueCount(0);
 
@@ -381,9 +381,9 @@ public class MessagebusServiceTest {
                 }
         );
 
-        this.bus.sendError(chan, "ouch!");
-
+        this.bus.sendErrorMessage(chan, "ouch!");
     }
+
 
     @Test
     public void testRequestResponseStream() {
@@ -399,8 +399,8 @@ public class MessagebusServiceTest {
         String answer = "under the bed";
 
         MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
-        TestObserver<Message> observer = this.bus.getRequestChannel(chan, "test").test();
-        TestObserver<Message> observer2 = this.bus.getResponseChannel(chan, "test").test();
+        TestObserver<Message> observer = this.bus.getApi().getRequestChannel(chan, "test").test();
+        TestObserver<Message> observer2 = this.bus.getApi().getResponseChannel(chan, "test").test();
 
         observer.assertSubscribed();
         observer2.assertSubscribed();
@@ -455,8 +455,8 @@ public class MessagebusServiceTest {
         String answer = "the girl who's hard to get";
 
         MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
-        TestObserver<Message> observer = this.bus.getRequestChannel(chan, "test").test();
-        TestObserver<Message> observer2 = this.bus.getResponseChannel(chanret, "test").test();
+        TestObserver<Message> observer = this.bus.getApi().getRequestChannel(chan, "test").test();
+        TestObserver<Message> observer2 = this.bus.getApi().getResponseChannel(chanret, "test").test();
 
         observer.assertSubscribed();
         observer2.assertSubscribed();
@@ -492,9 +492,7 @@ public class MessagebusServiceTest {
         busTransaction.unsubscribe();
 
         Assert.assertFalse(busTransaction.isSubscribed());
-
     }
-
 
     @Test
     public void testRequestResponseStreamError() {
@@ -511,9 +509,9 @@ public class MessagebusServiceTest {
         String error = "bleh!";
 
         MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
-        TestObserver<Message> observer = this.bus.getRequestChannel(chan, "test").test();
-        TestObserver<Message> observer2 = this.bus.getResponseChannel(chan, "test").test();
-        TestObserver<Message> observer3 = this.bus.getErrorChannel(chan, "test").test();
+        TestObserver<Message> observer = this.bus.getApi().getRequestChannel(chan, "test").test();
+        TestObserver<Message> observer2 = this.bus.getApi().getResponseChannel(chan, "test").test();
+        TestObserver<Message> observer3 = this.bus.getApi().getErrorChannel(chan, "test").test();
 
         observer.assertSubscribed();
         observer2.assertSubscribed();
@@ -546,7 +544,7 @@ public class MessagebusServiceTest {
         busTransaction.tick(question + 3);
         busTransaction.tick(question + 4);
 
-        this.bus.sendError(chan, error);
+        this.bus.sendErrorMessage(chan, error);
 
         observer3.assertValueCount(1);
 
@@ -699,10 +697,10 @@ public class MessagebusServiceTest {
         Assert.assertEquals(this.counter, 1);
 
         // the error stream is still active and can still pick up a single error however.
-        this.bus.sendError(chan, "computer says no");
+        this.bus.sendErrorMessage(chan, "computer says no");
         Assert.assertEquals(this.counter, 2);
 
-        this.bus.sendError(chan, "should be ignored");
+        this.bus.sendErrorMessage(chan, "should be ignored");
         Assert.assertEquals(this.counter, 2);
 
     }
@@ -712,7 +710,7 @@ public class MessagebusServiceTest {
 
         String chan = "#local-simple-error";
 
-        TestObserver<Message> observer = this.bus.getErrorChannel(chan, "test").test();
+        TestObserver<Message> observer = this.bus.getApi().getErrorChannel(chan, "test").test();
         observer.assertSubscribed();
 
         BusTransaction sendTransaction = this.bus.respondOnce(
@@ -727,16 +725,16 @@ public class MessagebusServiceTest {
         );
 
         Assert.assertEquals(this.counter, 0);
-        this.bus.sendError(chan, "computer says no");
+        this.bus.sendErrorMessage(chan, "computer says no");
 
         Assert.assertEquals(observer.valueCount(), 1);
         Assert.assertEquals(this.counter, 0);
-        this.bus.sendError(chan, "computer says no again");
+        this.bus.sendErrorMessage(chan, "computer says no again");
 
         Assert.assertEquals(observer.valueCount(), 2);
         Assert.assertEquals(this.counter, 0);
 
-        this.bus.sendError(chan, "computer says no yet again");
+        this.bus.sendErrorMessage(chan, "computer says no yet again");
         Assert.assertEquals(observer.valueCount(), 3);
 
         sendTransaction.error("should not be ignored");
@@ -750,8 +748,8 @@ public class MessagebusServiceTest {
 
         String chan = "#local-simple";
 
-        TestObserver<Message> observer = this.bus.getRequestChannel(chan, "test").test();
-        TestObserver<Message> observer2 = this.bus.getResponseChannel(chan, "test").test();
+        TestObserver<Message> observer = this.bus.getApi().getRequestChannel(chan, "test").test();
+        TestObserver<Message> observer2 = this.bus.getApi().getResponseChannel(chan, "test").test();
 
         BusTransaction responseTransaction = this.bus.respondStream(
                 chan,
@@ -801,8 +799,8 @@ public class MessagebusServiceTest {
         String chanOut = "#local-simple";
         String chanReturn = "#local-simple-return";
 
-        TestObserver<Message> observer = this.bus.getRequestChannel(chanOut, "test").test();
-        TestObserver<Message> observer2 = this.bus.getResponseChannel(chanReturn, "test").test();
+        TestObserver<Message> observer = this.bus.getApi().getRequestChannel(chanOut, "test").test();
+        TestObserver<Message> observer2 = this.bus.getApi().getResponseChannel(chanReturn, "test").test();
 
         BusTransaction responseTransaction = this.bus.respondStream(
                 chanOut,
@@ -859,8 +857,8 @@ public class MessagebusServiceTest {
         );
 
 
-        TestObserver<Message> observer = this.bus.getErrorChannel(chan, "test").test();
-        TestObserver<Message> observer2 = this.bus.getResponseChannel(chan, "test").test();
+        TestObserver<Message> observer = this.bus.getApi().getErrorChannel(chan, "test").test();
+        TestObserver<Message> observer2 = this.bus.getApi().getResponseChannel(chan, "test").test();
 
         observer.assertSubscribed();
 
@@ -892,7 +890,7 @@ public class MessagebusServiceTest {
         String chan = "#scooby-do";
         String chan2 = "#scrappy-do";
 
-        Subject<Message> monitorStream = bus.getMonitor();
+        Subject<Message> monitorStream = bus.getApi().getMonitor();
         TestObserver<Message> observerMonitor = monitorStream.test();
 
         monitorStream.subscribe(
@@ -939,44 +937,43 @@ public class MessagebusServiceTest {
                 }
         );
 
-        bus.getChannel(chan, this.getClass().getName());
+        bus.getApi().getChannel(chan, this.getClass().getName());
         observerMonitor.assertValueCount(1);
 
-        TestObserver<Message> observerStream = bus.getChannel(chan, "test").test();
+        TestObserver<Message> observerStream = bus.getApi().getChannel(chan, "test").test();
         observerStream.assertValueCount(0);
         observerMonitor.assertValueCount(2);
 
-        bus.sendRequest(chan, "chickie");
+        bus.sendRequestMessage(chan, "chickie");
         observerMonitor.assertValueCount(3);
         observerStream.assertValueCount(1);
 
-        bus.sendResponse(chan, "chickie");
+        bus.sendResponseMessage(chan, "chickie");
         observerMonitor.assertValueCount(4);
         observerStream.assertValueCount(2);
 
-        bus.sendError(chan, "maggie");
+        bus.sendErrorMessage(chan, "maggie");
         observerMonitor.assertValueCount(5);
         observerStream.assertValueCount(3);
 
-        bus.sendResponse("no-chan!", "foxypop");
+        bus.sendResponseMessage("no-chan!", "foxypop");
         observerMonitor.assertValueCount(6);
         observerStream.assertValueCount(3);
 
-        TestObserver<Message> observerStream2 = bus.getChannel(chan, "test").test();
+        TestObserver<Message> observerStream2 = bus.getApi().getChannel(chan, "test").test();
         observerMonitor.assertValueCount(7);
         observerStream2.assertValueCount(0);
 
-        bus.close(chan, "test");
+        bus.closeChannel(chan, "test");
         observerMonitor.assertValueCount(8);
         observerStream.assertValueCount(3);
 
-        TestObserver<Message> observerStream3 = bus.getChannel(chan2, "test").test();
+        TestObserver<Message> observerStream3 = bus.getApi().getChannel(chan2, "test").test();
         observerMonitor.assertValueCount(9);
         observerStream3.assertValueCount(0);
-        bus.complete(chan2, "test");
+        bus.getApi().complete(chan2, "test");
 
 
     }
-
 
 }

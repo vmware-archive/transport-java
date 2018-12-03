@@ -6,7 +6,7 @@ package oldsamples;
 
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
-import com.vmware.bifrost.bus.MessagebusService;
+import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ public class TheGarden implements BifrostEnabled {
     private int numFlowers = 5;
 
     @Autowired
-    MessagebusService bus;
+    EventBus bus;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 

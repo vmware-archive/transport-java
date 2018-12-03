@@ -1,7 +1,7 @@
 package oldsamples;
 
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
-import com.vmware.bifrost.bus.MessagebusService;
+import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +14,10 @@ import java.util.concurrent.Executors;
 import oldsamples.model.Task;
 
 @Component
-//@BifrostService
 public class LongTaskService implements BifrostEnabled {
 
     @Autowired
-    private MessagebusService bus;
+    private EventBus bus;
 
     ExecutorService executorService;
 

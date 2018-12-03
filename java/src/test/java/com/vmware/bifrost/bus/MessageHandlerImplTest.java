@@ -1,8 +1,5 @@
 package com.vmware.bifrost.bus;
 
-import com.vmware.bifrost.bus.MessageHandler;
-import com.vmware.bifrost.bus.MessageHandlerImpl;
-import com.vmware.bifrost.bus.MessagebusService;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
 import io.reactivex.disposables.Disposable;
@@ -23,7 +20,7 @@ import org.slf4j.LoggerFactory;
 public class MessageHandlerImplTest {
 
     Consumer<Message> success, error;
-    MessagebusService bus;
+    EventBus bus;
     MessageObjectHandlerConfig config;
     String testChannelSend = "#local-send";
     String testChannelReceive = "#local-return";
@@ -53,7 +50,7 @@ public class MessageHandlerImplTest {
     public void setUp() throws Exception {
         this.success = this.generateSuccess();
         this.error = this.generateError();
-        this.bus = new MessagebusService();
+        this.bus = new EventBusImpl();
         this.logger = LoggerFactory.getLogger(this.getClass());
         this.successCount = 0;
     }
@@ -69,9 +66,9 @@ public class MessageHandlerImplTest {
         TestObserver<Message> observer = configureHandler(false);
 
 
-        this.bus.sendResponse(this.testChannelSend, "meeseeks");
-        this.bus.sendResponse(this.testChannelSend, "meeseeks 2");
-        this.bus.sendResponse(this.testChannelSend, "meeseeks 3");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks 2");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks 3");
 
         observer.assertValueCount(3);
         Assert.assertEquals(1, this.successCount);
@@ -87,9 +84,9 @@ public class MessageHandlerImplTest {
 
         TestObserver<Message> observer = configureHandler(false);
 
-        this.bus.sendResponse(this.testChannelSend, "meeseeks");
-        this.bus.sendResponse(this.testChannelSend, "meeseeks");
-        this.bus.sendResponse(this.testChannelSend, "meeseeks");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks");
 
 
         observer.assertValueCount(3);
@@ -108,9 +105,9 @@ public class MessageHandlerImplTest {
 
         TestObserver<Message> observer = configureHandler(true);
 
-        this.bus.sendRequest(this.testChannelSend, "meeseeks");
-        this.bus.sendRequest(this.testChannelSend, "meeseeks");
-        this.bus.sendRequest(this.testChannelSend, "meeseeks");
+        this.bus.sendRequestMessage(this.testChannelSend, "meeseeks");
+        this.bus.sendRequestMessage(this.testChannelSend, "meeseeks");
+        this.bus.sendRequestMessage(this.testChannelSend, "meeseeks");
 
 
         observer.assertValueCount(0);
@@ -128,9 +125,9 @@ public class MessageHandlerImplTest {
         this.config.setReturnChannel(this.testChannelSend);
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
 
-        this.bus.sendRequest(this.testChannelSend, "show me the");
+        this.bus.sendRequestMessage(this.testChannelSend, "show me the");
 
         observer.assertValueCount(0);
         Assert.assertEquals(0, this.successCount);
@@ -151,14 +148,14 @@ public class MessageHandlerImplTest {
         this.config.setReturnChannel(this.testChannelSend);
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
-        TestObserver<Message> observer2 = this.bus.getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer2 = this.bus.getApi().getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
 
         handler.handle(null, null);
 
 
-        this.bus.sendResponse(this.testChannelSend, "meeseeks");
-        this.bus.sendError(this.testChannelSend, "meeseeks");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks");
+        this.bus.sendErrorMessage(this.testChannelSend, "meeseeks");
 
         handler.tick("chickie");
         handler.tick("fox");
@@ -183,9 +180,9 @@ public class MessageHandlerImplTest {
         this.config.setReturnChannel(this.testChannelSend);
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
-        TestObserver<Message> observer2 = this.bus.getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
-        TestObserver<Message> observer3 = this.bus.getErrorChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer2 = this.bus.getApi().getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer3 = this.bus.getApi().getErrorChannel(this.testChannelSend, this.getClass().getName()).test();
 
         observer3.assertSubscribed();
         observer3.assertValueCount(0);
@@ -196,7 +193,7 @@ public class MessageHandlerImplTest {
 
         Disposable sub = handler.handle(this.success);
 
-        this.bus.sendResponse(this.testChannelSend, "meeseeks");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks");
         handler.tick("pot");
         handler.tick("kettle");
         handler.tick("black");
@@ -223,11 +220,11 @@ public class MessageHandlerImplTest {
         this.config.setReturnChannel(this.testChannelSend);
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
 
         Disposable sub = handler.handle(null);
 
-        this.bus.sendResponse(this.testChannelSend, "meeseeks");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks");
 
         observer.assertValueCount(1);
 
@@ -249,7 +246,7 @@ public class MessageHandlerImplTest {
         this.config.setReturnChannel(this.testChannelSend);
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer = this.bus.getApi().getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
 
         handler.tick("tickle");
         observer.assertValueCount(0);
@@ -267,20 +264,20 @@ public class MessageHandlerImplTest {
         this.config.setReturnChannel(this.testChannelSend);
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
-        TestObserver<Message> observer2 = this.bus.getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
-        TestObserver<Message> observer3 = this.bus.getErrorChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer2 = this.bus.getApi().getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer3 = this.bus.getApi().getErrorChannel(this.testChannelSend, this.getClass().getName()).test();
 
         handler.handle(this.success, this.error);
 
 
-        this.bus.sendResponse(this.testChannelSend, "meeseeks");
-        this.bus.sendError(this.testChannelSend, "this is heavy dude");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks");
+        this.bus.sendErrorMessage(this.testChannelSend, "this is heavy dude");
 
         handler.tick("gobble");
         handler.tick("wobble");
 
-        this.bus.sendError(this.testChannelSend, "this is heavy dude");
+        this.bus.sendErrorMessage(this.testChannelSend, "this is heavy dude");
 
         observer.assertValueCount(1);
         observer2.assertValueCount(2);
@@ -303,17 +300,17 @@ public class MessageHandlerImplTest {
         this.config.setReturnChannel(this.testChannelSend);
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
 
         handler.handle(this.success, this.error);
 
-        this.bus.sendResponse(this.testChannelSend, "meeseeks");
-        this.bus.sendError(this.testChannelSend, "this is heavy dude");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks");
+        this.bus.sendErrorMessage(this.testChannelSend, "this is heavy dude");
 
         handler.tick("meeseeks");
         handler.tick("meeseeks");
 
-        this.bus.sendError(this.testChannelSend, "this is heavy dude");
+        this.bus.sendErrorMessage(this.testChannelSend, "this is heavy dude");
 
         observer.assertValueCount(1);
 
@@ -334,12 +331,12 @@ public class MessageHandlerImplTest {
         this.config.setReturnChannel(this.testChannelSend);
         MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getErrorChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer = this.bus.getApi().getErrorChannel(this.testChannelSend, this.getClass().getName()).test();
         observer.assertSubscribed();
 
         handler.handle(this.success, this.error);
 
-        this.bus.sendError(this.testChannelSend, "this is heavy dude");
+        this.bus.sendErrorMessage(this.testChannelSend, "this is heavy dude");
 
         observer.assertValueCount(1);
 
@@ -350,7 +347,7 @@ public class MessageHandlerImplTest {
     private TestObserver<Message> configureHandler(boolean requestStream) {
         MessageHandler handler = new MessageHandlerImpl(requestStream, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
 
         observer.assertSubscribed();
 

@@ -15,14 +15,14 @@ import java.util.function.Function;
  */
 public class MessageResponderImpl<T> implements MessageResponder<T> {
     private boolean requestStream;
-    private MessagebusService bus;
+    private EventBus bus;
     private MessageObjectHandlerConfig config;
     private Logger logger;
     private Observable<Message> channel;
     private Disposable sub;
 
     public MessageResponderImpl(
-            boolean requestStream, MessageObjectHandlerConfig config, MessagebusService bus) {
+            boolean requestStream, MessageObjectHandlerConfig config, EventBus bus) {
         this.requestStream = requestStream;
         this.config = config;
         this.bus = bus;
@@ -33,13 +33,13 @@ public class MessageResponderImpl<T> implements MessageResponder<T> {
     private Consumer<Message> createGenerator(Function<Message, T> supplier) {
         return (Message message) -> {
             if (supplier != null) {
-                this.bus.sendResponse(this.config.getReturnChannel(), supplier.apply(message));
+                this.bus.sendResponseMessage(this.config.getReturnChannel(), supplier.apply(message));
             }
         };
     }
 
     public Disposable generate(Function<Message, T> generator) {
-        this.channel = this.bus.getRequestChannel(this.config.getSendChannel(), this.getClass().getName());
+        this.channel = this.bus.getApi().getRequestChannel(this.config.getSendChannel(), this.getClass().getName());
         if (this.config.isSingleResponse()) {
             this.sub = this.channel.take(1).subscribe(this.createGenerator(generator));
         } else {
@@ -51,14 +51,14 @@ public class MessageResponderImpl<T> implements MessageResponder<T> {
     @Override
     public void tick(T payload) {
         if (this.sub != null && !this.sub.isDisposed()) {
-            this.bus.sendResponse(this.config.getReturnChannel(), payload);
+            this.bus.sendResponseMessage(this.config.getReturnChannel(), payload);
         }
     }
 
     @Override
     public void error(T payload) {
         if (this.sub != null && !this.sub.isDisposed()) {
-            this.bus.sendError(this.config.getReturnChannel(), payload);
+            this.bus.sendErrorMessage(this.config.getReturnChannel(), payload);
         }
     }
 

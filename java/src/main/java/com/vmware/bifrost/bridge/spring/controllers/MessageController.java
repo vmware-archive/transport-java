@@ -3,7 +3,7 @@ package com.vmware.bifrost.bridge.spring.controllers;
 import com.vmware.bifrost.bridge.RequestException;
 import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bridge.util.Loggable;
-import com.vmware.bifrost.bus.MessagebusService;
+import com.vmware.bifrost.bus.EventBus;
 import io.reactivex.exceptions.OnErrorNotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -20,14 +20,14 @@ import java.util.UUID;
 public class MessageController extends Loggable {
 
     @Autowired
-    private MessagebusService bus;
+    private EventBus bus;
 
     @MessageMapping("/{topicDestination}")
     public void bridgeMessage(Request request, @DestinationVariable String topicDestination) throws RequestException {
 
         valiateRequest(request);
         this.logTraceMessage("New inbound message received for channel: ", topicDestination);
-        bus.sendRequest(topicDestination, request);
+        bus.sendRequestMessage(topicDestination, request);
     }
 
     @MessageExceptionHandler

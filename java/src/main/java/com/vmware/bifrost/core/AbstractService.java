@@ -10,7 +10,7 @@ import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bridge.util.Loggable;
-import com.vmware.bifrost.bus.MessagebusService;
+import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.interfaces.CustomServiceCode;
 import com.vmware.bifrost.core.interfaces.CustomServiceCodeHandler;
@@ -40,7 +40,7 @@ public abstract class AbstractService extends Loggable
         implements Mockable, BifrostEnabled, ApplicationListener<ContextRefreshedEvent> {
 
     @Autowired
-    MessagebusService bus;
+    EventBus bus;
 
     @Autowired
     private ConfigurableApplicationContext context;
@@ -71,7 +71,7 @@ public abstract class AbstractService extends Loggable
 
     public void initializeSubscriptions() {
 
-        this.serviceTransaction = this.bus.listenStream(this.serviceChannel,
+        this.serviceTransaction = this.bus.listenRequestStream(this.serviceChannel,
                 (Message message) -> {
                     try {
 
@@ -111,11 +111,11 @@ public abstract class AbstractService extends Loggable
                 "\uD83D\uDCE4",
                 "Sending Service Response",
                 response.toString());
-        this.bus.sendResponse(this.serviceChannel, response);
+        this.bus.sendResponseMessage(this.serviceChannel, response);
     }
 
     public void sendError(String message) {
-        this.bus.sendError(this.serviceChannel, message);
+        this.bus.sendErrorMessage(this.serviceChannel, message);
     }
 
 
