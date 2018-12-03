@@ -15,12 +15,12 @@ import org.junit.Test;
  */
 public class BusResponderTransactionTest {
 
-    private MessagebusService bus;
+    private EventBus bus;
     private String sendChannel = "#test-channel-send";
 
     @Before
     public void setUp() throws Exception {
-        this.bus = new MessagebusService();
+        this.bus = new EventBusImpl();
     }
 
     @Test
@@ -53,7 +53,7 @@ public class BusResponderTransactionTest {
     public void tick() throws Exception {
         BusResponderTransaction transaction = this.createTransaction();
         TestObserver<Message> observer =
-                this.bus.getResponseChannel(sendChannel, this.getClass().getName()).test();
+                this.bus.getApi().getResponseChannel(sendChannel, this.getClass().getName()).test();
 
         observer.assertSubscribed();
         observer.assertValueCount(0);
@@ -81,7 +81,7 @@ public class BusResponderTransactionTest {
     public void error() throws Exception {
         BusResponderTransaction transaction = this.createTransaction();
         TestObserver<Message> observer =
-                this.bus.getErrorChannel(sendChannel, this.getClass().getName()).test();
+                this.bus.getApi().getErrorChannel(sendChannel, this.getClass().getName()).test();
 
         observer.assertSubscribed();
         observer.assertValueCount(0);
@@ -118,7 +118,7 @@ public class BusResponderTransactionTest {
     }
 
     private Disposable createSub() {
-        Observable<Message> chan = this.bus.getChannel(sendChannel, this.getClass().getName());
+        Observable<Message> chan = this.bus.getApi().getChannel(sendChannel, this.getClass().getName());
         return chan.subscribe();
     }
 

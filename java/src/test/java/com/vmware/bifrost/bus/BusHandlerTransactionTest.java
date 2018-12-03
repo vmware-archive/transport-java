@@ -17,12 +17,12 @@ import org.junit.Test;
  */
 public class BusHandlerTransactionTest {
 
-    private MessagebusService bus;
+    private EventBus bus;
     private String channel = "#test-local";
 
     @Before
     public void setUp() throws Exception {
-        this.bus = new MessagebusService();
+        this.bus = new EventBusImpl();
     }
 
     @Test
@@ -57,7 +57,7 @@ public class BusHandlerTransactionTest {
     public void tick() throws Exception {
         BusHandlerTransaction transaction = this.createTransaction();
         TestObserver<Message> observer =
-                this.bus.getRequestChannel(channel, this.getClass().getName()).test();
+                this.bus.getApi().getRequestChannel(channel, this.getClass().getName()).test();
 
         observer.assertSubscribed();
         observer.assertValueCount(0);
@@ -85,7 +85,7 @@ public class BusHandlerTransactionTest {
     public void error() throws Exception {
         BusHandlerTransaction transaction = this.createTransaction();
         TestObserver<Message> observer =
-                this.bus.getErrorChannel(channel, this.getClass().getName()).test();
+                this.bus.getApi().getErrorChannel(channel, this.getClass().getName()).test();
 
         observer.assertSubscribed();
         observer.assertValueCount(0);
@@ -115,10 +115,10 @@ public class BusHandlerTransactionTest {
                 new BusHandlerTransaction<>(this.createSub(), this.createHandler());
 
         TestObserver<Message> observerRequest =
-                this.bus.getRequestChannel(channel, this.getClass().getName()).test();
+                this.bus.getApi().getRequestChannel(channel, this.getClass().getName()).test();
 
         TestObserver<Message> observerResponse =
-                this.bus.getResponseChannel(channel, this.getClass().getName()).test();
+                this.bus.getApi().getResponseChannel(channel, this.getClass().getName()).test();
 
         observerRequest.assertSubscribed();
         observerRequest.assertValueCount(0);
@@ -165,10 +165,10 @@ public class BusHandlerTransactionTest {
                 new BusHandlerTransaction<>(this.createSub(), this.createHandler());
 
         TestObserver<Message> observerRequest =
-                this.bus.getRequestChannel(channel, this.getClass().getName()).test();
+                this.bus.getApi().getRequestChannel(channel, this.getClass().getName()).test();
 
         TestObserver<Message> observerResponse =
-                this.bus.getResponseChannel(channel, this.getClass().getName()).test();
+                this.bus.getApi().getResponseChannel(channel, this.getClass().getName()).test();
 
         observerRequest.assertSubscribed();
         observerRequest.assertValueCount(0);
@@ -182,7 +182,7 @@ public class BusHandlerTransactionTest {
                 (String val) -> Assert.assertEquals("chick chick", val)
         );
 
-        bus.sendResponse(channel, "chick chick");
+        bus.sendResponseMessage(channel, "chick chick");
         observerRequest.assertValueCount(0);
         observerResponse.assertValueCount(1);
         Assert.assertFalse(sub.isDisposed());
@@ -200,7 +200,7 @@ public class BusHandlerTransactionTest {
                 (String val) -> Assert.assertEquals("kitty too", val)
         );
 
-        bus.sendResponse(channel, "kitty too");
+        bus.sendResponseMessage(channel, "kitty too");
         observerRequest.assertValueCount(0);
         observerResponse.assertValueCount(2);
         Assert.assertFalse(sub.isDisposed());
@@ -215,13 +215,13 @@ public class BusHandlerTransactionTest {
                 new BusHandlerTransaction<>(this.createSub(), this.createHandler());
 
         TestObserver<Message> observerRequest =
-                this.bus.getRequestChannel(channel, this.getClass().getName()).test();
+                this.bus.getApi().getRequestChannel(channel, this.getClass().getName()).test();
 
         TestObserver<Message> observerResponse =
-                this.bus.getResponseChannel(channel, this.getClass().getName()).test();
+                this.bus.getApi().getResponseChannel(channel, this.getClass().getName()).test();
 
         TestObserver<Message> observerError =
-                this.bus.getErrorChannel(channel, this.getClass().getName()).test();
+                this.bus.getApi().getErrorChannel(channel, this.getClass().getName()).test();
 
         observerRequest.assertSubscribed();
         observerRequest.assertValueCount(0);
@@ -258,7 +258,7 @@ public class BusHandlerTransactionTest {
                 new BusHandlerTransaction<>(this.createSub(), this.createHandler());
 
         TestObserver<Message> observerAll =
-                this.bus.getChannel(channel, this.getClass().getName()).test();
+                this.bus.getApi().getChannel(channel, this.getClass().getName()).test();
 
 
         observerAll.assertSubscribed();
@@ -275,7 +275,7 @@ public class BusHandlerTransactionTest {
         Assert.assertFalse(sub.isDisposed());
 
 
-        bus.sendResponse(channel, "bork bork pups");
+        bus.sendResponseMessage(channel, "bork bork pups");
         observerAll.assertValueCount(2);
         Assert.assertFalse(sub.isDisposed());
 
@@ -321,7 +321,7 @@ public class BusHandlerTransactionTest {
     }
 
     private Disposable createSub() {
-        Observable<Message> chan = this.bus.getChannel(channel, this.getClass().getName());
+        Observable<Message> chan = this.bus.getApi().getChannel(channel, this.getClass().getName());
         return chan.subscribe();
     }
 

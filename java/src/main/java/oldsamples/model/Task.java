@@ -1,6 +1,6 @@
 package oldsamples.model;
 
-import com.vmware.bifrost.bus.MessagebusService;
+import com.vmware.bifrost.bus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,9 +13,9 @@ public class Task implements Runnable {
     private String channel;
 
     private int completedState = 0;
-    MessagebusService bus;
+    EventBus bus;
 
-    public Task(int id, MessagebusService bus, int sleep, String channel) {
+    public Task(int id, EventBus bus, int sleep, String channel) {
         this.taskId = id;
         this.bus = bus;
         this.sleep = sleep;
@@ -55,11 +55,11 @@ public class Task implements Runnable {
                 Thread.sleep(this.sleep);
                 this.completedState++;
                 this.updateLabels();
-                bus.sendResponse(this.channel, this);
+                bus.sendResponseMessage(this.channel, this);
 
             }
             this.taskStatus = TaskStatus.Finished;
-            bus.sendResponse(this.channel, this);
+            bus.sendResponseMessage(this.channel, this);
 
         } catch (InterruptedException exp) {
 

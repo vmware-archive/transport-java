@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 public class MessageHandlerImpl<T> implements MessageHandler<T> {
 
     private boolean requestStream;
-    private MessagebusService bus;
+    private EventBus bus;
     private MessageObjectHandlerConfig config;
     private Logger logger;
     private Observable<Message> channel;
@@ -26,7 +26,7 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
     private Disposable errorSub;
 
     public MessageHandlerImpl(
-            boolean requestStream, MessageObjectHandlerConfig config, MessagebusService bus) {
+            boolean requestStream, MessageObjectHandlerConfig config, EventBus bus) {
         this.requestStream = requestStream;
         this.config = config;
         this.bus = bus;
@@ -50,11 +50,11 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
     @Override
     public Disposable handle(Consumer<Message> successHandler, Consumer<Message> errorHandler) {
         if (this.requestStream) {
-            this.channel = this.bus.getRequestChannel(this.config.getReturnChannel(), this.getClass().getName());
+            this.channel = this.bus.getApi().getRequestChannel(this.config.getReturnChannel(), this.getClass().getName());
         } else {
-            this.channel = this.bus.getResponseChannel(this.config.getReturnChannel(), this.getClass().getName());
+            this.channel = this.bus.getApi().getResponseChannel(this.config.getReturnChannel(), this.getClass().getName());
         }
-        this.errors = this.bus.getErrorChannel(this.config.getReturnChannel(), this.getClass().getName());
+        this.errors = this.bus.getApi().getErrorChannel(this.config.getReturnChannel(), this.getClass().getName());
         if (this.config.isSingleResponse()) {
             this.sub = this.channel.take(1).subscribe(this.createHandler(successHandler));
             this.errorSub = this.errors.take(1).subscribe(this.createHandler(errorHandler));
@@ -68,14 +68,14 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
     @Override
     public void tick(T payload) {
         if (this.sub != null && !this.sub.isDisposed()) {
-            this.bus.sendRequest(this.config.getSendChannel(), payload);
+            this.bus.sendRequestMessage(this.config.getSendChannel(), payload);
         }
     }
 
     @Override
     public void error(T payload) {
         if (this.sub != null && !this.sub.isDisposed()) {
-            this.bus.sendError(this.config.getSendChannel(), payload);
+            this.bus.sendErrorMessage(this.config.getSendChannel(), payload);
         }
     }
 
@@ -96,23 +96,23 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
 
     @Override
     public Observable<T> getObservable(MessageType type) {
-        Observable<Message> obs = this.bus.getChannel(this.config.getReturnChannel(), this.getClass().getName());
+        Observable<Message> obs = this.bus.getApi().getChannel(this.config.getReturnChannel(), this.getClass().getName());
 
         if(type.equals(MessageType.MessageTypeRequest))
-           obs = this.bus.getRequestChannel(this.config.getReturnChannel(), this.getClass().getName());
+           obs = this.bus.getApi().getRequestChannel(this.config.getReturnChannel(), this.getClass().getName());
 
         if(type.equals(MessageType.MessageTypeError))
-            obs = this.bus.getErrorChannel(this.config.getReturnChannel(), this.getClass().getName());
+            obs = this.bus.getApi().getErrorChannel(this.config.getReturnChannel(), this.getClass().getName());
 
         if(type.equals(MessageType.MessageTypeResponse))
-            obs = this.bus.getResponseChannel(this.config.getReturnChannel(), this.getClass().getName());
+            obs = this.bus.getApi().getResponseChannel(this.config.getReturnChannel(), this.getClass().getName());
 
         return this.generateObservableFromPayload(obs);
     }
 
     @Override
     public Observable<T> getObservable() {
-        final Observable<Message> obs = this.bus.getChannel(this.config.getReturnChannel(), this.getClass().getName());
+        final Observable<Message> obs = this.bus.getApi().getChannel(this.config.getReturnChannel(), this.getClass().getName());
         return this.generateObservableFromPayload(obs);
     }
 

@@ -1,15 +1,11 @@
 package com.vmware.bifrost.bus;
 
-import com.vmware.bifrost.bus.MessageResponder;
-import com.vmware.bifrost.bus.MessageResponderImpl;
-import com.vmware.bifrost.bus.MessagebusService;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.observers.TestObserver;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +15,9 @@ import java.util.function.Function;
 /**
  * Copyright(c) VMware Inc. 2017
  */
-@SuppressWarnings("unchecked")
 public class MessageResponderImplTest {
 
-    MessagebusService bus;
+    EventBus bus;
     MessageObjectHandlerConfig config;
     String testChannelSend = "#local-send";
     String testChannelReceive = "#local-return";
@@ -56,7 +51,7 @@ public class MessageResponderImplTest {
     @Before
     public void setUp() throws Exception {
         this.generate = this.generateResponse();
-        this.bus = new MessagebusService();
+        this.bus = new EventBusImpl();
         this.logger = LoggerFactory.getLogger(this.getClass());
     }
 
@@ -67,11 +62,11 @@ public class MessageResponderImplTest {
 
         MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
         observer.assertSubscribed();
 
-        this.bus.sendRequest(this.testChannelSend, "show me the");
+        this.bus.sendRequestMessage(this.testChannelSend, "show me the");
 
         observer.assertValueCount(0);
         Assert.assertEquals(0, this.responseCount);
@@ -89,13 +84,13 @@ public class MessageResponderImplTest {
 
         MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
         observer.assertSubscribed();
 
         handler.generate(this.generateResponse());
 
-        this.bus.sendRequest(this.testChannelSend, "show me the");
+        this.bus.sendRequestMessage(this.testChannelSend, "show me the");
 
         observer.assertValueCount(1);
         Assert.assertEquals(1, this.responseCount);
@@ -114,13 +109,13 @@ public class MessageResponderImplTest {
 
         MessageResponder<String> handler = new MessageResponderImpl(true, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
         observer.assertSubscribed();
 
         Disposable sub = handler.generate(this.generateResponse());
 
-        this.bus.sendRequest(this.testChannelSend, "show me the");
+        this.bus.sendRequestMessage(this.testChannelSend, "show me the");
         handler.tick("money");
         handler.tick("money");
         handler.tick("money");
@@ -151,13 +146,13 @@ public class MessageResponderImplTest {
 
         MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
         observer.assertSubscribed();
 
         handler.generate(null);
 
-        this.bus.sendRequest(this.testChannelSend, "show me the");
+        this.bus.sendRequestMessage(this.testChannelSend, "show me the");
 
         observer.assertValueCount(0);
         Assert.assertEquals(0, this.responseCount);
@@ -172,13 +167,13 @@ public class MessageResponderImplTest {
 
         MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
         observer.assertSubscribed();
 
         handler.generate(null);
 
-        this.bus.sendError(this.testChannelSend, "show me the");
+        this.bus.sendErrorMessage(this.testChannelSend, "show me the");
 
         observer.assertValueCount(0);
         Assert.assertEquals(0, this.responseCount);
@@ -192,16 +187,16 @@ public class MessageResponderImplTest {
 
         MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
 
-        TestObserver<Message> observer2 = this.bus.getErrorChannel(
+        TestObserver<Message> observer2 = this.bus.getApi().getErrorChannel(
                 this.testChannelSend, this.getClass().getName()).test();
         observer.assertSubscribed();
 
         handler.generate(this.generateErrorResponse());
 
-        this.bus.sendError(this.testChannelSend, "show me the");
+        this.bus.sendErrorMessage(this.testChannelSend, "show me the");
 
         observer.assertValueCount(0);
         observer2.assertValueCount(1);
@@ -221,13 +216,13 @@ public class MessageResponderImplTest {
 
         MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
         observer.assertSubscribed();
 
         Disposable sub = handler.generate(this.generateResponse());
 
-        this.bus.sendRequest(this.testChannelSend, "show me the");
+        this.bus.sendRequestMessage(this.testChannelSend, "show me the");
         handler.tick("show me the");
         handler.tick("show me the");
 
@@ -253,10 +248,10 @@ public class MessageResponderImplTest {
 
         MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
 
-        TestObserver<Message> observer2 = this.bus.getErrorChannel(
+        TestObserver<Message> observer2 = this.bus.getApi().getErrorChannel(
                 this.testChannelSend, this.getClass().getName()).test();
 
         observer.assertSubscribed();
@@ -265,7 +260,7 @@ public class MessageResponderImplTest {
         handler.error("oh dear");
         handler.error("oh dear");
 
-        this.bus.sendRequest(this.testChannelSend, "show me the");
+        this.bus.sendRequestMessage(this.testChannelSend, "show me the");
         handler.tick("show me the");
         handler.tick("show me the");
 
@@ -291,10 +286,10 @@ public class MessageResponderImplTest {
 
         MessageResponder<String> responder = new MessageResponderImpl(false, this.config, this.bus);
 
-        TestObserver<Message> observer = this.bus.getResponseChannel(
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
 
-        TestObserver<Message> observer2 = this.bus.getErrorChannel(
+        TestObserver<Message> observer2 = this.bus.getApi().getErrorChannel(
                 this.testChannelSend, this.getClass().getName()).test();
 
         observer.assertSubscribed();
@@ -302,7 +297,7 @@ public class MessageResponderImplTest {
 
         Disposable sub = responder.generate(this.generateResponse());
 
-        this.bus.sendRequest(this.testChannelSend, "show me the");
+        this.bus.sendRequestMessage(this.testChannelSend, "show me the");
         responder.tick("show me the");
         responder.tick("show me the");
 

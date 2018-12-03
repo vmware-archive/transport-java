@@ -2,7 +2,7 @@ package com.vmware.bifrost.bridge.spring.services;
 
 import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.BusTransaction;
-import com.vmware.bifrost.bus.MessagebusService;
+import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ import java.util.*;
 public class BifrostSubscriptionService extends Loggable {
 
     @Autowired
-    private MessagebusService bus;
+    private EventBus bus;
 
     @Autowired
     private SimpMessagingTemplate msgTmpl;
@@ -47,7 +47,7 @@ public class BifrostSubscriptionService extends Loggable {
             logger.info("[+] Bifröst Bus: creating channel subscription to '" + channelName + "' subId: (" + subId + ")");
 
 
-            BusTransaction transaction = bus.listenResponseStream(channelName,
+            BusTransaction transaction = bus.listenStream(channelName,
                     (Message msg) -> {
                         this.logDebugMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
                         msgTmpl.convertAndSend(destinationPrefix + channelName, msg.getPayload());
@@ -104,13 +104,13 @@ public class BifrostSubscriptionService extends Loggable {
             for (String chan : chans) {
 
                 // close subscription.
-                bus.close(chan, this.getClass().getName());
+                bus.closeChannel(chan, this.getClass().getName());
                 openChannels.remove(chan);
 
                 Collection<BifrostSubscription> subs = openSubscriptions.values();
                 List<String> removeSubs = new ArrayList<>();
                 for (BifrostSubscription sub : subs) {
-                    if (sub.sessionId == sessionId) {
+                    if (sub.sessionId.equals(sessionId)) {
                         sub.transaction.unsubscribe();
                         removeSubs.add(sub.subId);
                     }
