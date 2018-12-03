@@ -13,10 +13,13 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.lang.reflect.Parameter;
 import java.net.URI;
 import java.util.UUID;
 
@@ -25,7 +28,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {
         MockRestController.class,
-        RestControllerInvoker.class
+        RestControllerInvoker.class,
+        RestControllerReflection.class,
+        DefaultParameterNameDiscoverer.class,
+        URIMatcher.class
 
 })
 public class RestControllerInvokerTest {
@@ -33,15 +39,16 @@ public class RestControllerInvokerTest {
     @Autowired
     private RestControllerInvoker invoker;
 
+
     @Autowired
-    private ConfigurableApplicationContext context;
+    private URIMatcher uriMatcher;
 
     @Test
     public void testInvokeMethodSimplest() throws Exception {
 
         URI uri = new URI("/foo");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -61,7 +68,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/foo/melody?boz=isAPrettyBaby");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -81,7 +88,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/foo/someValue/bar/123?someQuery=hello&anotherQuery=goodbye");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -101,7 +108,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/foo/someValue/bar/123?anotherQuery=goodbye");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -110,7 +117,7 @@ public class RestControllerInvokerTest {
         operation.setErrorHandler(
                 (RestError error) -> {
                     assertThat(error.message).isEqualTo("Method requires request param 'someQuery', This maps to method argument 'bozQuery', but wasn't supplied with URI properties.");
-                    assertThat(error.status).isEqualTo("REST Error: Invalid Request Parameters");
+                    assertThat(error.errorCode).isEqualTo(500);
                 }
         );
 
@@ -122,7 +129,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/foo/someValue/bar/123");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -131,7 +138,7 @@ public class RestControllerInvokerTest {
         operation.setErrorHandler(
                 (RestError error) -> {
                     assertThat(error.message).isEqualTo("Method requires request parameters, however none have been supplied.");
-                    assertThat(error.status).isEqualTo("REST Error: Missing Request Parameters");
+                    assertThat(error.errorCode).isEqualTo(500);
                 }
         );
 
@@ -143,7 +150,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/multi");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -164,7 +171,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/multi");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.POST);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.POST);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -186,7 +193,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/multi?query=naughtyPuppy");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.PATCH);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.PATCH);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -208,7 +215,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/multi");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.PATCH);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.PATCH);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -231,7 +238,7 @@ public class RestControllerInvokerTest {
 
         URI uri = new URI("/patch-mapping/630360ba-fb59-4571-b08d-2d5f219691de");
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.PATCH);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.PATCH);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -260,7 +267,7 @@ public class RestControllerInvokerTest {
         UUID randId = UUID.randomUUID();
         URI uri = new URI("/get-mapping/" + randId.toString());
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.GET);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.GET);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -282,7 +289,7 @@ public class RestControllerInvokerTest {
         UUID randId = UUID.randomUUID();
         URI uri = new URI("/delete-mapping/" + randId.toString());
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.DELETE);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.DELETE);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -304,7 +311,7 @@ public class RestControllerInvokerTest {
         UUID randId = UUID.randomUUID();
         URI uri = new URI("/put-mapping/" + randId.toString());
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, uri, RequestMethod.PUT);
+        URIMethodResult result = uriMatcher.findControllerMatch(uri, RequestMethod.PUT);
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -319,6 +326,7 @@ public class RestControllerInvokerTest {
 
         invoker.invokeMethod(result, operation);
     }
+
 
 
 }

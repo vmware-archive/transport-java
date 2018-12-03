@@ -11,10 +11,8 @@ import com.vmware.bifrost.core.util.URIMethodResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.HttpClientErrorException;
@@ -37,19 +35,13 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class RestService extends Loggable {
 
-    private final RestTemplate restTemplate;
-
 
     @Autowired
-    private ConfigurableApplicationContext context;
+    private URIMatcher uriMatcher;
 
     @Autowired
     private RestControllerInvoker controllerInvoker;
 
-    @Autowired
-    public RestService(RestTemplateBuilder restTemplateBuilder) {
-        this.restTemplate = restTemplateBuilder.build();
-    }
 
     /**
      * If calling the service via DI, then make the requested Rest Request locally via controller, or externally
@@ -59,7 +51,10 @@ public class RestService extends Loggable {
      * @param <Req> request body type
      * @param <Resp> return body type
      */
-    public <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) {
+    public <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) throws Exception {
+
+
+
 
         // check if the URI is local to the system
         URIMethodResult methodResult = locateRestControllerForURIAndMethod(operation);
@@ -70,16 +65,20 @@ public class RestService extends Loggable {
 
 
         HttpEntity<Req> entity = null;
-        HttpHeaders headers = null;
+        HttpHeaders headers = new HttpHeaders();
+
+        // fix patch issue.
+        MediaType mediaType = new MediaType("application", "merge-patch+json");
 
         // check if headers are set.
         if (operation != null && operation.getHeaders() != null) {
-            headers = new HttpHeaders();
+
 
             for (String key : operation.getHeaders().keySet()) {
                 headers.add(key, operation.getHeaders().get(key));
             }
         }
+        headers.setContentType(mediaType);
 
         try {
             if (headers != null) {
@@ -93,12 +92,17 @@ public class RestService extends Loggable {
             }
         }
 
+        // required because PATCH causes a freakout.
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        RestTemplate restTemplate = new RestTemplate(requestFactory);
+
+
         try {
             ResponseEntity resp;
             switch (operation.getMethod()) {
                 case GET:
                     operation.getSuccessHandler().accept(
-                            (Resp)this.restTemplate.getForObject(
+                            (Resp)restTemplate.getForObject(
                                     operation.getUri(),
                                     Class.forName(operation.getApiClass()
                                     )
@@ -107,7 +111,7 @@ public class RestService extends Loggable {
                     break;
 
                 case POST:
-                    resp = this.restTemplate.exchange(
+                    resp = restTemplate.exchange(
                             operation.getUri(),
                             HttpMethod.POST,
                             entity,
@@ -117,7 +121,7 @@ public class RestService extends Loggable {
                     break;
 
                 case PUT:
-                    resp = this.restTemplate.exchange(
+                    resp = restTemplate.exchange(
                             operation.getUri(),
                             HttpMethod.PUT,
                             entity,
@@ -127,7 +131,7 @@ public class RestService extends Loggable {
                     break;
 
                 case PATCH:
-                    resp = this.restTemplate.exchange(
+                    resp = restTemplate.exchange(
                             operation.getUri(),
                             HttpMethod.PATCH,
                             entity,
@@ -137,7 +141,7 @@ public class RestService extends Loggable {
                     break;
 
                 case DELETE:
-                    resp = this.restTemplate.exchange(
+                    resp = restTemplate.exchange(
                             operation.getUri(),
                             HttpMethod.DELETE,
                             entity,
@@ -167,10 +171,9 @@ public class RestService extends Loggable {
 
     }
 
-    private URIMethodResult locateRestControllerForURIAndMethod(RestOperation operation) {
+    private URIMethodResult locateRestControllerForURIAndMethod(RestOperation operation) throws Exception {
 
-        URIMethodResult result = URIMatcher.findControllerMatch(
-                context,
+        URIMethodResult result = uriMatcher.findControllerMatch(
                 operation.getUri(),
                 RequestMethod.valueOf(operation.getMethod().toString())
         );

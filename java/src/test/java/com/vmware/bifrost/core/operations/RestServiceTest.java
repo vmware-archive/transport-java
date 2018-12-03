@@ -1,22 +1,28 @@
 package com.vmware.bifrost.core.operations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
-import com.vmware.bifrost.core.util.URIMethodResult;
+import com.vmware.bifrost.core.util.RestControllerReflection;
+import com.vmware.bifrost.core.util.URIMatcher;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
+import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestTemplate;
 
 
 import java.net.URI;
@@ -24,7 +30,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.test.web.client.ExpectedCount.manyTimes;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -35,15 +44,19 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
         SecurityConfiguration.class,
         RestService.class,
         MockRestController.class,
-        RestControllerInvoker.class
+        RestControllerInvoker.class,
+        DefaultParameterNameDiscoverer.class,
+        RestControllerReflection.class,
+        URIMatcher.class,
+        RestTemplate.class
 })
 public class RestServiceTest {
 
     @Autowired
     private RestService restService;
 
-    @Autowired
-    private MockRestServiceServer server;
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().port(9999));
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -63,27 +76,23 @@ public class RestServiceTest {
         return mockResponseB;
     }
 
-    private String mapResponseToSting(Object object) throws Exception {
+    private String mapResponseToString(Object object) throws Exception {
         return objectMapper.writeValueAsString(object);
-    }
-
-
-    private void configureMockRestServer(String uri, String response) {
-        this.server.expect(manyTimes(), requestTo(uri))
-                .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
     }
 
     @Test
     public void testGet() throws Exception {
 
-        configureMockRestServer(
-                "/user/1",
-                mapResponseToSting(buildMockResponseA())
-        );
+        stubFor(get(urlEqualTo("/get-user"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody(mapResponseToString(buildMockResponseA()))));
+
 
         RestOperation<Object, MockResponseA> operation = new RestOperation<>();
         operation.setApiClass(MockResponseA.class.getName());
-        operation.setUri(new URI("/user/1"));
+        operation.setUri(new URI("http://localhost:9999/get-user"));
         operation.setMethod(HttpMethod.GET);
         operation.setSuccessHandler(
                 (MockResponseA response) -> {
@@ -101,15 +110,17 @@ public class RestServiceTest {
 
         MockResponseB mock = buildMockResponseB();
 
-        configureMockRestServer(
-                "/user",
-                mapResponseToSting(mock)
-        );
+        stubFor(post(urlEqualTo("/post-update"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody(mapResponseToString(mock))));
 
         RestOperation<Object, MockResponseB> operation = new RestOperation<>();
         operation.setApiClass(MockResponseB.class.getName());
-        operation.setUri(new URI("/user"));
+        operation.setUri(new URI("http://localhost:9999/post-update"));
         operation.setMethod(HttpMethod.POST);
+        operation.setBody("anything");
         operation.setSuccessHandler(
                 (MockResponseB response) -> {
                     assertThat(response.getId()).isEqualTo(mock.getId());
@@ -126,15 +137,17 @@ public class RestServiceTest {
 
         MockResponseB mock = buildMockResponseB();
 
-        configureMockRestServer(
-                "/user",
-                mapResponseToSting(mock)
-        );
+        stubFor(patch(urlEqualTo("/user-patch"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody(mapResponseToString(mock))));
 
         RestOperation<Object, MockResponseB> operation = new RestOperation<>();
         operation.setApiClass(MockResponseB.class.getName());
-        operation.setUri(new URI("/user"));
+        operation.setUri(new URI("http://localhost:9999/user-patch"));
         operation.setMethod(HttpMethod.PATCH);
+        operation.setBody("anything");
         operation.setSuccessHandler(
                 (MockResponseB response) -> {
                     assertThat(response.getId()).isEqualTo(mock.getId());
@@ -150,16 +163,17 @@ public class RestServiceTest {
     public void testPut() throws Exception {
 
         MockResponseB mock = buildMockResponseB();
-
-        configureMockRestServer(
-                "/user",
-                mapResponseToSting(mock)
-        );
+        stubFor(put(urlEqualTo("/user-put"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody(mapResponseToString(mock))));
 
         RestOperation<Object, MockResponseB> operation = new RestOperation<>();
         operation.setApiClass(MockResponseB.class.getName());
-        operation.setUri(new URI("/user"));
+        operation.setUri(new URI("http://localhost:9999/user-put"));
         operation.setMethod(HttpMethod.PUT);
+        operation.setBody("anything");
         operation.setSuccessHandler(
                 (MockResponseB response) -> {
                     assertThat(response.getId()).isEqualTo(mock.getId());
@@ -174,14 +188,15 @@ public class RestServiceTest {
     @Test
     public void testDelete() throws Exception {
 
-        configureMockRestServer(
-                "/user",
-                mapResponseToSting(buildMockResponseA())
-        );
+        stubFor(delete(urlEqualTo("/user-delete"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody(mapResponseToString(buildMockResponseA()))));
 
         RestOperation<Object, MockResponseA> operation = new RestOperation<>();
         operation.setApiClass(MockResponseA.class.getName());
-        operation.setUri(new URI("/user"));
+        operation.setUri(new URI("http://localhost:9999/user-delete"));
         operation.setMethod(HttpMethod.DELETE);
         operation.setSuccessHandler(
                 (MockResponseA response) -> {
@@ -251,7 +266,7 @@ public class RestServiceTest {
     public void testLocalURIHeaderExecuted() throws Exception {
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Some-Header","Melody");
+        headers.put("Some-Header", "Melody");
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -271,8 +286,8 @@ public class RestServiceTest {
     public void testLocalURIHeaderMultipleExecuted() throws Exception {
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Some-Header","Happy");
-        headers.put("Another-Header","Baby");
+        headers.put("Some-Header", "Happy");
+        headers.put("Another-Header", "Baby");
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -292,8 +307,8 @@ public class RestServiceTest {
     public void testLocalURIHeaderMultipleNoNameExecuted() throws Exception {
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("someHeader","Pretty");
-        headers.put("anotherHeader","Melody");
+        headers.put("someHeader", "Pretty");
+        headers.put("anotherHeader", "Melody");
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
@@ -345,12 +360,48 @@ public class RestServiceTest {
     }
 
     @Test
-    @WithMockUser(value = "someuser", roles = { "SOME_OTHER_ROLE" })
+    @WithMockUser(value = "someuser", roles = {"SOME_OTHER_ROLE"})
     public void testSpringSecurityPreAuthUserWithUnauthenticatedRoles() throws Exception {
 
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(String.class.getName());
         operation.setUri(new URI("/secured/preauth"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setErrorHandler(
+                (RestError e) -> {
+                    Assert.assertEquals("Access is denied", e.message);
+                    Assert.assertEquals(new Integer(401), e.errorCode);
+
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    @WithMockUser(value = "someuser")
+    public void testSpringSecurityPostAuth() throws Exception {
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/secured/postauth"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("securedPostAuthUser-success", response);
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    @WithMockUser(value = "someuser", roles = {"INVALID_ROLE"})
+    public void testSpringSecurityPostAuthInavlidRole() throws Exception {
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("/secured/postauth"));
         operation.setMethod(HttpMethod.GET);
         operation.setErrorHandler(
                 (RestError e) -> {

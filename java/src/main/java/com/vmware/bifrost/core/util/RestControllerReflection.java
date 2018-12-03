@@ -3,7 +3,11 @@
  */
 package com.vmware.bifrost.core.util;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.annotation.Annotation;
@@ -12,79 +16,93 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 
 /**
- *
+ * Hand;es reflection magic for RestService.
  */
+@Component
 public class RestControllerReflection {
+
+    @Autowired
+    private ParameterNameDiscoverer parameterNameDiscoverer;
+
+    @Autowired
+    private ApplicationContext context;
 
     /**
      * Locate RestControllers inside the Spring Context
-     * @param context
+     *
      * @return
      */
-    public static Map<String, Object> locateRestControllers(ConfigurableApplicationContext context) {
+    public Map<String, Object> locateRestControllers() {
         return context.getBeansWithAnnotation(RestController.class);
     }
 
     /**
      * Extract controller methods for @RequestMapping annotations.
+     *
      * @param controller
      * @return
      */
-    public static Map<String, Method> extractControllerRequestMappings(Object controller) {
+    public Map<String, Method> extractControllerRequestMappings(Object controller) {
         return extractControllerByAnnotation(controller, RequestMapping.class);
     }
 
     /**
      * Extract controller methods for @PatchMapping annotations.
+     *
      * @param controller
      * @return
      */
-    public static Map<String, Method> extractControllerPatchMappings(Object controller) {
+    public Map<String, Method> extractControllerPatchMappings(Object controller) {
         return extractControllerByAnnotation(controller, PatchMapping.class);
     }
 
     /**
      * Extract controller methods for @GetMapping annotations.
+     *
      * @param controller
      * @return
      */
-    public static Map<String, Method> extractControllerGetMappings(Object controller) {
+    public Map<String, Method> extractControllerGetMappings(Object controller) {
         return extractControllerByAnnotation(controller, GetMapping.class);
     }
 
     /**
      * Extract controller methods for @PostMapping annotations.
+     *
      * @param controller
      * @return
      */
-    public static Map<String, Method> extractControllerPostMappings(Object controller) {
+    public Map<String, Method> extractControllerPostMappings(Object controller) {
         return extractControllerByAnnotation(controller, PostMapping.class);
     }
 
     /**
      * Extract controller methods for @PutMapping annotations.
+     *
      * @param controller
      * @return
      */
-    public static Map<String, Method> extractControllerPutMappings(Object controller) {
+    public Map<String, Method> extractControllerPutMappings(Object controller) {
         return extractControllerByAnnotation(controller, PutMapping.class);
     }
 
     /**
      * Extract controller methods for @DeleteMapping annotations.
+     *
      * @param controller
      * @return
      */
-    public static Map<String, Method> extractControllerDeleteMappings(Object controller) {
+    public Map<String, Method> extractControllerDeleteMappings(Object controller) {
         return extractControllerByAnnotation(controller, DeleteMapping.class);
     }
 
     /**
      * Extract controller by a specific Annotation type
+     *
      * @param controller
      * @return
      */
-    public static Map<String, Method> extractControllerByAnnotation(Object controller, Class annotationType) {
+    public Map<String, Method> extractControllerByAnnotation(Object controller, Class annotationType) {
         List<Method> rawMethods = Arrays.asList(controller.getClass().getDeclaredMethods());
         Map<String, Method> cleanedMethods = new HashMap<>();
 
@@ -104,50 +122,58 @@ public class RestControllerReflection {
 
     /**
      * Extract a method's args/parameters and the types of those arguments
+     *
      * @param method
      * @return
      */
-    public static Map<String, Class> extractMethodParameters(Method method) {
-        Parameter[] params = method.getParameters();
+
+    Map<String, Class> extractMethodParameters(Method method) {
+        String[] params = parameterNameDiscoverer.getParameterNames(method);
         Map<String, Class> paramMap = new HashMap<>();
 
         int index = 0;
-        for (Parameter param : params) {
-            paramMap.put(param.getName(), method.getParameterTypes()[index]);
-            index++;
+        if (params != null) {
+            for (String param : params) {
+                paramMap.put(param, method.getParameterTypes()[index]);
+                index++;
+            }
         }
         return paramMap;
     }
 
     /**
      * Extract an ordered list of the paramter/arg names for a method.
+     *
      * @param method
      * @return
      */
-    public static List<String> extractMethodParameterList(Method method) {
-        Parameter[] params = method.getParameters();
+    List<String> extractMethodParameterList(Method method) {
+        String[] params = parameterNameDiscoverer.getParameterNames(method);
         List<String> paramList = new ArrayList<>();
 
-        for (Parameter param : params) {
-            paramList.add(param.getName());
-        }
+        Collections.addAll(paramList, params);
+
         return paramList;
     }
 
     /**
      * Extract the method's arguments annotations (if used)
+     *
      * @param method
      * @return
      */
-    public static Map<String, Class> extractMethodAnnotationTypes(Method method) {
+    Map<String, Class> extractMethodAnnotationTypes(Method method) {
+        String[] paramNames = parameterNameDiscoverer.getParameterNames(method);
         Parameter[] params = method.getParameters();
         Map<String, Class> paramMap = new HashMap<>();
 
-        for (Parameter param : params) {
-            if(param.getAnnotations() != null && param.getAnnotations().length >= 1) {
-                paramMap.put(param.getName(), param.getAnnotations()[0].annotationType());
-            } else {
-                paramMap.put(param.getName(), null);
+        if(params != null) {
+            for (int x = 0; x < params.length; x++) {
+                if (params[x].getAnnotations() != null && params[x].getAnnotations().length >= 1) {
+                    paramMap.put(paramNames[x], params[x].getAnnotations()[0].annotationType());
+                } else {
+                    paramMap.put(paramNames[x], null);
+                }
             }
         }
         return paramMap;
@@ -155,22 +181,24 @@ public class RestControllerReflection {
 
     /**
      * Extract all annotation object value for a methods args/params annotation.
+     *
      * @param method
      * @return
      */
-    public static Map<String, Object> extractMethodAnnotationValues(Method method) {
+    Map<String, Object> extractMethodAnnotationValues(Method method) {
         Parameter[] params = method.getParameters();
+        String[] paramNames = this.parameterNameDiscoverer.getParameterNames(method);
         Map<String, Object> paramMap = new HashMap<>();
 
-        for (Parameter param : params) {
+        for (int x = 0; x < params.length; x++) {
 
-            if(param.getAnnotations() != null && param.getAnnotations().length >= 1) {
-                paramMap.put(param.getName(),
-                        RestControllerReflection.extractMethodAnnotation(param,
-                                param.getAnnotations()[0].annotationType())
+            if (params[x].getAnnotations() != null && params[x].getAnnotations().length >= 1) {
+                paramMap.put(paramNames[x],
+                        this.extractMethodAnnotation(params[x],
+                                params[x].getAnnotations()[0].annotationType())
                 );
             } else {
-                paramMap.put(param.getName(), null);
+                paramMap.put(params[x].getName(), null);
             }
         }
         return paramMap;
@@ -178,11 +206,12 @@ public class RestControllerReflection {
 
     /**
      * Extract a specific annotation value from a method.
+     *
      * @param param
      * @param annotation
      * @return
      */
-    public static Object extractMethodAnnotation(Parameter param, Class annotation) {
+    Object extractMethodAnnotation(Parameter param, Class annotation) {
 
         switch (annotation.getName()) {
             case "org.springframework.web.bind.annotation.PathVariable":

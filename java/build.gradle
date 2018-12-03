@@ -41,6 +41,7 @@ group = 'com.vmware.bifrost'
 version = '0.0.1'
 sourceCompatibility = 1.8
 
+
 repositories {
     mavenCentral()
     maven { url "https://repo.spring.io/snapshot" }
@@ -55,6 +56,8 @@ dependencies {
     compile('org.springframework.security:spring-security-web:5.0.0.RELEASE')
     compile('org.springframework.security:spring-security-config:5.0.0.RELEASE')
     compile('org.springframework.security:spring-security-test:5.0.0.RELEASE')
+    testCompile('com.github.tomakehurst:wiremock:2.19.0')
+
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('io.projectreactor:reactor-test')

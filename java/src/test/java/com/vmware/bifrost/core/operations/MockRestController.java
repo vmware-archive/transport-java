@@ -4,6 +4,7 @@
 
 package com.vmware.bifrost.core.operations;
 
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -72,12 +73,12 @@ public class MockRestController {
     }
 
     @DeleteMapping(value = "/delete-mapping/{id}")
-    public String deleteMappingMappingWithParams(@PathVariable UUID id) {
+    public String deleteMappingWithParams(@PathVariable UUID id) {
         return "deleteMappingWithParams-" + id;
     }
 
     @PutMapping(value = "/put-mapping/{id}")
-    public String putMappingMappingWithParams(@PathVariable UUID id) {
+    public String putMappingWithParams(@PathVariable UUID id) {
         return "putMappingWithParams-" + id;
     }
 
@@ -115,6 +116,12 @@ public class MockRestController {
     @PreAuthorize("hasRole('ROLE_USER')")
     public String securedPreAuth() {
         return "securedPreAuthUser-success";
+    }
+
+    @RequestMapping(value = "/secured/postauth", method = GET)
+    @PostAuthorize("hasRole('ROLE_USER')")
+    public String securedPostAuth() {
+        return "securedPostAuthUser-success";
     }
 
     @RequestMapping(value = "/secured-admin/preauth", method = GET)
