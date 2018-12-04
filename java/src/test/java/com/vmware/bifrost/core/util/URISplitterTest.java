@@ -43,7 +43,7 @@ public class URISplitterTest {
 
         URI uri = new URI("/some/path/here/longer?query=val&something=nothing");
 
-        Map<String, String> queryMap = URISplitter.extractQueryParams(uri);
+        Map<String, Object> queryMap = URISplitter.extractQueryParams(uri, null);
 
         Assert.assertEquals(2, queryMap.size());
         Assert.assertEquals("val", queryMap.get("query"));

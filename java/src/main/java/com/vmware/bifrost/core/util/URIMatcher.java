@@ -246,7 +246,7 @@ public class URIMatcher {
         result.setMethogArgList(reflectionUtil.extractMethodParameterList(method));
         result.setMethodAnnotationTypes(reflectionUtil.extractMethodAnnotationTypes(method));
         result.setMethodAnnotationValues(reflectionUtil.extractMethodAnnotationValues(method));
-        result.setQueryString(URISplitter.extractQueryParams(uri));
+        result.setQueryString(URISplitter.extractQueryParams(uri, result.getMethodArgs()));
         result.setPathItemMap(
                 createPathItemMap(
                         controllerPathItems,

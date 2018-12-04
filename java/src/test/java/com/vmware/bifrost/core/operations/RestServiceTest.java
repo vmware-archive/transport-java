@@ -245,7 +245,7 @@ public class RestServiceTest {
     }
 
     @Test
-    public void testLocalURIPostDTOAndQueryExecuted() throws Exception {
+    public void testLocalURIPostDTOAndQueryExecutedWithIntegerQuery() throws Exception {
 
         RestOperation<Object, SampleDTO> operation = new RestOperation<>();
         operation.setApiClass(SampleDTO.class.getName());
@@ -256,6 +256,43 @@ public class RestServiceTest {
                 (SampleDTO dto) -> {
                     Assert.assertEquals("My Lovely Melody", dto.getName());
                     Assert.assertEquals(99, dto.getValue());
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    public void testLocalURIPostDTOAndQueryExecutedWithStringQuery() throws Exception {
+
+        RestOperation<Object, SampleDTO> operation = new RestOperation<>();
+        operation.setApiClass(SampleDTO.class.getName());
+        operation.setUri(new URI("/post-mapping/dto-string/?value=123"));
+        operation.setMethod(HttpMethod.POST);
+        operation.setBody("My Lovely Melody");
+        operation.setSuccessHandler(
+                (SampleDTO dto) -> {
+                    Assert.assertEquals("My Lovely Melody", dto.getName());
+                    Assert.assertEquals(123, dto.getValue());
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    public void testLocalURIPostDTOAndQueryExecutedWithUUIDQuery() throws Exception {
+
+        RestOperation<Object, SampleDTO> operation = new RestOperation<>();
+        operation.setApiClass(SampleDTO.class.getName());
+        UUID uuid = UUID.randomUUID();
+        operation.setUri(new URI("/post-mapping/dto-uuid/?value=" + uuid.toString()));
+        operation.setMethod(HttpMethod.POST);
+        operation.setBody("My Lovely Melody");
+        operation.setSuccessHandler(
+                (SampleDTO dto) -> {
+                    Assert.assertEquals("My Lovely Melody", dto.getName());
+                    Assert.assertEquals(36, dto.getValue()); // num chars
                 }
         );
 
@@ -413,5 +450,56 @@ public class RestServiceTest {
 
         restService.restServiceRequest(operation);
     }
+
+
+    @Test
+    public void testAPIClassInvalidThrowsError() throws Exception {
+
+        stubFor(get(urlEqualTo("/invalid-return-class"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody("returnAStringNotSampleDTO")));
+
+
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(SampleDTO.class.getName());
+        operation.setUri(new URI("http://localhost:9999/invalid-return-class"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setErrorHandler(
+                (RestError e) -> {
+                    Assert.assertEquals(new Integer(500), e.errorCode);
+
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    public void testAPIClassMissingThrowsError() throws Exception {
+
+        stubFor(get(urlEqualTo("/missing-api-class"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody("somethingFancy")));
+
+
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setUri(new URI("http://localhost:9999/missing-api-class"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setErrorHandler(
+                (RestError e) -> {
+                    Assert.assertEquals(new Integer(500), e.errorCode);
+
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
 
 }

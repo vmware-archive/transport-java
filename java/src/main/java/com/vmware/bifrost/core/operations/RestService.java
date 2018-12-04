@@ -4,6 +4,7 @@
 package com.vmware.bifrost.core.operations;
 
 import com.vmware.bifrost.bridge.util.Loggable;
+import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
 import com.vmware.bifrost.core.util.URIMatcher;
@@ -15,19 +16,19 @@ import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
+
+import java.net.UnknownHostException;
 
 /**
  * RestService is responsible for handling UI Rest requests. It operates in two modes:
- *
+ * <p>
  * 1. As a simple REST client that translates a RestOperation object into a Rest Call to an external URI
  * 2. As a dispatch engine that checks if there are any RestController instances that serve the requested URI.
- *    If there is a match, the method arguments are extracted from all the meta data provided via annotations to the
- *    method, and then calls the method using the correct sequence of arguments, with the correct types, in the correct
- *    order.
- *
+ * If there is a match, the method arguments are extracted from all the meta data provided via annotations to the
+ * method, and then calls the method using the correct sequence of arguments, with the correct types, in the correct
+ * order.
+ * <p>
  * //TODO: This service will eventually be called from any class implementing AbstractService via the bus
  *
  * @see com.vmware.bifrost.core.model.RestOperation
@@ -48,17 +49,15 @@ public class RestService extends Loggable {
      * via a standard rest call.
      *
      * @param operation
-     * @param <Req> request body type
-     * @param <Resp> return body type
+     * @param <Req>     request body type
+     * @param <Resp>    return body type
      */
     public <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) throws Exception {
 
 
-
-
         // check if the URI is local to the system
         URIMethodResult methodResult = locateRestControllerForURIAndMethod(operation);
-        if(methodResult != null && methodResult.getMethod() != null) {
+        if (methodResult != null && methodResult.getMethod() != null) {
             invokeRestController(methodResult, operation);
             return;
         }
@@ -102,7 +101,7 @@ public class RestService extends Loggable {
             switch (operation.getMethod()) {
                 case GET:
                     operation.getSuccessHandler().accept(
-                            (Resp)restTemplate.getForObject(
+                            (Resp) restTemplate.getForObject(
                                     operation.getUri(),
                                     Class.forName(operation.getApiClass()
                                     )
@@ -137,7 +136,7 @@ public class RestService extends Loggable {
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp)resp.getBody());
+                    operation.getSuccessHandler().accept((Resp) resp.getBody());
                     break;
 
                 case DELETE:
@@ -151,24 +150,22 @@ public class RestService extends Loggable {
                     break;
             }
 
-        } catch (ClassNotFoundException exp) {
+        } catch (RestClientException exp) {
 
-            this.logErrorMessage("Class not found when making rest call", exp.getMessage());
-
-        } catch (HttpClientErrorException cee) {
-
-            this.logErrorMessage("Client Error when making rest call", cee.getMessage());
-
-        } catch (HttpServerErrorException see) {
-
-            this.logErrorMessage("Server Error when making rest call", see.getMessage());
+            this.logErrorMessage("REST Client Error, unable to complete request: ", exp.getMessage());
+            operation.getErrorHandler().accept(
+                    new RestError("REST Client Error, unable to complete request: "
+                            + exp.getMessage(), 500)
+            );
 
         } catch (NullPointerException npe) {
 
-            this.logErrorMessage("Null Pointer Exception when making rest call", npe.getMessage());
+            this.logErrorMessage("Null Pointer Exception when making REST Call", npe.toString());
+            operation.getErrorHandler().accept(
+                    new RestError("Null Pointer exception thrown for: "
+                            + operation.getUri().toString(), 500)
+            );
         }
-
-
     }
 
     private URIMethodResult locateRestControllerForURIAndMethod(RestOperation operation) throws Exception {
@@ -188,13 +185,9 @@ public class RestService extends Loggable {
     }
 
     private void invokeRestController(URIMethodResult result, RestOperation operation) {
-        try {
-            controllerInvoker.invokeMethod(result, operation);
 
-        } catch (RuntimeException rexp) {
+        controllerInvoker.invokeMethod(result, operation);
 
-            // do something here.
-        }
     }
 
 }

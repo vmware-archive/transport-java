@@ -95,6 +95,22 @@ public class MockRestController {
         return dto;
     }
 
+    @PostMapping(value = "/post-mapping/dto-string")
+    public SampleDTO postMappingWithDTOAndQueryString(@RequestParam String value, String payload) {
+        SampleDTO dto = new SampleDTO();
+        dto.setName(payload);
+        dto.setValue(Integer.parseInt(value));
+        return dto;
+    }
+
+    @PostMapping(value = "/post-mapping/dto-uuid")
+    public SampleDTO postMappingWithDTOAndQueryWithUUID(@RequestParam UUID value, String payload) {
+        SampleDTO dto = new SampleDTO();
+        dto.setName(payload);
+        dto.setValue(value.toString().length());
+        return dto;
+    }
+
     @RequestMapping(value = "/header-check", method = GET)
     public String headerCheckSingleHeader(@RequestHeader("Some-Header") String header) {
         return "headerCheckSingle-" + header;

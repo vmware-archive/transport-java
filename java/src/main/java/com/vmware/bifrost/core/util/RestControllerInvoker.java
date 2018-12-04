@@ -35,7 +35,7 @@ public class RestControllerInvoker {
      * @param operation
      * @throws RuntimeException
      */
-    public void invokeMethod(URIMethodResult methodResult, RestOperation operation) throws RuntimeException {
+    public void invokeMethod(URIMethodResult methodResult, RestOperation operation) {
 
         Object[] formulatedMethodArgs = new Object[methodResult.getMethogArgList().size()];
         RestError error = null;
@@ -152,10 +152,13 @@ public class RestControllerInvoker {
                 );
             }
 
-
         } catch (IllegalAccessException e) {
             operation.getErrorHandler().accept(
                     this.getRestError("Method cannot be called, method param mismatch", 500)
+            );
+        } catch (IllegalArgumentException e) {
+            operation.getErrorHandler().accept(
+                    this.getRestError("Method cannot be called, method param types don't match", 500)
             );
         }
     }

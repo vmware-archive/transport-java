@@ -72,6 +72,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.1'
     compile 'joda-time:joda-time:2.9.9'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.6'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
     testCompile group: 'org.springframework', name: 'spring-web', version: '5.0.3.RELEASE'
     testCompile 'org.mockito:mockito-core:2.+'
 
