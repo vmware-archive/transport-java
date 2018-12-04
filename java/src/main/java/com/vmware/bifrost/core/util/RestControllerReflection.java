@@ -5,18 +5,15 @@ package com.vmware.bifrost.core.util;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
-
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
 /**
- * Hand;es reflection magic for RestService.
+ * Handles reflection magic for RestService.
  */
 @Component
 public class RestControllerReflection {
@@ -105,11 +102,7 @@ public class RestControllerReflection {
     public Map<String, Method> extractControllerByAnnotation(Object controller, Class annotationType) {
         List<Method> rawMethods = Arrays.asList(controller.getClass().getDeclaredMethods());
         Map<String, Method> cleanedMethods = new HashMap<>();
-
-        // extract all annotations available on this controller;
-        //Annotation[] controllerAnnotations = controllerClass.getAn
-
-
+        
         for (Method method : rawMethods) {
 
             if (method.getAnnotationsByType(annotationType) != null) {
