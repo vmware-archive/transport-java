@@ -10,6 +10,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -18,17 +20,20 @@ import java.util.Map;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {
-        MockRestController.class
+        MockRestController.class,
+        DefaultParameterNameDiscoverer.class,
+        URIMatcher.class,
+        RestControllerReflection.class
 })
 public class URIMatcherTest {
 
     @Autowired
-    private ConfigurableApplicationContext context;
+    private URIMatcher uriMatcher;
 
     @Test
     public void testBasicURIMatch() throws Exception {
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo"), RequestMethod.GET);
+        URIMethodResult result = uriMatcher.findControllerMatch(new URI("/foo"), RequestMethod.GET);
         Assert.assertNotNull(result);
         Assert.assertEquals(1, result.getPathItems().size());
         Assert.assertEquals(0, result.getMethodArgs().size());
@@ -40,7 +45,7 @@ public class URIMatcherTest {
     @Test
     public void testComplexURIMatch() throws Exception {
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo/puppy/bar/baby"), RequestMethod.GET);
+        URIMethodResult result = uriMatcher.findControllerMatch(new URI("/foo/puppy/bar/baby"), RequestMethod.GET);
         Assert.assertNotNull(result);
         Assert.assertEquals(4, result.getPathItems().size());
         Assert.assertEquals(4, result.getMethodArgs().size());
@@ -52,7 +57,7 @@ public class URIMatcherTest {
     @Test
     public void testComplexURIMatchWithQuery() throws Exception {
 
-        URIMethodResult result = URIMatcher.findControllerMatch(context, new URI("/foo/puppy/bar/baby?query=something"), RequestMethod.GET);
+        URIMethodResult result = uriMatcher.findControllerMatch(new URI("/foo/puppy/bar/baby?query=something"), RequestMethod.GET);
         Assert.assertNotNull(result);
         Assert.assertEquals(4, result.getPathItems().size());
         Assert.assertEquals(4, result.getMethodArgs().size());
@@ -69,7 +74,7 @@ public class URIMatcherTest {
         String url1 = "/manufacturer/{mId}/cars/{carId}/colors/{carColorId}";
         String url2 = "/manufacturer/ford/cars/mustang/colors/123";
 
-        Map<String, Object> pathMap = URIMatcher.createPathItemMap(
+        Map<String, Object> pathMap = uriMatcher.createPathItemMap(
                 URISplitter.split(url1),
                 URISplitter.split(url2),
                 null

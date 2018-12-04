@@ -45,6 +45,7 @@ group = 'com.vmware.bifrost'
 version = rootProject.file('version.txt').getText('UTF-8').trim()
 sourceCompatibility = 1.8
 
+
 repositories {
     mavenCentral()
     maven { url "https://repo.spring.io/snapshot" }
@@ -88,6 +89,12 @@ publishing {
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-webflux')
     compile('org.springframework.boot:spring-boot-starter-websocket')
+    compile('org.springframework.security:spring-security-web:5.0.0.RELEASE')
+    compile('org.springframework.security:spring-security-config:5.0.0.RELEASE')
+    compile('org.springframework.security:spring-security-test:5.0.0.RELEASE')
+    testCompile('com.github.tomakehurst:wiremock:2.19.0')
+
+
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('io.projectreactor:reactor-test')
 
@@ -101,6 +108,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.1'
     compile 'joda-time:joda-time:2.9.9'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.6'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
     testCompile group: 'org.springframework', name: 'spring-web', version: '5.0.3.RELEASE'
     testCompile 'org.mockito:mockito-core:2.+'
 

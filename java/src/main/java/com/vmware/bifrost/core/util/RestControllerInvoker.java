@@ -6,6 +6,9 @@ package com.vmware.bifrost.core.util;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +22,8 @@ import java.util.Map;
 @Component
 public class RestControllerInvoker {
 
+    @Autowired private ApplicationContext context;
+
     RestControllerInvoker() {
 
     }
@@ -30,7 +35,7 @@ public class RestControllerInvoker {
      * @param operation
      * @throws RuntimeException
      */
-    public void invokeMethod(URIMethodResult methodResult, RestOperation operation) throws RuntimeException {
+    public void invokeMethod(URIMethodResult methodResult, RestOperation operation) {
 
         Object[] formulatedMethodArgs = new Object[methodResult.getMethogArgList().size()];
         RestError error = null;
@@ -64,7 +69,7 @@ public class RestControllerInvoker {
                     operation.getErrorHandler().accept(
                             getRestError(
                                     "Supplied method can't be used, the params and path items don't align.",
-                                    "REST Error: Internal Method Issue")
+                                    500)
                     );
                 }
 
@@ -123,22 +128,38 @@ public class RestControllerInvoker {
 
     private void callControllerMethod(URIMethodResult methodResult, RestOperation operation, Object[] formulatedMethodArgs) {
         Method method = methodResult.getMethod();
-        Object controller = methodResult.getController();
-
+        Object bean = context.getBean(methodResult.getController().getClass());
         try {
 
             if (formulatedMethodArgs != null) {
                 operation.getSuccessHandler().accept(
-                        method.invoke(controller, formulatedMethodArgs)
+                        method.invoke(bean, formulatedMethodArgs)
                 );
             } else {
                 operation.getSuccessHandler().accept(
-                        method.invoke(controller)
+                        method.invoke(bean)
                 );
             }
 
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            if(e.getTargetException().getClass().equals(AuthenticationCredentialsNotFoundException.class)) {
+                operation.getErrorHandler().accept(
+                        this.getRestError(e.getTargetException().getMessage(), 500)
+                );
+            } else {
+                operation.getErrorHandler().accept(
+                        this.getRestError(e.getTargetException().getMessage(), 401)
+                );
+            }
+
+        } catch (IllegalAccessException e) {
+            operation.getErrorHandler().accept(
+                    this.getRestError("Method cannot be called, method param mismatch", 500)
+            );
+        } catch (IllegalArgumentException e) {
+            operation.getErrorHandler().accept(
+                    this.getRestError("Method cannot be called, method param types don't match", 500)
+            );
         }
     }
 
@@ -173,7 +194,7 @@ public class RestControllerInvoker {
                                 error = getRestError(
                                         "Method requires headers parameters, however no header with key '"
                                                 + requestHeader.value() + "' was found",
-                                        "REST Error: Missing Header Parameters");
+                                        500);
                             } else {
 
                                 formulatedMethodArgs[index] = operation.getHeaders().get(requestHeader.value());
@@ -201,7 +222,7 @@ public class RestControllerInvoker {
                             error = getRestError(
                                     "Method requires headers parameters, however no header with key '"
                                             + paramName + "' was found",
-                                    "REST Error: Missing Header Parameters");
+                                    500);
 
                         } else {
 
@@ -222,7 +243,7 @@ public class RestControllerInvoker {
 
                                 error = getRestError(
                                         "Method requires request parameters, however none have been supplied.",
-                                        "REST Error: Missing Request Parameters"
+                                        500
                                 );
 
                             } else {
@@ -233,7 +254,7 @@ public class RestControllerInvoker {
                                             "Method requires request param '" + requestParam.value()
                                                     + "', This maps to method argument '" + paramName
                                                     + "', but wasn't supplied with URI properties.",
-                                            "REST Error: Invalid Request Parameters");
+                                            500);
 
                                 } else {
 
@@ -304,7 +325,7 @@ public class RestControllerInvoker {
         return false;
     }
 
-    private RestError getRestError(String message, String status) {
+    private RestError getRestError(String message, Integer status) {
         RestError error;
         error = new RestError(
                 message,

@@ -11,8 +11,12 @@ public class RestError extends GeneralError {
         super(message, status);
     }
 
-    public RestError(String message, Object errorObject, String errorCode) {
+    public RestError(String message, Object errorObject, Integer errorCode) {
         super(message, errorObject, errorCode);
+    }
+
+    public RestError(String message, Integer errorCode) {
+        super(message, null, errorCode);
     }
 
     public RestError(String message, String status, String url) {

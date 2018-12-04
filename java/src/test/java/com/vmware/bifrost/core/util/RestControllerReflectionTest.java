@@ -10,7 +10,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,17 +23,25 @@ import java.util.Map;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {
-        MockRestController.class
+        MockRestController.class,
+        DefaultParameterNameDiscoverer.class,
+        RestControllerReflection.class
 })
 public class RestControllerReflectionTest {
 
     @Autowired
-    private ConfigurableApplicationContext context;
+    private ApplicationContext context;
+
+    @Autowired
+    private ParameterNameDiscoverer discoverer;
+
+    @Autowired
+    private RestControllerReflection restReflectionUtil;
 
     @Test
     public void lookupControllers() {
 
-        Map<String, Object> controllers = RestControllerReflection.locateRestControllers(context);
+        Map<String, Object> controllers = restReflectionUtil.locateRestControllers();
 
         Assert.assertEquals(1, controllers.size());
         Assert.assertTrue(controllers.containsKey("MockRestController"));
@@ -42,8 +52,8 @@ public class RestControllerReflectionTest {
     @Test
     public void extractControllerMethods() {
 
-        Map<String, Method> methods = RestControllerReflection.extractControllerRequestMappings(
-                RestControllerReflection.locateRestControllers(context).get("MockRestController")
+        Map<String, Method> methods = restReflectionUtil.extractControllerRequestMappings(
+                restReflectionUtil.locateRestControllers().get("MockRestController")
         );
 
         Assert.assertTrue(methods.size() >= 2);
@@ -55,12 +65,12 @@ public class RestControllerReflectionTest {
     @Test
     public void extractMethodParameters() {
 
-        Map<String, Method> methods = RestControllerReflection.extractControllerRequestMappings(
-                RestControllerReflection.locateRestControllers(context).get("MockRestController")
+        Map<String, Method> methods = restReflectionUtil.extractControllerRequestMappings(
+                restReflectionUtil.locateRestControllers().get("MockRestController")
         );
 
         Map<String, Class> methodParams
-                = RestControllerReflection.extractMethodParameters(methods.get("simpleGetPath"));
+                = restReflectionUtil.extractMethodParameters(methods.get("simpleGetPath"));
 
         Assert.assertEquals(2, methodParams.size());
         Assert.assertTrue(methodParams.containsKey("baz"));
@@ -72,12 +82,12 @@ public class RestControllerReflectionTest {
     @Test
     public void extractMethodAnnotationsCheckTypes() {
 
-        Map<String, Method> methods = RestControllerReflection.extractControllerRequestMappings(
-                RestControllerReflection.locateRestControllers(context).get("MockRestController")
+        Map<String, Method> methods = restReflectionUtil.extractControllerRequestMappings(
+                restReflectionUtil.locateRestControllers().get("MockRestController")
         );
 
         Map<String, Class> annotationTypes
-                = RestControllerReflection.extractMethodAnnotationTypes(methods.get("simpleGetPath"));
+                = restReflectionUtil.extractMethodAnnotationTypes(methods.get("simpleGetPath"));
 
         Assert.assertEquals(2, annotationTypes.size());
         Assert.assertTrue(annotationTypes.containsKey("baz"));
@@ -90,15 +100,15 @@ public class RestControllerReflectionTest {
     @Test
     public void extractMethodAnnotationsCheckValues() {
 
-        Map<String, Method> methods = RestControllerReflection.extractControllerRequestMappings(
-                RestControllerReflection.locateRestControllers(context).get("MockRestController")
+        Map<String, Method> methods = restReflectionUtil.extractControllerRequestMappings(
+                restReflectionUtil.locateRestControllers().get("MockRestController")
         );
 
         Map<String, Class> annotationTypes
-                = RestControllerReflection.extractMethodAnnotationTypes(methods.get("simpleGetPath"));
+                = restReflectionUtil.extractMethodAnnotationTypes(methods.get("simpleGetPath"));
 
         Map<String, Object> annotationValues
-                = RestControllerReflection.extractMethodAnnotationValues(methods.get("simpleGetPath"));
+                = restReflectionUtil.extractMethodAnnotationValues(methods.get("simpleGetPath"));
 
 
 

@@ -5,7 +5,7 @@ package com.vmware.bifrost.core.error;
 
 public class GeneralError {
     public Object errorObject;
-    public String errorCode;
+    public Integer errorCode;
     public String message;
     public String status;
 
@@ -14,7 +14,7 @@ public class GeneralError {
         this.message = message;
     }
 
-    public GeneralError(String message, Object errorObject, String errorCode) {
+    public GeneralError(String message, Object errorObject, Integer errorCode) {
         this.errorCode = errorCode;
         this.message = message;
         this.errorObject = errorObject;
