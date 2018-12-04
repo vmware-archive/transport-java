@@ -19,6 +19,7 @@ plugins {
 
 
 apply plugin: 'java'
+apply plugin: 'maven-publish'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
@@ -26,8 +27,11 @@ apply plugin: 'idea'
 apply plugin: 'jacoco'
 
 jar {
-    baseName = 'vmw-bifrost'
-    version =  '0.0.1'
+    enabled = true
+}
+
+bootJar {
+    classifier = 'boot'
     manifest {
         attributes(
                 'Main-Class': 'oldsamples.Application'
@@ -38,7 +42,7 @@ jar {
 def profiles = 'prod'
 
 group = 'com.vmware.bifrost'
-version = '0.0.1'
+version = rootProject.file('version.txt').getText('UTF-8').trim()
 sourceCompatibility = 1.8
 
 repositories {
@@ -48,6 +52,38 @@ repositories {
     jcenter()
 }
 
+// Maven artifact publishing using the maven-publish plugin.
+publishing {
+    publications {
+        // Publishes
+        mavenJava(MavenPublication) {
+            // Publishes a POM to maven repo.
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            // To publish to the build-artifactory:
+            //
+            // 1. Ensure you have write access to the bifrost-maven-local repo.
+            // 2. Update the version in "version.txt" file.
+            // 3. Run "gradlew publish" task by specifying your credentials using the
+            //    mavenUser and mavenPassword gradle properties. This can be done via:
+            //       - command line arguments - "gradlew publish -PmavenUser=user -PmavenPassword=password"
+            //       - the local gradle.properties file, usually located in USER_HOME/.gradle/gradle.properties
+            //
+            // To test you changes during development, you can publish project's jars
+            // to your maven local repo by running "gradlew publishToMavenLocal" task.
+            credentials {
+                username mavenUser
+                password mavenPassword
+            }
+            name = 'build-artifactory'
+            url = "https://build-artifactory.eng.vmware.com/artifactory/bifrost-maven-local"
+        }
+    }
+}
 
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-webflux')
