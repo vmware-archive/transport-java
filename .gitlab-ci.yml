@@ -47,9 +47,8 @@ publish:bifrost:
   - build:bifrost
   script:  
   - echo "Publishing @vmw/bifrost"
-  - echo $bifrost_maven_user
   - cd ./java
-  - ./gradlew printDebugProps -PbuildType=snapshot
+  - ./gradlew publish -PbuildType=snapshot
   when: on_success
   only:
   - shristov/daf
