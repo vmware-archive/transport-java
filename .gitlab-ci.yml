@@ -51,4 +51,4 @@ publish:bifrost:
   - ./gradlew publish -PbuildType=snapshot
   when: on_success
   only:
-  - shristov/daf
+  - master
