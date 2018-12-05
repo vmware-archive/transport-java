@@ -46,18 +46,6 @@ sourceCompatibility = 1.8
 
 initProperties()
 
-// Helper task that prints calculated project properties. Can be used for debug
-// purposes.
-//noinspection GroovyAssignabilityCheck
-task printDebugProps {
-    doLast {
-        println 'version: ' + version
-        println 'buildType: ' + buildType
-        println 'mavenUser: ' + mavenUser
-        println 'mavenPassword: ' + mavenPassword
-    }
-}
-
 repositories {
     mavenCentral()
     maven { url "https://repo.spring.io/snapshot" }
