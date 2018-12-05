@@ -42,9 +42,21 @@ bootJar {
 def profiles = 'prod'
 
 group = 'com.vmware.bifrost'
-version = rootProject.file('version.txt').getText('UTF-8').trim()
 sourceCompatibility = 1.8
 
+initProperties()
+
+// Helper task that prints calculated project properties. Can be used for debug
+// purposes.
+//noinspection GroovyAssignabilityCheck
+task printDebugProps {
+    doLast {
+        println 'version: ' + version
+        println 'buildType: ' + buildType
+        println 'mavenUser: ' + mavenUser
+        println 'mavenPassword: ' + mavenPassword
+    }
+}
 
 repositories {
     mavenCentral()
@@ -135,5 +147,20 @@ jacocoTestReport {
     reports {
         xml.enabled false
         html.enabled true
+    }
+}
+
+void initProperties() {
+    version = rootProject.file('version.txt').getText('UTF-8').trim()
+    if ("snapshot".compareTo(buildType) == 0) {
+        version = version + "-SNAPSHOT"
+    }
+
+    if (System.getenv("bifrost_maven_user")?.trim()) {
+        mavenUser = System.getenv("bifrost_maven_user").trim()
+    }
+
+    if (System.getenv("bifrost_maven_password")?.trim()) {
+        mavenPassword = System.getenv("bifrost_maven_password").trim()
     }
 }
