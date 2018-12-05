@@ -46,7 +46,7 @@ publish:bifrost:
   dependencies:
   - build:bifrost
   script:  
-  - echo "Publishing @vmw/bifrost"
+  - echo "Publishing vmw-bifrost"
   - cd ./java
   - ./gradlew publish -PbuildType=snapshot
   when: on_success
