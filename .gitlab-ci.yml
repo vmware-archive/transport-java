@@ -3,6 +3,7 @@ image: java:8-jdk
 stages:
 - test
 - build
+- publish
 
 cache: {}
 
@@ -39,3 +40,15 @@ build:bifrost:
   only:
   - pushes
   - web
+
+publish:bifrost:
+  stage: publish
+  dependencies:
+  - build:bifrost
+  script:  
+  - echo "Publishing @vmw/bifrost"
+  - cd ./java
+  - ./gradlew printDebugProps
+  when: on_success
+  only:
+  - shristov/daf
