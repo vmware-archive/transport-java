@@ -98,6 +98,11 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
 
     @Override
     public Channel getChannelObject(String cname, String from) {
+       return this.getChannelObject(cname, from, false);
+    }
+
+    @Override
+    public Channel getChannelObject(String cname, String from, boolean noRefCount) {
         Channel channel;
         String symbol = " [+] ";
 
@@ -111,19 +116,31 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
 
         MonitorObject mo = new MonitorObject(MonitorType.MonitorNewChannel, cname, from, symbol);
         this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
-        channel.increment();
+        if (!noRefCount) {
+            channel.increment();
+        }
         return channel;
     }
 
     @Override
     public Observable<Message> getChannel(String channel, String from) {
-        return this.getChannelObject(channel, from)
+        return this.getChannel(channel, from, false);
+    }
+
+    @Override
+    public Observable<Message> getChannel(String channel, String from, boolean noRefCount) {
+        return this.getChannelObject(channel, from, noRefCount)
               .getStreamObject();
     }
 
     @Override
     public Observable<Message> getRequestChannel(String channel, String from) {
-        return this.getChannel(channel, from)
+        return this.getRequestChannel(channel, from, false);
+    }
+
+    @Override
+    public Observable<Message> getRequestChannel(String channel, String from, boolean noRefCount) {
+        return this.getChannel(channel, from, noRefCount)
               .filter(
                     (Message message) -> message.isRequest()
               );
@@ -131,7 +148,12 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
 
     @Override
     public Observable<Message> getResponseChannel(String channel, String from) {
-        return this.getChannel(channel, from)
+        return this.getResponseChannel(channel, from, false);
+    }
+
+    @Override
+    public Observable<Message> getResponseChannel(String channel, String from, boolean noRefCount) {
+        return this.getChannel(channel, from, noRefCount)
               .filter(
                     (Message message) -> message.isResponse()
               );
@@ -139,7 +161,12 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
 
     @Override
     public Observable<Message> getErrorChannel(String channel, String from) {
-        return this.getChannel(channel, from)
+        return this.getErrorChannel(channel, from, false);
+    }
+
+    @Override
+    public Observable<Message> getErrorChannel(String channel, String from, boolean noRefCount) {
+        return this.getChannel(channel, from, noRefCount)
               .filter(
                     (Message message) -> message.isError()
               );

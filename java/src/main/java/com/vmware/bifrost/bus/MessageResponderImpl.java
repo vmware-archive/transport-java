@@ -35,6 +35,9 @@ public class MessageResponderImpl<T> implements MessageResponder<T> {
             if (supplier != null) {
                 this.bus.sendResponseMessage(this.config.getReturnChannel(), supplier.apply(message));
             }
+            if (this.config.isSingleResponse()) {
+                this.bus.closeChannel(this.config.getSendChannel(), this.getClass().getName());
+            }
         };
     }
 
