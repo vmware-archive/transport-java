@@ -73,12 +73,35 @@ public interface EventBusLowApi {
     Channel getChannelObject(String channel, String from);
 
     /**
+     * A new channel is created by the first reference to it. All subsequent references to that channel are handed
+     * the same stream to subscribe to. Accessing this method increments the channels reference count.
+     * This method subscribes to both command and response messages. See below for specific directional methods.
+     * This method is not filtered.
+     *
+     * This is a raw object that encapsulates the channel stream.
+     *
+     * @param channel the name of the channel you want.
+     * @param from optional calling actor (for logging)
+     * @param noRefCount optional, will prevent internal reference counting (defaults to false).
+     */
+    Channel getChannelObject(String channel, String from, boolean noRefCount);
+
+    /**
      * Get a subscribable stream from channel. If the channel doesn't exist, it will be created.
      *
      * @param channel name of the channel you want to subscribe to.
      * @param from optional calling actor (for logging)
      */
     Observable<Message> getChannel(String channel, String from);
+
+    /**
+     * Get a subscribable stream from channel. If the channel doesn't exist, it will be created.
+     *
+     * @param channel name of the channel you want to subscribe to.
+     * @param from optional calling actor (for logging)
+     * @param noRefCount optional, will prevent internal reference counting (defaults to false).
+     */
+    Observable<Message> getChannel(String channel, String from, boolean noRefCount);
 
     /**
      * Filter bus events that contain command messages only. Returns observable
@@ -90,6 +113,16 @@ public interface EventBusLowApi {
     Observable<Message> getRequestChannel(String channel, String from);
 
     /**
+     * Filter bus events that contain command messages only. Returns observable
+     * that will emit a command Message to any subscribers.
+     *
+     * @param channel name of the channel you want to listen to.
+     * @param from optional calling actor (for logging)
+     * @param noRefCount optional, will prevent internal reference counting (defaults to false).
+     */
+    Observable<Message> getRequestChannel(String channel, String from, boolean noRefCount);
+
+    /**
      * Filter bus events that contain response messages only. Returns observable
      * that will emit a response Message to any subscribers.
      *
@@ -99,6 +132,16 @@ public interface EventBusLowApi {
     Observable<Message> getResponseChannel(String channel, String from);
 
     /**
+     * Filter bus events that contain response messages only. Returns observable
+     * that will emit a response Message to any subscribers.
+     *
+     * @param channel name of the channel you want to listen to.
+     * @param from optional calling actor (for logging)
+     * @param noRefCount optional, will prevent internal reference counting (defaults to false).
+     */
+    Observable<Message> getResponseChannel(String channel, String from, boolean noRefCount);
+
+    /**
      * Filter bus events that contain error messages only. Returns observable that
      * will emit an error Message to any subscribers.
      *
@@ -106,6 +149,16 @@ public interface EventBusLowApi {
      * @param from optional calling actor (for logging)*
      */
     Observable<Message> getErrorChannel(String channel, String from);
+
+    /**
+     * Filter bus events that contain error messages only. Returns observable that
+     * will emit an error Message to any subscribers.
+     *
+     * @param channel name of the channel you want to listen to.
+     * @param from optional calling actor (for logging)
+     * @param noRefCount optional, will prevent internal reference counting (defaults to false).
+     */
+    Observable<Message> getErrorChannel(String channel, String from, boolean noRefCount);
 
     /**
      * Transmit arbitrary data on a channel on the message bus if it exists.

@@ -44,6 +44,9 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
             if (consumer != null) {
                 consumer.accept(message);
             }
+            if (this.config.isSingleResponse()) {
+                this.bus.closeChannel(this.config.getReturnChannel(), this.getClass().getName());
+            }
         };
     }
 
@@ -54,7 +57,11 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
         } else {
             this.channel = this.bus.getApi().getResponseChannel(this.config.getReturnChannel(), this.getClass().getName());
         }
-        this.errors = this.bus.getApi().getErrorChannel(this.config.getReturnChannel(), this.getClass().getName());
+        this.errors = this.bus.getApi().getErrorChannel(
+              this.config.getReturnChannel(),
+              this.getClass().getName(),
+              // Add only one channel reference per MessageHandler instance
+              true);
         if (this.config.isSingleResponse()) {
             this.sub = this.channel.take(1).subscribe(this.createHandler(successHandler));
             this.errorSub = this.errors.take(1).subscribe(this.createHandler(errorHandler));

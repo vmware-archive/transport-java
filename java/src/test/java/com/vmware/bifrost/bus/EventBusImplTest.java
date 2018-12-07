@@ -36,6 +36,7 @@ public class EventBusImplTest {
     private ObjectMapper mapper;
     private JsonSchemaGenerator schemaGen;
     private int counter;
+    private Message message;
     private int errors;
 
 
@@ -593,17 +594,22 @@ public class EventBusImplTest {
                 }
         );
 
+        Channel channelObj = this.bus.getApi().getChannelMap().get(chan);
+        Assert.assertEquals(channelObj.getRefCount().intValue(), 1);
+
         BusTransaction handleTransaction = this.bus.requestOnce(
                 chan,
                 "coffee",
                 (Message message) -> {
+                    Assert.assertEquals(channelObj.getRefCount().intValue(), 2);
                     Assert.assertEquals("milk 1", message.getPayload());
                     Assert.assertEquals(String.class, message.getPayloadClass());
                     Assert.assertTrue(message.isResponse());
                     Assert.assertEquals(this.counter, 1);
                 }
         );
-
+        Assert.assertEquals(channelObj.getRefCount().intValue(), 0);
+        Assert.assertFalse(this.bus.getApi().getChannelMap().containsKey(chan));
         Assert.assertFalse(sendTransaction.isSubscribed());
         Assert.assertFalse(handleTransaction.isSubscribed());
 
@@ -648,7 +654,6 @@ public class EventBusImplTest {
     public void testRequestResponseOnceError() {
 
         String chan = "#local-simple-error";
-
         BusTransaction sendTransaction = this.bus.respondOnce(
                 chan,
                 (Message message) -> {
@@ -696,13 +701,9 @@ public class EventBusImplTest {
         sendTransaction.tick("should be ignored also");
         Assert.assertEquals(this.counter, 1);
 
-        // the error stream is still active and can still pick up a single error however.
+        // the error stream shouldn't be active as the channel should have been closed now.
         this.bus.sendErrorMessage(chan, "computer says no");
-        Assert.assertEquals(this.counter, 2);
-
-        this.bus.sendErrorMessage(chan, "should be ignored");
-        Assert.assertEquals(this.counter, 2);
-
+        Assert.assertEquals(this.counter, 1);
     }
 
     @Test
@@ -882,6 +883,173 @@ public class EventBusImplTest {
         Assert.assertEquals(0, this.counter);
         Assert.assertEquals(observer2.valueCount(), 1);
 
+    }
+
+    @Test
+    public void testListenStream() {
+        String chan = "#local-simple";
+        BusTransaction busTransaction = this.bus.listenStream(
+              chan,
+              (Message message) -> {
+                  ++this.counter;
+                  this.message = message;
+              }
+        );
+
+        Assert.assertTrue(busTransaction.isSubscribed());
+
+        bus.sendResponseMessage(chan, "testMessage");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(this.message.getPayload(), "testMessage");
+
+        bus.sendResponseMessage(chan, "testMessage2");
+        Assert.assertEquals(2, this.counter);
+        Assert.assertEquals(this.message.getPayload(), "testMessage2");
+
+        bus.sendErrorMessage(chan, "error");
+        Assert.assertEquals(2, this.counter);
+        Assert.assertEquals(this.message.getPayload(), "testMessage2");
+
+        busTransaction.unsubscribe();
+
+        Assert.assertFalse(busTransaction.isSubscribed());
+        bus.sendResponseMessage(chan, "testMessage3");
+
+        Assert.assertEquals(2, this.counter);
+        Assert.assertEquals(this.message.getPayload(), "testMessage2");
+    }
+
+    @Test
+    public void testListenStreamWithErrorHandler() {
+        String chan = "#local-simple";
+        BusTransaction busTransaction = this.bus.listenStream(
+              chan,
+              null,
+              (Message message) -> {
+                  ++this.counter;
+                  this.message = message;
+              },
+              (Message message) -> {
+                  ++this.errors;
+                  this.message = message;
+              }
+        );
+
+        Assert.assertTrue(busTransaction.isSubscribed());
+
+        bus.sendResponseMessage(chan, "testMessage");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(0, this.errors);
+        Assert.assertEquals(this.message.getPayload(), "testMessage");
+
+        bus.sendErrorMessage(chan, "error");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(1, this.errors);
+        Assert.assertEquals(this.message.getPayload(), "error");
+
+        busTransaction.unsubscribe();
+
+        bus.sendErrorMessage(chan, "error2");
+        bus.sendResponseMessage(chan, "testMessage2");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(1, this.errors);
+    }
+
+    @Test
+    public void testListenRequestStream() {
+        String chan = "#local-simple";
+        BusTransaction busTransaction = this.bus.listenRequestStream(
+              chan,
+              (Message message) -> {
+                  ++this.counter;
+                  this.message = message;
+              }
+        );
+
+        Channel chanObj = this.bus.getApi().getChannelMap().get(chan);
+        Assert.assertEquals(chanObj.getRefCount().intValue(), 1);
+
+        Assert.assertTrue(busTransaction.isSubscribed());
+
+        bus.sendRequestMessage(chan, "request1");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(this.message.getPayload(), "request1");
+
+        // Verify that we ignore error & response messages
+        bus.sendErrorMessage(chan, "error");
+        bus.sendResponseMessage(chan, "response1");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(this.message.getPayload(), "request1");
+
+        bus.sendRequestMessage(chan, "request2");
+        Assert.assertEquals(2, this.counter);
+
+        busTransaction.unsubscribe();
+
+        bus.sendRequestMessage(chan, "request3");
+        Assert.assertEquals(2, this.counter);
+    }
+
+    @Test
+    public void testListenRequestStreamWithErrorHandler() {
+        String chan = "#local-simple";
+        BusTransaction busTransaction = this.bus.listenRequestStream(
+              chan,
+              (Message message) -> {
+                  ++this.counter;
+                  this.message = message;
+              },
+              (Message message) -> {
+                  ++this.errors;
+                  this.message = message;
+              }
+        );
+
+        Assert.assertTrue(busTransaction.isSubscribed());
+
+        bus.sendRequestMessage(chan, "request1");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(this.message.getPayload(), "request1");
+
+        bus.sendErrorMessage(chan, "error1");
+        bus.sendErrorMessage(chan, "error2");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(2, this.errors);
+        Assert.assertEquals(this.message.getPayload(), "error2");
+
+        // Verify that we ignore response messages
+        bus.sendResponseMessage(chan, "response1");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(2, this.errors);
+
+        busTransaction.unsubscribe();
+
+        bus.sendRequestMessage(chan, "request2");
+        bus.sendErrorMessage(chan, "error3");
+
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(2, this.errors);
+    }
+
+    @Test
+    public void testCloseChannel() {
+        String chan = "#local-simple";
+        this.bus.requestOnce(chan, "request1", (Message message) -> ++this.counter);
+
+        Channel chanObj = this.bus.getApi().getChannelMap().get(chan);
+        Assert.assertEquals(chanObj.getRefCount().intValue(), 1);
+
+        this.bus.requestStream(chan, "request2", (Message message) -> ++this.counter);
+
+        Assert.assertEquals(chanObj.getRefCount().intValue(), 2);
+
+        this.bus.closeChannel(chan, "test");
+        Assert.assertEquals(chanObj.getRefCount().intValue(), 1);
+        Assert.assertTrue(this.bus.getApi().getChannelMap().containsKey(chan));
+
+        this.bus.closeChannel(chan, "test");
+        Assert.assertEquals(chanObj.getRefCount().intValue(), 0);
+        Assert.assertFalse(this.bus.getApi().getChannelMap().containsKey(chan));
     }
 
     @Test
