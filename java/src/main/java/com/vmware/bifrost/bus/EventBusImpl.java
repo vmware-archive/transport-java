@@ -142,6 +142,15 @@ public class EventBusImpl extends Loggable implements EventBus {
     @Override
     public BusTransaction requestOnce(String sendChannel,
                                       Object payload,
+                                      Consumer<Message> successHandler,
+                                      Consumer<Message> errorHandler) {
+        return this.requestOnce(sendChannel, payload,
+                sendChannel, null, this.getName(), successHandler, errorHandler);
+    }
+
+    @Override
+    public BusTransaction requestOnce(String sendChannel,
+                                      Object payload,
                                       String returnChannel,
                                       Consumer<Message> successHandler) {
         return this.requestOnce(sendChannel, payload,

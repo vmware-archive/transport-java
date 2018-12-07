@@ -115,6 +115,21 @@ public interface EventBus {
                                Consumer<Message> successHandler);
 
     /**
+     * Send a command payload to sendChannel and listen for a single response on sendChannel
+     * The successHandler is used to process incoming responses. The handler will stop processing
+     * any further responses after the first one.
+     *
+     * @param sendChannel the channel to send the initial command to
+     * @param payload the payload to be sent as the command
+     * @param successHandler handler which will be invoked in case of success response
+     * @param errorHandler handler which will be invoked in case of error response
+     */
+    BusTransaction requestOnce(String sendChannel,
+                               Object payload,
+                               Consumer<Message> successHandler,
+                               Consumer<Message> errorHandler);
+
+    /**
      * Send a command payload to sendChannel and listen for a single response on returnChannel
      * (defaults to sendChannel if left blank). The successHandler is used to
      * process incoming responses.

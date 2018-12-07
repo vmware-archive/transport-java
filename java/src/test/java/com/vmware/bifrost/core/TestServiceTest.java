@@ -99,4 +99,24 @@ public class TestServiceTest {
         );
     }
 
+
+    @Test
+    public void testErrorHandlingWithBadPayload() {
+
+        String serviceChannel = "test::TestService";
+
+
+        bus.requestOnce(
+                serviceChannel,
+                "Some String",
+                (Message msg) -> {
+                    // should not fire
+                },
+                (Message msg) -> {
+                    TestResponse resp = (TestResponse)msg.getPayload();
+                    Assert.assertEquals("smelly", resp.getErrorMessage());
+                }
+        );
+    }
+
 }

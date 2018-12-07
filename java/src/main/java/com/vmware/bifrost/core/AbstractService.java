@@ -33,6 +33,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -81,10 +82,18 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
                         this.handleServiceRequest((RequestType) message.getPayload());
 
                     } catch (ClassCastException cce) {
-                        cce.printStackTrace();
                         this.logErrorMessage("Service unable to process request, " +
                                 "request cannot be cast", message.getPayload().getClass().getSimpleName());
-                        throw new RequestException("Service unable to process request, request cannot be cast");
+
+                        Response resp = new Response(UUID.randomUUID(), message.getPayload());
+                        resp.setError(true);
+                        resp.setErrorCode(500);
+                        resp.setErrorMessage(this.getClass().getSimpleName()
+                                + " cannot handle request, payload isn't derived from 'Request' type"
+                                + message.getPayload().getClass().getSimpleName());
+
+                        this.sendError(resp);
+
 
                     }
                 }
@@ -111,8 +120,8 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
         this.bus.sendResponseMessage(this.serviceChannel, response);
     }
 
-    protected void sendError(String message) {
-        this.bus.sendErrorMessage(this.serviceChannel, message);
+    protected <E extends Response> void  sendError(E error) {
+        this.bus.sendErrorMessage(this.serviceChannel, error);
     }
 
     protected <T> T castPayload(Class clazz, Request request) throws ClassCastException {
