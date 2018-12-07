@@ -4,10 +4,12 @@
 package com.vmware.bifrost.core;
 
 
+import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.core.model.*;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service("TestService")
+@BifrostService
+@Component
 public class TestService extends AbstractService<TestRequest, TestResponse>{
 
     public TestService() {

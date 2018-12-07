@@ -90,7 +90,7 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
                 }
         );
 
-        this.logInfoMessage("\uD83D\uDCE3", "initialized, handling requests on channel", this.serviceChannel);
+        this.logInfoMessage("\uD83D\uDCE3", this.getClass().getSimpleName() + " initialized, handling requests on channel", this.serviceChannel);
         this.methodLookupUtil.loadCustomHandlers();
     }
 
