@@ -1,7 +1,5 @@
 package com.vmware.bifrost.bridge;
 
-import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 public class Response<RespP> extends AbstractFrame {
@@ -9,15 +7,15 @@ public class Response<RespP> extends AbstractFrame {
     protected boolean error = false;
     protected int errorCode;
     protected String errorMessage;
-    protected List<RespP> payload;
+    protected RespP payload;
 
 
-    public Response(Integer version, UUID uuid, List<RespP> payload) {
+    public Response(Integer version, UUID uuid, RespP payload) {
         super(version, uuid);
         this.payload = payload;
     }
 
-    public Response(UUID uuid, List<RespP> payload) {
+    public Response(UUID uuid, RespP payload) {
         this(1, uuid, payload);
     }
 
@@ -31,11 +29,11 @@ public class Response<RespP> extends AbstractFrame {
         this.error = error;
     }
 
-    public void setPayload(List<RespP> payload) {
+    public void setPayload(RespP payload) {
         this.payload = payload;
     }
 
-    public List<RespP> getPayload() {
+    public RespP getPayload() {
         return this.payload;
     }
 

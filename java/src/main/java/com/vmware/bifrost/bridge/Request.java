@@ -5,30 +5,30 @@ import java.util.UUID;
 public class Request<ReqP> extends AbstractFrame {
 
     private ReqP payload;
-    private String type;
+    private String command;
 
     public Request() {}
 
-    public Request(Integer version, UUID id, String type, ReqP payload) {
+    public Request(Integer version, UUID id, String command, ReqP payload) {
         super(version, id);
         this.payload = payload;
-        this.type = type;
+        this.command = command;
     }
 
-    public Request(UUID id, String type, ReqP payload) {
-        this(1, id, type, payload);
+    public Request(UUID id, String command, ReqP payload) {
+        this(1, id, command, payload);
     }
 
-    public Request(String type, ReqP payload) {
-        this(1, UUID.randomUUID(), type, payload);
+    public Request(String command, ReqP payload) {
+        this(1, UUID.randomUUID(), command, payload);
     }
 
-    public Request(String type) {
-        this(1, UUID.randomUUID(), type, null);
+    public Request(String command) {
+        this(1, UUID.randomUUID(), command, null);
     }
 
-    public String getType() {
-        return this.type;
+    public String getCommand() {
+        return this.command;
     }
 
     public ReqP getPayload() {
@@ -43,8 +43,8 @@ public class Request<ReqP> extends AbstractFrame {
         this.payload = payload;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setCommand(String command) {
+        this.command = command;
     }
 
 }

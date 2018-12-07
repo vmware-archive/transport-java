@@ -3,22 +3,18 @@
  */
 package com.vmware.bifrost.core.operations;
 
-import com.vmware.bifrost.bridge.util.Loggable;
+import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
 import com.vmware.bifrost.core.util.URIMatcher;
 import com.vmware.bifrost.core.util.URIMethodResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.*;
-
-import java.net.UnknownHostException;
 
 /**
  * RestService is responsible for handling UI Rest requests. It operates in two modes:

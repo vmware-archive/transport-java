@@ -2,7 +2,7 @@ package com.vmware.bifrost.bridge.spring.controllers;
 
 import com.vmware.bifrost.bridge.RequestException;
 import com.vmware.bifrost.bridge.Response;
-import com.vmware.bifrost.bridge.util.Loggable;
+import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.EventBus;
 import io.reactivex.exceptions.OnErrorNotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ public class MessageController extends Loggable {
     private void valiateRequest(Request request) throws RequestException {
         if(request.getId() == null) {
             throw new RequestException("Request 'id' is missing");
-        } else if(request.getType() == null) {
+        } else if(request.getCommand() == null) {
             throw new RequestException("Request 'type' is missing");
         } else if(request.getVersion() == null) {
             throw new RequestException("Request 'version' is missing");

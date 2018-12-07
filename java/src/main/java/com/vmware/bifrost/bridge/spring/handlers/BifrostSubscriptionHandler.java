@@ -2,7 +2,7 @@ package com.vmware.bifrost.bridge.spring.handlers;
 
 import com.vmware.bifrost.bridge.spring.config.BifrostBridgeConfiguration;
 import com.vmware.bifrost.bridge.spring.services.BifrostSubscriptionService;
-import com.vmware.bifrost.bridge.util.BifrostUtil;
+import com.vmware.bifrost.core.util.BifrostUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

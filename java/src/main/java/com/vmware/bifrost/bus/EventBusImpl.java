@@ -5,7 +5,7 @@ package com.vmware.bifrost.bus;
 
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
-import com.vmware.bifrost.bridge.util.Loggable;
+import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;

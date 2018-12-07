@@ -34,7 +34,7 @@ public class BaseServbotService extends AbstractService {
      */
     @Override
     public void handleServiceRequest(Request request) {
-        switch (request.getType()) {
+        switch (request.getCommand()) {
             case ChatCommand.PostMessage:
                 this.postMessage(request);
                 break;
@@ -86,15 +86,15 @@ public class BaseServbotService extends AbstractService {
 
     private void error(Request request) {
         Response response = new Response(request.getId(),
-                Arrays.asList("No such command as " + request.getType()));
+                Arrays.asList("No such command as " + request.getCommand()));
 
-        this.runCustomCodeBefore("ServbotService", "error", request);
+        this.methodLookupUtil.runCustomCodeBefore("ServbotService", "error", request);
         this.sendResponse(response);
     }
 
     private Response messageStats(Request request) {
 
-        Response response = this.runCustomCodeAndReturnResponse(
+        Response response = this.methodLookupUtil.runCustomCodeAndReturnResponse(
                 "ServbotService", "MessageStats", request);
 
         this.sendResponse(response);
@@ -102,14 +102,14 @@ public class BaseServbotService extends AbstractService {
     }
 
     private Response postMessage(Request request) {
-        return this.runCustomCodeAndReturnResponse(
+        return this.methodLookupUtil.runCustomCodeAndReturnResponse(
                 "ServbotService", "PostMessage", request);
 
     }
 
     private Response help(Request request) {
 
-        Response response = this.runCustomCodeAndReturnResponse(
+        Response response = this.methodLookupUtil.runCustomCodeAndReturnResponse(
                 "ServbotService", "Help", request);
 
         this.sendResponse(response);
@@ -118,7 +118,7 @@ public class BaseServbotService extends AbstractService {
 
     private Response joke(Request request) {
 
-        Response response = this.runCustomCodeAndReturnResponse(
+        Response response = this.methodLookupUtil.runCustomCodeAndReturnResponse(
                 "ServbotService", "Joke", request);
 
         this.sendResponse(response);
@@ -127,7 +127,7 @@ public class BaseServbotService extends AbstractService {
 
     private Response motd(Request request) {
 
-        Response response = this.runCustomCodeAndReturnResponse(
+        Response response = this.methodLookupUtil.runCustomCodeAndReturnResponse(
                 "ServbotService", "Motd", request);
 
         this.sendResponse(response);
