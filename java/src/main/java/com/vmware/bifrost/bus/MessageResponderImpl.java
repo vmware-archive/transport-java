@@ -33,7 +33,13 @@ public class MessageResponderImpl<T> implements MessageResponder<T> {
     private Consumer<Message> createGenerator(Function<Message, T> supplier) {
         return (Message message) -> {
             if (supplier != null) {
-                this.bus.sendResponseMessage(this.config.getReturnChannel(), supplier.apply(message));
+                String returnChannel = this.config.getReturnChannel();
+                T response = supplier.apply(message);
+                if (message.getId() != null) {
+                    this.bus.sendResponseMessageWithId(returnChannel, response, message.getId());
+                } else {
+                    this.bus.sendResponseMessage(returnChannel, response);
+                }
             }
             if (this.config.isSingleResponse()) {
                 this.bus.closeChannel(this.config.getSendChannel(), this.getClass().getName());

@@ -1,6 +1,11 @@
+/**
+ * Copyright(c) VMware Inc. 2017
+ */
 package com.vmware.bifrost.bus.model;
 
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+
+import java.util.UUID;
 
 public class MessageObject<T> implements Message<T> {
 
@@ -8,7 +13,7 @@ public class MessageObject<T> implements Message<T> {
     protected Class<T> payloadClass;
     protected T payload;
     protected JsonSchema schema;
-
+    protected UUID id;
 
     public MessageObject() {
     }
@@ -77,6 +82,14 @@ public class MessageObject<T> implements Message<T> {
     public boolean isError() {
 
         return this.type == MessageType.MessageTypeError;
+    }
+
+    public UUID getId() {
+        return this.id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String toString() {

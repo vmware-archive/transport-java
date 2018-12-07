@@ -23,6 +23,8 @@ import io.reactivex.Observable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.core.AnyOf.anyOf;
 
@@ -36,8 +38,10 @@ public class EventBusImplTest {
     private ObjectMapper mapper;
     private JsonSchemaGenerator schemaGen;
     private int counter;
+    private int responsesWithIdCounter;
     private Message message;
     private int errors;
+    private int errorsWithId;
 
 
     @Before
@@ -704,6 +708,204 @@ public class EventBusImplTest {
         // the error stream shouldn't be active as the channel should have been closed now.
         this.bus.sendErrorMessage(chan, "computer says no");
         Assert.assertEquals(this.counter, 1);
+    }
+
+    @Test
+    public void testRequestOnceWithId() {
+
+        UUID request1Uuid = UUID.randomUUID();
+
+        String chan = "#local-simple-error";
+        this.bus.requestOnceWithId(
+              request1Uuid,
+              chan,
+              "request1",
+              (Message message) -> {
+                  this.responsesWithIdCounter++;
+                  this.message = message;
+              }
+        );
+
+        this.bus.listenStream(chan, (Message message) -> this.counter++ );
+
+        Assert.assertEquals(this.bus.getApi().getChannelMap().get(chan).getRefCount().intValue(), 2);
+
+        this.bus.sendResponseMessage(chan, "generel-response");
+        Assert.assertEquals(this.counter, 1);
+        Assert.assertEquals(this.responsesWithIdCounter, 0);
+
+        this.bus.sendResponseMessageWithId(chan, "response-with-differen-uuid", UUID.randomUUID());
+        Assert.assertEquals(this.counter, 2);
+        Assert.assertEquals(this.responsesWithIdCounter, 0);
+
+        this.bus.sendResponseMessageWithId(chan, "response-with-correct-uuid", request1Uuid);
+        Assert.assertEquals(this.counter, 3);
+        Assert.assertEquals(this.responsesWithIdCounter, 1);
+        Assert.assertEquals(this.message.getPayload(), "response-with-correct-uuid");
+
+        // After the first response, other responses should be ignored.
+        this.bus.sendResponseMessageWithId(chan, "second-response-with-id", request1Uuid);
+        Assert.assertEquals(this.responsesWithIdCounter, 1);
+
+        Assert.assertEquals(this.bus.getApi().getChannelMap().get(chan).getRefCount().intValue(), 1);
+    }
+
+    @Test
+    public void testRequestOnceWithIdErrorHandling() {
+
+        UUID request1Uuid = UUID.randomUUID();
+
+        String chan = "#local-simple-error";
+        this.bus.requestOnceWithId(
+              request1Uuid,
+              chan,
+              "request1",
+              chan,
+              (Message message) -> {
+                  this.responsesWithIdCounter++;
+                  this.message = message;
+              },
+              (Message message) -> {
+                  this.errorsWithId++;
+              }
+        );
+
+        this.bus.listenStream(
+              chan,
+              null,
+              (Message message) -> this.counter++,
+              (Message message) -> this.errors++);
+
+        this.bus.sendErrorMessage(chan, "generel-response");
+        Assert.assertEquals(this.errors, 1);
+        Assert.assertEquals(this.errorsWithId, 0);
+        Assert.assertEquals(this.responsesWithIdCounter, 0);
+
+        this.bus.sendErrorMessageWithId(chan, "response-with-differen-uuid", UUID.randomUUID());
+        Assert.assertEquals(this.errors, 2);
+        Assert.assertEquals(this.responsesWithIdCounter, 0);
+        Assert.assertEquals(this.errorsWithId, 0);
+
+        this.bus.sendErrorMessageWithId(chan, "error", request1Uuid);
+        Assert.assertEquals(this.errors, 3);
+        Assert.assertEquals(this.responsesWithIdCounter, 0);
+        Assert.assertEquals(this.errorsWithId, 1);
+
+        // Verify that other errors with the same id are ignored.
+        this.bus.sendErrorMessageWithId(chan, "error2", request1Uuid);
+        Assert.assertEquals(this.errors, 4);
+        Assert.assertEquals(this.errorsWithId, 1);
+
+        this.bus.sendResponseMessageWithId(chan, "response", request1Uuid);
+        Assert.assertEquals(this.responsesWithIdCounter, 0);
+    }
+
+    @Test
+    public void testSendRequestMessageWithId() {
+
+        UUID requestUuid = UUID.randomUUID();
+        String chan = "#local-simple-error";
+
+        this.bus.respondOnce(chan, (Message message) -> {
+            Assert.assertEquals(message.getId(), requestUuid);
+            return "response";
+        });
+
+        this.bus.listenStream(chan, (Message message) -> {
+            Assert.assertEquals(message.getId(), requestUuid);
+            Assert.assertEquals(message.getPayload(), "response");
+            this.counter++;
+        });
+
+        this.bus.sendRequestMessageWithId(chan, "request", requestUuid);
+        Assert.assertEquals(this.counter, 1);
+    }
+
+    @Test
+    public void testRequestStreamWithId() {
+
+        UUID requestUuid = UUID.randomUUID();
+        String chan = "#local-simple";
+
+        this.bus.respondStream(chan, (Message message) -> message.getPayload() + "-response");
+
+        this.bus.listenStream(chan, (Message message) -> this.counter++);
+
+        this.bus.requestStreamWithId(requestUuid, chan, "request1",
+              (Message message) -> {
+                  this.responsesWithIdCounter++;
+                  this.message = message;
+              });
+
+        Assert.assertEquals(this.counter, 1);
+        Assert.assertEquals(this.responsesWithIdCounter, 1);
+        Assert.assertEquals(this.message.getPayload(), "request1-response");
+
+        this.bus.sendRequestMessageWithId(chan, "request2", requestUuid);
+        Assert.assertEquals(this.counter, 2);
+        Assert.assertEquals(this.responsesWithIdCounter, 2);
+        Assert.assertEquals(this.message.getPayload(), "request2-response");
+
+        this.bus.sendRequestMessageWithId(chan, "request2", UUID.randomUUID());
+        Assert.assertEquals(this.counter, 3);
+        Assert.assertEquals(this.responsesWithIdCounter, 2);
+
+        this.bus.sendResponseMessageWithId(chan, "response3", requestUuid);
+        Assert.assertEquals(this.counter, 4);
+        Assert.assertEquals(this.responsesWithIdCounter, 3);
+
+        this.bus.sendRequestMessage(chan, "request3");
+        Assert.assertEquals(this.counter, 5);
+        Assert.assertEquals(this.responsesWithIdCounter, 3);
+    }
+
+    @Test
+    public void testRequestStreamWithIdErrorHandling() {
+
+        UUID requestUuid = UUID.randomUUID();
+        String chan = "#local-simple-error";
+
+        this.bus.respondStream(chan, (Message message) -> message.getPayload() + "-response");
+
+        this.bus.listenStream(chan,
+              null,
+              (Message message) -> this.counter++,
+              (Message message) -> this.errors++ );
+
+        BusTransaction busTransaction = this.bus.requestStreamWithId(
+              requestUuid,
+              chan,
+              "request1",
+              chan,
+              (Message message) -> {
+                  this.responsesWithIdCounter++;
+                  this.message = message;
+              },
+              (Message message) -> this.errorsWithId++);
+
+        Assert.assertEquals(this.counter, 1);
+        Assert.assertEquals(this.responsesWithIdCounter, 1);
+        Assert.assertEquals(this.message.getPayload(), "request1-response");
+
+        this.bus.sendErrorMessageWithId(chan, "error", requestUuid);
+        Assert.assertEquals(this.counter, 1);
+        Assert.assertEquals(this.errors, 1);
+        Assert.assertEquals(this.responsesWithIdCounter, 1);
+        Assert.assertEquals(this.errorsWithId, 1);
+
+        this.bus.sendErrorMessageWithId(chan, "error2", UUID.randomUUID());
+        Assert.assertEquals(this.errors, 2);
+        Assert.assertEquals(this.errorsWithId, 1);
+
+        this.bus.sendErrorMessageWithId(chan, "error3", requestUuid);
+        Assert.assertEquals(this.errors, 3);
+        Assert.assertEquals(this.errorsWithId, 2);
+
+        busTransaction.unsubscribe();
+
+        this.bus.sendErrorMessageWithId(chan, "error4", requestUuid);
+        Assert.assertEquals(this.errors, 4);
+        Assert.assertEquals(this.errorsWithId, 2);
     }
 
     @Test
