@@ -3,16 +3,12 @@
  */
 package com.vmware.bifrost.bus;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
-import com.vmware.bifrost.bus.model.MessageSchema;
 import com.vmware.bifrost.bus.model.MessageType;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -24,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 import static com.vmware.bifrost.bus.model.MonitorChannel.stream;
@@ -46,20 +43,14 @@ public class EventBusImpl extends Loggable implements EventBus {
     private Channel monitorStream;
     private String monitorChannel;
 
-    private JsonSchema schema;
-
     public EventBusImpl() throws Exception {
-
-        ObjectMapper mapper = new ObjectMapper();
-        JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
-        this.schema = schemaGen.generateSchema(MessageSchema.class);
 
         this.channelMap = new HashMap<>();
         this.monitorChannel = stream;
         this.monitorStream = new Channel(this.monitorChannel);
         this.channelMap.put(this.monitorChannel, this.monitorStream);
 
-        this.api = new EventBusLowApiImpl(this.channelMap, this.schema);
+        this.api = new EventBusLowApiImpl(this.channelMap);
         this.api.enableMonitorDump(true);
     }
 
@@ -69,10 +60,10 @@ public class EventBusImpl extends Loggable implements EventBus {
     }
 
     @Override
-    public void sendRequestMessage(String channel, Object payload, JsonSchema schema) {
+    public void sendRequestMessage(String channel, Object payload) {
 
         MessageObjectHandlerConfig config =
-                new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload, schema);
+                new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
@@ -81,31 +72,22 @@ public class EventBusImpl extends Loggable implements EventBus {
     }
 
     @Override
-    public void sendRequestMessage(String channel, Object payload) {
-        this.sendRequestMessage(channel, payload, this.schema);
-    }
-
-    @Override
-    public void sendResponseMessage(String channel, Object payload, JsonSchema schema) {
+    public void sendRequestMessageWithId(String channel, Object payload, UUID id) {
 
         MessageObjectHandlerConfig config =
-                new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload, schema);
+              new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
+        config.setId(id);
         this.api.send(config.getSendChannel(), config, this.getName());
     }
 
     @Override
     public void sendResponseMessage(String channel, Object payload) {
-        this.sendResponseMessage(channel, payload, this.schema);
-    }
-
-    @Override
-    public void sendErrorMessage(String channel, Object payload, JsonSchema schema) {
 
         MessageObjectHandlerConfig config =
-                new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload, schema);
+                new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
@@ -113,8 +95,38 @@ public class EventBusImpl extends Loggable implements EventBus {
     }
 
     @Override
+    public void sendResponseMessageWithId(String channel, Object payload,  UUID id) {
+
+        MessageObjectHandlerConfig config =
+              new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload);
+        config.setSingleResponse(true);
+        config.setSendChannel(channel);
+        config.setReturnChannel(channel);
+        config.setId(id);
+        this.api.send(config.getSendChannel(), config, this.getName());
+    }
+
+    @Override
     public void sendErrorMessage(String channel, Object payload) {
-        this.sendErrorMessage(channel, payload, this.schema);
+
+        MessageObjectHandlerConfig config =
+                new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload);
+        config.setSingleResponse(true);
+        config.setSendChannel(channel);
+        config.setReturnChannel(channel);
+        this.api.send(config.getSendChannel(), config, this.getName());
+    }
+
+    @Override
+    public void sendErrorMessageWithId(String channel, Object payload, UUID id) {
+
+        MessageObjectHandlerConfig config =
+              new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload);
+        config.setSingleResponse(true);
+        config.setSendChannel(channel);
+        config.setReturnChannel(channel);
+        config.setId(id);
+        this.api.send(config.getSendChannel(), config, this.getName());
     }
 
     @Override
@@ -124,7 +136,7 @@ public class EventBusImpl extends Loggable implements EventBus {
                                       Consumer<Message> successHandler,
                                       Consumer<Message> errorHandler) {
         return this.requestOnce(sendChannel, payload,
-                returnChannel, null, this.getName(), successHandler, errorHandler);
+                returnChannel, this.getName(), successHandler, errorHandler);
     }
 
     @Override
@@ -133,7 +145,7 @@ public class EventBusImpl extends Loggable implements EventBus {
                                       String returnChannel,
                                       Consumer<Message> successHandler) {
         return this.requestOnce(sendChannel, payload,
-                returnChannel, null, this.getName(), successHandler, null);
+                returnChannel, this.getName(), successHandler, null);
     }
 
     @Override
@@ -141,25 +153,80 @@ public class EventBusImpl extends Loggable implements EventBus {
                                       Object payload,
                                       Consumer<Message> successHandler) {
         return this.requestOnce(sendChannel, payload,
-                sendChannel, null, this.getName(), successHandler, null);
+                sendChannel, this.getName(), successHandler, null);
     }
 
     @Override
     public BusTransaction requestOnce(String sendChannel,
                                       Object payload,
                                       String returnChannel,
-                                      JsonSchema schema,
                                       String from,
                                       Consumer<Message> successHandler,
                                       Consumer<Message> errorHandler) {
 
+        return this.requestOnceInternal(null, sendChannel,
+              payload, returnChannel, from, successHandler, errorHandler);
+    }
+
+    @Override
+    public BusTransaction requestOnceWithId(UUID uuid,
+                                     String sendChannel,
+                                     Object payload,
+                                     Consumer<Message> successHandler) {
+
+        return this.requestOnceWithId(uuid, sendChannel, payload, sendChannel, successHandler);
+    }
+
+    @Override
+    public BusTransaction requestOnceWithId(UUID uuid,
+                                     String sendChannel,
+                                     Object payload,
+                                     String returnChannel,
+                                     Consumer<Message> successHandler) {
+
+        return this.requestOnceWithId(uuid, sendChannel, payload, returnChannel, successHandler, null);
+    }
+
+    @Override
+    public BusTransaction requestOnceWithId(UUID uuid,
+                                     String sendChannel,
+                                     Object payload,
+                                     String returnChannel,
+                                     Consumer<Message> successHandler,
+                                     Consumer<Message> errorHandler) {
+
+        return this.requestOnceWithId(uuid, sendChannel, payload,
+              returnChannel, this.getName(), successHandler, errorHandler);
+    }
+
+    @Override
+    public BusTransaction requestOnceWithId(UUID uuid,
+                                     String sendChannel,
+                                     Object payload,
+                                     String returnChannel,
+                                     String from,
+                                     Consumer<Message> successHandler,
+                                     Consumer<Message> errorHandler) {
+
+        return this.requestOnceInternal(uuid, sendChannel, payload,
+              returnChannel, from, successHandler, errorHandler);
+    }
+
+    private BusTransaction requestOnceInternal(UUID id,
+                                               String sendChannel,
+                                               Object payload,
+                                               String returnChannel,
+                                               String from,
+                                               Consumer<Message> successHandler,
+                                               Consumer<Message> errorHandler) {
+
         MessageObjectHandlerConfig config
-                = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
+              = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
 
         config.setSingleResponse(true);
         config.setReturnChannel(returnChannel);
         config.setSendChannel(sendChannel);
-        config.setSchema(schema);
+        config.setId(id);
 
         MessageHandler messageHandler = this.createMessageHandler(config, false);
         Disposable sub = messageHandler.handle(successHandler, errorHandler);
@@ -173,25 +240,12 @@ public class EventBusImpl extends Loggable implements EventBus {
     public BusTransaction requestStream(String sendChannel,
                                         Object payload,
                                         String returnChannel,
-                                        JsonSchema schema,
                                         String from,
                                         Consumer<Message> successHandler,
                                         Consumer<Message> errorHandler) {
 
-        MessageObjectHandlerConfig config
-                = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
-
-        config.setSingleResponse(false);
-        config.setReturnChannel(returnChannel);
-        config.setSendChannel(sendChannel);
-        config.setSchema(schema);
-
-        MessageHandler messageHandler = this.createMessageHandler(config, false);
-        Disposable sub = messageHandler.handle(successHandler, errorHandler);
-        this.api.send(config.getSendChannel(), config, from);
-
-        BusTransaction transaction = new BusHandlerTransaction(sub, messageHandler);
-        return transaction;
+        return this.requestStreamInternal(null, sendChannel, payload,
+              returnChannel, from, successHandler, errorHandler);
     }
 
     @Override
@@ -201,7 +255,7 @@ public class EventBusImpl extends Loggable implements EventBus {
                                         Consumer<Message> successHandler,
                                         Consumer<Message> errorHandler) {
         return this.requestStream(sendChannel, payload,
-                returnChannel, null, this.getName(), successHandler, errorHandler);
+                returnChannel, this.getName(), successHandler, errorHandler);
     }
 
     @Override
@@ -210,7 +264,7 @@ public class EventBusImpl extends Loggable implements EventBus {
                                         String returnChannel,
                                         Consumer<Message> successHandler) {
         return this.requestStream(sendChannel, payload,
-                returnChannel, null, this.getName(), successHandler, null);
+                returnChannel, this.getName(), successHandler, null);
     }
 
     @Override
@@ -218,26 +272,88 @@ public class EventBusImpl extends Loggable implements EventBus {
                                         Object payload,
                                         Consumer<Message> successHandler) {
         return this.requestStream(sendChannel, payload,
-                sendChannel, null, this.getName(), successHandler, null);
+                sendChannel, this.getName(), successHandler, null);
     }
 
     @Override
-    public BusTransaction listenRequestStream(String channel,
-                                       Consumer<Message> successHandler,
-                                       Consumer<Message> errorHandler) {
+    public BusTransaction requestStreamWithId(UUID uuid,
+                                              String sendChannel,
+                                              Object payload,
+                                              Consumer<Message> successHandler) {
 
-        return this.listenRequestStream(channel, null, successHandler, errorHandler);
+        return this.requestStreamWithId(uuid, sendChannel, payload,
+              sendChannel, successHandler);
+    }
+
+    @Override
+    public BusTransaction requestStreamWithId(UUID uuid,
+                                              String sendChannel,
+                                              Object payload,
+                                              String returnChannel,
+                                              Consumer<Message> successHandler) {
+
+        return this.requestStreamWithId(uuid, sendChannel, payload,
+              returnChannel, this.getName(), successHandler, null);
+    }
+
+    @Override
+    public BusTransaction requestStreamWithId(UUID uuid,
+                                              String sendChannel,
+                                              Object payload,
+                                              String returnChannel,
+                                              Consumer<Message> successHandler,
+                                              Consumer<Message> errorHandler) {
+
+        return this.requestStreamWithId(uuid, sendChannel, payload,
+              returnChannel, this.getName(), successHandler, errorHandler);
+    }
+
+    @Override
+    public BusTransaction requestStreamWithId(UUID uuid,
+                                              String sendChannel,
+                                              Object payload,
+                                              String returnChannel,
+                                              String from,
+                                              Consumer<Message> successHandler,
+                                              Consumer<Message> errorHandler) {
+
+        return this.requestStreamInternal(uuid, sendChannel, payload,
+              returnChannel, from, successHandler, errorHandler);
+    }
+
+
+    private BusTransaction requestStreamInternal(UUID uuid,
+                                              String sendChannel,
+                                              Object payload,
+                                              String returnChannel,
+                                              String from,
+                                              Consumer<Message> successHandler,
+                                              Consumer<Message> errorHandler) {
+
+        MessageObjectHandlerConfig config
+              = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
+
+        config.setSingleResponse(false);
+        config.setReturnChannel(returnChannel);
+        config.setSendChannel(sendChannel);
+        config.setId(uuid);
+
+        MessageHandler messageHandler = this.createMessageHandler(config, false);
+        Disposable sub = messageHandler.handle(successHandler, errorHandler);
+        this.api.send(config.getSendChannel(), config, from);
+
+        BusTransaction transaction = new BusHandlerTransaction(sub, messageHandler);
+        return transaction;
     }
 
     @Override
     public BusTransaction listenRequestStream(String channel,
                                        Consumer<Message> successHandler) {
-        return this.listenRequestStream(channel, null, successHandler, null);
+        return this.listenRequestStream(channel, successHandler, null);
     }
 
     @Override
     public BusTransaction listenRequestStream(String channel,
-                                       JsonSchema schema,
                                        Consumer<Message> successHandler,
                                        Consumer<Message> errorHandler) {
 
@@ -247,7 +363,6 @@ public class EventBusImpl extends Loggable implements EventBus {
         config.setSingleResponse(false);
         config.setReturnChannel(channel);
         config.setSendChannel(channel);
-        config.setSchema(schema);
 
         MessageHandler messageHandler = this.createMessageHandler(config, true);
         Disposable sub = messageHandler.handle(successHandler, errorHandler);
@@ -258,12 +373,11 @@ public class EventBusImpl extends Loggable implements EventBus {
     @Override
     public BusTransaction listenStream(String channel,
                                        Consumer<Message> successHandler) {
-        return this.listenStream(channel, null, successHandler, null);
+        return this.listenStream(channel, successHandler, null);
     }
 
     @Override
     public BusTransaction listenStream(String channel,
-                                       JsonSchema schema,
                                        Consumer<Message> successHandler,
                                        Consumer<Message> errorHandler) {
 
@@ -273,7 +387,6 @@ public class EventBusImpl extends Loggable implements EventBus {
         config.setSingleResponse(false);
         config.setReturnChannel(channel);
         config.setSendChannel(channel);
-        config.setSchema(schema);
 
         MessageHandler messageHandler = this.createMessageHandler(config, false);
         Disposable sub = messageHandler.handle(successHandler, errorHandler);
@@ -283,15 +396,19 @@ public class EventBusImpl extends Loggable implements EventBus {
 
     @Override
     public BusTransaction respondOnce(String sendChannel,
+                                      Function<Message, Object> generateHandler) {
+        return this.respondOnce(sendChannel, sendChannel, generateHandler);
+    }
+
+    @Override
+    public BusTransaction respondOnce(String sendChannel,
                                       String returnChannel,
-                                      JsonSchema schema,
                                       Function<Message, Object> generateHandler) {
 
         MessageObjectHandlerConfig config = new MessageObjectHandlerConfig();
         config.setSingleResponse(true);
         config.setReturnChannel(returnChannel);
         config.setSendChannel(sendChannel);
-        config.setSchema(schema);
 
         MessageResponder messageResponder = this.createMessageResponder(config, false);
         Disposable sub = messageResponder.generate(generateHandler);
@@ -302,14 +419,12 @@ public class EventBusImpl extends Loggable implements EventBus {
     @Override
     public BusTransaction respondStream(String sendChannel,
                                         String returnChannel,
-                                        JsonSchema schema,
                                         Function<Message, Object> generateHandler) {
 
         MessageObjectHandlerConfig config = new MessageObjectHandlerConfig();
         config.setSingleResponse(false);
         config.setReturnChannel(returnChannel);
         config.setSendChannel(sendChannel);
-        config.setSchema(schema);
 
         MessageResponder messageResponder = this.createMessageResponder(config, false);
         Disposable sub = messageResponder.generate(generateHandler);
@@ -318,29 +433,9 @@ public class EventBusImpl extends Loggable implements EventBus {
     }
 
     @Override
-    public BusTransaction respondOnce(String sendChannel,
-                                      String returnChannel,
-                                      Function<Message, Object> generateHandler) {
-        return this.respondOnce(sendChannel, returnChannel, null, generateHandler);
-    }
-
-    @Override
-    public BusTransaction respondOnce(String sendChannel,
-                                      Function<Message, Object> generateHandler) {
-        return this.respondOnce(sendChannel, sendChannel, null, generateHandler);
-    }
-
-    @Override
-    public BusTransaction respondStream(String sendChannel,
-                                        String returnChannel,
-                                        Function<Message, Object> generateHandler) {
-        return this.respondStream(sendChannel, returnChannel, null, generateHandler);
-    }
-
-    @Override
     public BusTransaction respondStream(String sendChannel,
                                         Function<Message, Object> generateHandler) {
-        return this.respondStream(sendChannel, sendChannel, null, generateHandler);
+        return this.respondStream(sendChannel, sendChannel, generateHandler);
     }
 
     @Override

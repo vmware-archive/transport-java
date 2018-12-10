@@ -3,7 +3,6 @@
  */
 package com.vmware.bifrost.bus;
 
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
@@ -26,17 +25,13 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
     private Channel monitorStream;
     private String monitorChannel;
 
-    private JsonSchema schema;
-
     private boolean dumpMonitor;
 
-    public EventBusLowApiImpl(Map<String, Channel> channelMap, JsonSchema messageSchema) {
+    public EventBusLowApiImpl(Map<String, Channel> channelMap) {
         this.internalChannelMap = channelMap;
 
         this.monitorChannel = MonitorChannel.stream;
         this.monitorStream = new Channel(this.monitorChannel);
-
-        this.schema = messageSchema;
     }
 
     @Override
@@ -174,10 +169,6 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
 
     @Override
     public void send(String channel, MessageObject messageObject, String from) {
-        // TEMPORARY - flag all messages without schema
-        if (messageObject.getSchema() == null) {
-            //this.logger.warn("* No schema in messageObject to " + cname, from);
-        }
         MonitorObject mo;
 
         if (!this.internalChannelMap.containsKey(channel)) {
@@ -207,7 +198,7 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
         }
 
         MonitorObject mo = new MonitorObject(MonitorType.MonitorError, channel, "bus error", error);
-        this.monitorStream.send(new MessageObject(MessageType.MessageTypeError, mo, this.schema));
+        this.monitorStream.send(new MessageObject(MessageType.MessageTypeError, mo));
         this.internalChannelMap.get(channel).error(error);
     }
 

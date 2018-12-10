@@ -1,27 +1,27 @@
-package com.vmware.bifrost.bus.model;
-
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 /**
  * Copyright(c) VMware Inc. 2017
  */
+package com.vmware.bifrost.bus.model;
+
+import java.util.UUID;
+
 public interface Message<T> {
 
-    public void setPayload(T payload);
+    void setPayload(T payload);
 
-    public T getPayload();
+    T getPayload();
 
-    public void setPayloadClass(Class<T> payloadClass);
+    void setPayloadClass(Class<T> payloadClass);
 
-    public Class<T> getPayloadClass();
+    Class<T> getPayloadClass();
 
-    public JsonSchema getSchema();
+    boolean isRequest();
 
-    public void setSchema(JsonSchema schema);
+    boolean isResponse();
 
-    public boolean isRequest();
+    boolean isError();
 
-    public boolean isResponse();
+    UUID getId();
 
-    public boolean isError();
+    void setId(UUID id);
 }

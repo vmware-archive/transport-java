@@ -292,7 +292,7 @@ public class MessageHandlerImplTest {
     }
 
     @Test
-    public void testSingleSuccessAndErrorHandlers() {
+    public void testSingleSuccessHandler() {
 
         this.config = new MessageObjectHandlerConfig();
         this.config.setSingleResponse(true);
@@ -315,11 +315,40 @@ public class MessageHandlerImplTest {
         observer.assertValueCount(1);
 
         Assert.assertEquals(1, this.successCount);
+        Assert.assertEquals(0, this.errorCount);
+
+        handler.close();
+        Assert.assertTrue(handler.isClosed());
+    }
+
+    @Test
+    public void testSingleErrorHandler() {
+
+        this.config = new MessageObjectHandlerConfig();
+        this.config.setSingleResponse(true);
+        this.config.setSendChannel(this.testChannelSend);
+        this.config.setReturnChannel(this.testChannelSend);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+
+        TestObserver<Message> observer = this.bus.getApi().getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
+
+        handler.handle(this.success, this.error);
+
+        this.bus.sendErrorMessage(this.testChannelSend, "this is heavy dude");
+        this.bus.sendResponseMessage(this.testChannelSend, "meeseeks");
+
+        handler.tick("meeseeks");
+        handler.tick("meeseeks");
+
+        this.bus.sendErrorMessage(this.testChannelSend, "this is heavy dude");
+
+        observer.assertValueCount(1);
+
+        Assert.assertEquals(0, this.successCount);
         Assert.assertEquals(1, this.errorCount);
 
         handler.close();
         Assert.assertTrue(handler.isClosed());
-
     }
 
     @Test

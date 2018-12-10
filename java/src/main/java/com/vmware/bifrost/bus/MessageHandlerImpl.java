@@ -6,6 +6,7 @@ import com.vmware.bifrost.bus.model.MessageType;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,8 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
             }
             if (this.config.isSingleResponse()) {
                 this.bus.closeChannel(this.config.getReturnChannel(), this.getClass().getName());
+                // Stop processing messages after first message/error.
+                this.close();
             }
         };
     }
@@ -62,12 +65,16 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
               this.getClass().getName(),
               // Add only one channel reference per MessageHandler instance
               true);
+
+        Predicate<? super Message> filterByMessageId = (Message message) ->
+            this.config.getId() == null || this.config.getId().equals(message.getId());
+
         if (this.config.isSingleResponse()) {
-            this.sub = this.channel.take(1).subscribe(this.createHandler(successHandler));
-            this.errorSub = this.errors.take(1).subscribe(this.createHandler(errorHandler));
+            this.sub = this.channel.filter(filterByMessageId).take(1).subscribe(this.createHandler(successHandler));
+            this.errorSub = this.errors.filter(filterByMessageId).take(1).subscribe(this.createHandler(errorHandler));
         } else {
-            this.sub = this.channel.subscribe(this.createHandler(successHandler));
-            this.errorSub = this.errors.subscribe(this.createHandler(errorHandler));
+            this.sub = this.channel.filter(filterByMessageId).subscribe(this.createHandler(successHandler));
+            this.errorSub = this.errors.filter(filterByMessageId).subscribe(this.createHandler(errorHandler));
         }
         return this.sub;
     }
