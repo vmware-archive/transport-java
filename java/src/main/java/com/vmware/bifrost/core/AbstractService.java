@@ -94,9 +94,12 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
 
                         this.sendError(resp);
 
-
                     }
+                },
+                (Message message) -> {
+                    this.logDebugMessage("ignore!" + message.getPayload());
                 }
+
         );
 
         this.logInfoMessage("\uD83D\uDCE3", this.getClass().getSimpleName() + " initialized, handling requests on channel", this.serviceChannel);
