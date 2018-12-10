@@ -2,7 +2,7 @@ package oldsamples.servbot;
 
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
-import com.vmware.bifrost.bus.ClassMapper;
+import com.vmware.bifrost.core.util.ClassMapper;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;

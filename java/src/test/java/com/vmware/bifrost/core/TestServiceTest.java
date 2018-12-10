@@ -4,6 +4,7 @@
 
 package com.vmware.bifrost.core;
 
+import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
@@ -21,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
@@ -46,6 +48,18 @@ public class TestServiceTest {
 
     @Autowired
     EventBus bus;
+
+    @Autowired
+    ApplicationContext context;
+
+    @Test
+    public void checkChannelIsSet() {
+
+        TestService service = context.getBean(TestService.class);
+        Assert.assertEquals("test::TestService", service.getServiceChannel());
+
+    }
+
 
     @Test
     public void testServiceCommandA() {
@@ -105,16 +119,17 @@ public class TestServiceTest {
 
         String serviceChannel = "test::TestService";
 
-
         bus.requestOnce(
                 serviceChannel,
                 "Some String",
                 (Message msg) -> {
                     // should not fire
+                    Assert.fail();
                 },
                 (Message msg) -> {
-                    TestResponse resp = (TestResponse)msg.getPayload();
-                    Assert.assertEquals("smelly", resp.getErrorMessage());
+                    Response resp = (Response)msg.getPayload();
+                    Assert.assertEquals("TestService cannot handle request, "
+                            + "payload isn't derived from 'Request', type: String", resp.getErrorMessage());
                 }
         );
     }
