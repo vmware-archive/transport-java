@@ -3,8 +3,6 @@
  */
 package com.vmware.bifrost.bus.model;
 
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 import java.util.UUID;
 
 public interface Message<T> {
@@ -16,10 +14,6 @@ public interface Message<T> {
     void setPayloadClass(Class<T> payloadClass);
 
     Class<T> getPayloadClass();
-
-    JsonSchema getSchema();
-
-    void setSchema(JsonSchema schema);
 
     boolean isRequest();
 

@@ -3,7 +3,6 @@
  */
 package com.vmware.bifrost.bus;
 
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.vmware.bifrost.bus.model.Message;
 import io.reactivex.functions.Consumer;
 
@@ -25,14 +24,6 @@ public interface EventBus {
      */
     void sendRequestMessage(String channel, Object payload);
 
-    /**
-     * Send command payload to channel.
-     *
-     * @param channel channel name to send payload to
-     * @param payload the payload to be sent
-     * @param schema the schema of the payload
-     */
-    void sendRequestMessage(String channel, Object payload, JsonSchema schema);
 
     /**
      * Send a command payload to a channel with a supplied ID in the command
@@ -43,15 +34,6 @@ public interface EventBus {
      */
     void sendRequestMessageWithId(String channel, Object payload, UUID id);
 
-    /**
-     * Send a command payload to a channel with a supplied ID in the command
-     *
-     * @param channel channel name to send payload to
-     * @param payload the payload to be sent
-     * @parma id the UUID of the command
-     * @param schema the schema of the payload
-     */
-    void sendRequestMessageWithId(String channel, Object payload, UUID id, JsonSchema schema);
 
     /**
      * Send response payload to a channel.
@@ -62,30 +44,12 @@ public interface EventBus {
     void sendResponseMessage(String channel, Object payload);
 
     /**
-     * Send response payload to a channel.
-     *
-     * @param channel the channel name to send payload to
-     * @param payload the payload to be sent
-     * @param schema the schema of the payload
-     */
-    void sendResponseMessage(String channel, Object payload, JsonSchema schema);
-
-    /**
      * Send a response payload to a channel with a supplied ID in the response.
      * @param channel the channel name to send payload to
      * @param payload the payload to be sent
      * @param id the UUID to be attached to the response
      */
     void sendResponseMessageWithId(String channel, Object payload, UUID id);
-
-    /**
-     * Send a response payload to a channel with a supplied ID in the response.
-     * @param channel the channel name to send payload to
-     * @param payload the payload to be sent
-     * @param id the UUID to be attached to the response
-     * @param schema the schema of the payload
-     */
-    void sendResponseMessageWithId(String channel, Object payload, UUID id, JsonSchema schema);
 
     /**
      * Listen for a command on sendChannel and return a single response via the generateHandler() method.
@@ -110,38 +74,6 @@ public interface EventBus {
     BusTransaction respondOnce(String sendChannel,
             String returnChannel,
             Function<Message, Object> generateHandler);
-
-    /**
-     * Listen for a command on sendChannel and return a single response via the generateHandler() method.
-     * The returned value will be sent as a response message on the return channel (defaults to
-     * sendChannel if left blank). Once a single response has been sent, no more command messages
-     * will be processed.
-     *
-     * @param sendChannel the channel to listen for requests
-     * @param returnChannel the channel to send responses to (defaults to sendChannel if left blank
-     * @param schema the schema of the response message payload.
-     * @param generateHandler function for generating responses based on the incoming message.
-     */
-    BusTransaction respondOnce(String sendChannel,
-                               String returnChannel,
-                               JsonSchema schema,
-                               Function<Message, Object> generateHandler);
-
-    /**
-     * Listen for requests on sendChannel and return responses via the generateHandler method.
-     * The returned value will be sent as a response message on the return channel (defaults to
-     * sendChannel if left blank). The responder will continue to stream responses to each
-     * command until the BusTransaction.unsubscribe() method is called.
-     *
-     * @param sendChannel the channel to listen for requests.
-     * @param returnChannel the channel to send responses to (defaults to sendChannel if left blank)
-     * @param schema the schema of the response message payload.
-     * @param generateHandler function for generating responses based on the incoming message.
-     */
-    BusTransaction respondStream(String sendChannel,
-                                 String returnChannel,
-                                 JsonSchema schema,
-                                 Function<Message, Object> generateHandler);
 
     /**
      * Listen for requests on sendChannel and return responses via the generateHandler method.
@@ -223,7 +155,6 @@ public interface EventBus {
      * @param sendChannel the channel to send the initial command to
      * @param payload the payload to be sent as the command
      * @param returnChannel the return channel to listen for responses on (defaults to sendChannel)
-     * @param schema the schema of the payload.
      * @param from optional name of the actor implementing (for logging)
      * @param successHandler handler which will be invoked in case of success response
      * @param errorHandler handler which will be invoked in case of error response
@@ -231,7 +162,6 @@ public interface EventBus {
     BusTransaction requestOnce(String sendChannel,
                                Object payload,
                                String returnChannel,
-                               JsonSchema schema,
                                String from,
                                Consumer<Message> successHandler,
                                Consumer<Message> errorHandler);
@@ -303,7 +233,6 @@ public interface EventBus {
      * @param sendChannel the channel to send the command to
      * @param payload the payload you want to send.
      * @param returnChannel the return channel to listen for responses on (defaults to send channel)
-     * @param schema the schema of the payload.
      * @param from options name of the actor implementing (for logging)
      * @param successHandler handler which will be invoked in case of success response
      * @param errorHandler handler which will be invoked in case of error response
@@ -312,7 +241,6 @@ public interface EventBus {
                                      String sendChannel,
                                      Object payload,
                                      String returnChannel,
-                                     JsonSchema schema,
                                      String from,
                                      Consumer<Message> successHandler,
                                      Consumer<Message> errorHandler);
@@ -377,14 +305,12 @@ public interface EventBus {
      * @param payload the payload to be sent as the command
      * @param returnChannel the return channel to listen for responses on (defaults to sendChannel)
      * @param from optional name of the actor implementing (for logging)
-     * @param schema the schema of the payload.
      * @param successHandler handler which will be invoked in case of success response
      * @param errorHandler handler which will be invoked in case of error response
      */
     BusTransaction requestStream(String sendChannel,
                                  Object payload,
                                  String returnChannel,
-                                 JsonSchema schema,
                                  String from,
                                  Consumer<Message> successHandler,
                                  Consumer<Message> errorHandler);
@@ -458,7 +384,6 @@ public interface EventBus {
      * @param payload the payload to be sent as the command
      * @param returnChannel the return channel to listen for responses on (defaults to sendChannel)
      * @param from optional name of the actor implementing (for logging)
-     * @param schema the schema of the payload.
      * @param successHandler handler which will be invoked in case of success response
      * @param errorHandler handler which will be invoked in case of error response
      */
@@ -466,7 +391,6 @@ public interface EventBus {
                                        String sendChannel,
                                        Object payload,
                                        String returnChannel,
-                                       JsonSchema schema,
                                        String from,
                                        Consumer<Message> successHandler,
                                        Consumer<Message> errorHandler);
@@ -494,20 +418,6 @@ public interface EventBus {
                                        Consumer<Message> errorHandler);
 
     /**
-     * Listen to a channel for all requests, continue handling requests until
-     * the BusTransaction is closed.
-     *
-     * @param channel the channel to listen to for requests
-     * @param schema the schema of the request payload.
-     * @param successHandler handler which will be invoked for request messages
-     * @param errorHandler handler which will be invoked in case of error messages
-     */
-    BusTransaction listenRequestStream(String channel,
-                                       JsonSchema schema,
-                                       Consumer<Message> successHandler,
-                                       Consumer<Message> errorHandler);
-
-    /**
      * Listen for all responses on a channel. Continue to handle responses until the BusTransaction is closed.
      *
      * @param channel the channel to listen to for responses.
@@ -520,12 +430,10 @@ public interface EventBus {
      * Listen for all responses on a channel. Continue to handle responses until the BusTransaction is closed.
      *
      * @param channel the channel to listen to for responses.
-     * @param schema the schema of the response payload.
      * @param successHandler handler which will be invoked for response messages
      * @param errorHandler handler which will be invoked in case of error messages
      */
     BusTransaction listenStream(String channel,
-                                JsonSchema schema,
                                 Consumer<Message> successHandler,
                                 Consumer<Message> errorHandler);
 
@@ -538,15 +446,6 @@ public interface EventBus {
     void sendErrorMessage(String channel, Object payload);
 
     /**
-     * Send error payload to channel.
-     *
-     * @param channel the channel to send the payload to
-     * @param payload the payload to be send
-     * @param schema the schema of the payload
-     */
-    void sendErrorMessage(String channel, Object payload, JsonSchema schema);
-
-    /**
      * Send error payload to channel, with an ID.
      *
      * @param channel the channel to send the payload to
@@ -554,16 +453,6 @@ public interface EventBus {
      * @param id the UUID for the response
      */
     void sendErrorMessageWithId(String channel, Object payload, UUID id);
-
-    /**
-     * Send error payload to channel, with an ID.
-     *
-     * @param channel the channel to send the payload to
-     * @param payload the payload to be send
-     * @param id the UUID for the response
-     * @param schema the schema of the payload
-     */
-    void sendErrorMessageWithId(String channel, Object payload, UUID id, JsonSchema schema);
 
     /**
      * Close a channel. If the closer is the last subscriber, then the channel is destroyed.

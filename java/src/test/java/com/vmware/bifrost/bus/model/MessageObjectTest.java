@@ -1,34 +1,12 @@
-package com.vmware.bifrost.bus.model;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 /**
  * Copyright(c) VMware Inc. 2017
  */
+package com.vmware.bifrost.bus.model;
 
+import org.junit.Assert;
+import org.junit.Test;
 
 public class MessageObjectTest {
-
-    private JsonSchema schema;
-    private ObjectMapper mapper;
-    private JsonSchemaGenerator schemaGen;
-
-    @Before
-    public void setup() throws Exception {
-        this.mapper = new ObjectMapper();
-        this.schemaGen = new JsonSchemaGenerator(mapper);
-        this.schema = schemaGen.generateSchema(MessageSchema.class);
-    }
-
-    @Test
-    public void checkSchema() throws Exception {
-        //System.out.println(this.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(schema));
-    }
 
     @Test
     public void createBasicMessage() {
@@ -59,13 +37,6 @@ public class MessageObjectTest {
         messageObject.setType(MessageType.MessageTypeResponse);
 
         Assert.assertEquals(MessageType.MessageTypeResponse, messageObject.getType());
-        Assert.assertNotNull(this.schema);
-        Assert.assertEquals(true, this.schema.isObjectSchema());
-        Assert.assertNull(messageObject.getSchema());
-
-        messageObject.setSchema(this.schema);
-
-        Assert.assertNotNull(messageObject.getSchema());
 
     }
 

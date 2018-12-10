@@ -3,14 +3,10 @@
  */
 package com.vmware.bifrost.bus;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.model.MessageObject;
 import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
-import com.vmware.bifrost.bus.model.MessageSchema;
 import com.vmware.bifrost.bus.model.MessageType;
 import com.vmware.bifrost.bus.model.MonitorObject;
 import com.vmware.bifrost.bus.model.MonitorType;
@@ -20,8 +16,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import io.reactivex.Observable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
@@ -32,11 +26,7 @@ import static org.hamcrest.core.AnyOf.anyOf;
 public class EventBusImplTest {
 
     private EventBus bus;
-    private Logger logger;
 
-    private JsonSchema schema;
-    private ObjectMapper mapper;
-    private JsonSchemaGenerator schemaGen;
     private int counter;
     private int responsesWithIdCounter;
     private Message message;
@@ -47,11 +37,7 @@ public class EventBusImplTest {
     @Before
     public void before() throws Exception {
         this.bus = new EventBusImpl();
-        this.logger = LoggerFactory.getLogger(this.getClass());
 
-        this.mapper = new ObjectMapper();
-        this.schemaGen = new JsonSchemaGenerator(mapper);
-        this.schema = schemaGen.generateSchema(MessageSchema.class);
         this.counter = 0;
         this.errors = 0;
     }
@@ -772,7 +758,6 @@ public class EventBusImplTest {
 
         this.bus.listenStream(
               chan,
-              null,
               (Message message) -> this.counter++,
               (Message message) -> this.errors++);
 
@@ -868,7 +853,6 @@ public class EventBusImplTest {
         this.bus.respondStream(chan, (Message message) -> message.getPayload() + "-response");
 
         this.bus.listenStream(chan,
-              null,
               (Message message) -> this.counter++,
               (Message message) -> this.errors++ );
 
@@ -1126,7 +1110,6 @@ public class EventBusImplTest {
         String chan = "#local-simple";
         BusTransaction busTransaction = this.bus.listenStream(
               chan,
-              null,
               (Message message) -> {
                   ++this.counter;
                   this.message = message;
