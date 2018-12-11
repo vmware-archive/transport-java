@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.BusTransaction;
+import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.model.RestServiceRequest;
@@ -82,14 +83,13 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
                         this.logErrorMessage("Service unable to process request, " +
                                 "request cannot be cast", message.getPayload().getClass().getSimpleName());
 
-                        Response resp = new Response(message.getId(), message.getPayload());
-                        resp.setError(true);
-                        resp.setErrorCode(500);
-                        resp.setErrorMessage(this.getClass().getSimpleName()
-                                + " cannot handle request, payload isn't derived from 'Request', type: "
-                                + message.getPayload().getClass().getSimpleName());
-
-                        this.sendError(resp, message.getId());
+                        RestError error = new RestError(
+                                this.getClass().getSimpleName()
+                                        + " cannot handle request, payload isn't derived from 'Request', type: "
+                                        + message.getPayload().getClass().getSimpleName(),
+                                500
+                        );
+                        this.sendError(error, message.getId());
                     }
                 },
                 (Message message) -> {
@@ -99,7 +99,7 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
 
         this.logInfoMessage("\uD83D\uDCE3", this.getClass().getSimpleName()
                 + " initialized, handling requests on channel", this.serviceChannel);
-        this.methodLookupUtil.loadCustomHandlers();
+        // this.methodLookupUtil.loadCustomHandlers();
     }
 
     protected abstract void handleServiceRequest(RequestType request, Message busMessage);
@@ -113,7 +113,7 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
         this.bus.sendResponseMessageWithId(this.serviceChannel, response, id);
     }
 
-    protected <E extends Response> void sendError(E error, UUID id) {
+    protected <E extends GeneralError> void sendError(E error, UUID id) {
         this.bus.sendErrorMessageWithId(this.serviceChannel, error, id);
     }
 
@@ -149,9 +149,12 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
                     successHandler.accept((Resp) message.getPayload());
                 },
                 (Message message) -> {
-                    errorHandler.accept((RestError) message.getPayload());
+                    RestError serviceResponse = (RestError) message.getPayload();
+                    errorHandler.accept(serviceResponse);
                 }
         );
+
     }
+
 }
 

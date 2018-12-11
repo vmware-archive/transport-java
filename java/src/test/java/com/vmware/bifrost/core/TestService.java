@@ -72,18 +72,15 @@ public class TestService extends AbstractService<TestRequest, TestResponse>{
                 request.getPayload(),
                 null,
                 String.class.getName(),
-                (String apiResponse) -> {
-                    responsePayload.setResponseValue(apiResponse);
+                (RestServiceResponse response) -> {
+                    responsePayload.setResponseValue((String)response.getPayload());
                     this.sendResponse(
                             new TestResponse(request.getId(), responsePayload),
                             id
                     );
                 },
                 (RestError error) -> {
-                    TestResponse resp = new TestResponse(request.getId(), responsePayload, true);
-                    resp.setErrorCode(error.errorCode);
-                    resp.setErrorMessage(error.message);
-                    this.sendError(resp, id);
+                    this.sendError(error, id);
                 }
         );
     }

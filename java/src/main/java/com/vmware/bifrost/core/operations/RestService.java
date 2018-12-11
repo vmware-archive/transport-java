@@ -80,12 +80,7 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
         Consumer<RestError> errorHandler = (RestError error) -> {
 
             this.logErrorMessage(this.getClass().getSimpleName() + " Error with making REST response ", request.getUri().toASCIIString());
-
-            RestServiceResponse response = new RestServiceResponse(request.getId(), error);
-            response.setError(true);
-            response.setErrorCode(error.errorCode);
-            response.setErrorMessage(error.message);
-            this.sendError(response, message.getId());
+            this.sendError(error, message.getId());
 
         };
 
@@ -97,14 +92,10 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
         } catch (Exception exp) {
 
             // something bubbled up, throw it back as a response.
-
             this.logErrorMessage(this.getName() + " Exception thrown when making REST response ", request.getUri().toASCIIString());
 
-            RestServiceResponse response = new RestServiceResponse(request.getId(),  exp);
-            response.setError(true);
-            response.setErrorCode(500);
-            response.setErrorMessage(exp.getMessage());
-            this.sendError(response, message.getId());
+            RestError error = new RestError(exp.getMessage(), 500);
+            this.sendError(error, message.getId());
 
         }
 
