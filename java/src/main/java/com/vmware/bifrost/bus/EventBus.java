@@ -24,7 +24,6 @@ public interface EventBus {
      */
     void sendRequestMessage(String channel, Object payload);
 
-
     /**
      * Send a command payload to a channel with a supplied ID in the command
      *
@@ -33,7 +32,6 @@ public interface EventBus {
      * @parma id the UUID of the command
      */
     void sendRequestMessageWithId(String channel, Object payload, UUID id);
-
 
     /**
      * Send response payload to a channel.
@@ -418,6 +416,53 @@ public interface EventBus {
                                        Consumer<Message> errorHandler);
 
     /**
+     * Listen to a channel for all requests, continue handling requests until
+     * the BusTransaction is closed.
+     *
+     * @param channel the channel to listen to for requests
+     * @param successHandler handler which will be invoked for request messages
+     * @param errorHandler handler which will be invoked in case of error messages
+     * @param id optional ID of message you're looking for, will filter out all other messages
+     */
+    BusTransaction listenRequestStream(String channel,
+                                       Consumer<Message> successHandler,
+                                       Consumer<Message> errorHandler,
+                                       UUID id);
+
+    /**
+     * Listen for a single request on a channel, process then automatically stop handling any more.
+     *
+     * @param channel the channel to listen to for requests
+     * @param successHandler handler which will be invoked for request messages
+     */
+    BusTransaction listenRequestOnce(String channel,
+                                     Consumer<Message> successHandler);
+
+    /**
+     * Listen for a single request on a channel, process then automatically stop handling any more.
+     *
+     * @param channel the channel to listen to for requests
+     * @param successHandler handler which will be invoked for request messages
+     * @param errorHandler handler which will be invoked in case of error messages
+     */
+    BusTransaction listenRequestOnce(String channel,
+                                     Consumer<Message> successHandler,
+                                     Consumer<Message> errorHandler);
+
+    /**
+     * Listen for a single request on a channel, process then automatically stop handling any more.
+     *
+     * @param channel the channel to listen to for requests
+     * @param successHandler handler which will be invoked for request messages
+     * @param errorHandler handler which will be invoked in case of error messages
+     * @param id optional ID of message you're looking for, will filter out all other messages
+     */
+    BusTransaction listenRequestOnce(String channel,
+                                     Consumer<Message> successHandler,
+                                     Consumer<Message> errorHandler,
+                                     UUID id);
+
+    /**
      * Listen for all responses on a channel. Continue to handle responses until the BusTransaction is closed.
      *
      * @param channel the channel to listen to for responses.
@@ -436,6 +481,39 @@ public interface EventBus {
     BusTransaction listenStream(String channel,
                                 Consumer<Message> successHandler,
                                 Consumer<Message> errorHandler);
+
+    /**
+     * Listen for all responses on a channel. Continue to handle responses until the BusTransaction is closed.
+     *
+     * @param channel the channel to listen to for responses.
+     * @param successHandler handler which will be invoked for response messages
+     * @param errorHandler handler which will be invoked in case of error messages
+     * @param id optional ID of message you're looking for, will filter out all other messages
+     */
+    BusTransaction listenStream(String channel,
+                                Consumer<Message> successHandler,
+                                Consumer<Message> errorHandler,
+                                UUID id);
+
+    /**
+     * Listen for a single response on a channel, process then automatically stop handling any more.
+     *
+     * @param channel channel to listen to for responses.
+     * @param successHandler handler which will be invoked for response messages
+     */
+    BusTransaction listenOnce(String channel,
+                              Consumer<Message> successHandler);
+
+    /**
+     * Listen for a single response on a channel, process then automatically stop handling any more.
+     *
+     * @param channel channel to listen to for responses.
+     * @param successHandler handler which will be invoked for response messages
+     * @param errorHandler handler which will be invoked in case of error messages
+     */
+    BusTransaction listenOnce(String channel,
+                              Consumer<Message> successHandler,
+                              Consumer<Message> errorHandler);
 
     /**
      * Send error payload to channel.

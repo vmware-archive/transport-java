@@ -1141,6 +1141,98 @@ public class EventBusImplTest {
     }
 
     @Test
+    public void testListenStreamWithId() {
+        String chan = "#local-simple";
+        UUID id = UUID.randomUUID();
+        BusTransaction busTransaction = this.bus.listenStream(
+              chan,
+              (Message message) -> {
+                  ++this.counter;
+                  this.message = message;
+              },
+              (Message message) -> {
+                  ++this.errors;
+                  this.message = message;
+              },
+              id
+        );
+
+        bus.sendResponseMessage(chan, "testMessage");
+        Assert.assertEquals(0, this.counter);
+        Assert.assertEquals(0, this.errors);
+
+        bus.sendResponseMessageWithId(chan, "messageWithId", id);
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(0, this.errors);
+        Assert.assertEquals(this.message.getPayload(), "messageWithId");
+
+        bus.sendErrorMessage(chan, "error");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(0, this.errors);
+
+        bus.sendErrorMessageWithId(chan, "errorWithId", id);
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(1, this.errors);
+        Assert.assertEquals(this.message.getPayload(), "errorWithId");
+
+        bus.sendResponseMessageWithId(chan, "messageWithId2", id);
+        bus.sendErrorMessageWithId(chan, "errorWithId2", id);
+        Assert.assertEquals(2, this.counter);
+        Assert.assertEquals(2, this.errors);
+
+        busTransaction.unsubscribe();
+
+        bus.sendResponseMessageWithId(chan, "messageWithId2", id);
+        bus.sendErrorMessageWithId(chan, "errorWithId2", id);
+        Assert.assertEquals(2, this.counter);
+        Assert.assertEquals(2, this.errors);
+    }
+
+    @Test
+    public void testListenOnce() {
+        String chan = "#local-simple";
+        this.bus.listenOnce(
+              chan,
+              (Message message) -> {
+                  ++this.counter;
+                  this.message = message;
+              }
+        );
+
+        bus.sendResponseMessage(chan, "testMessage");
+        Assert.assertEquals(1, this.counter);
+
+        bus.sendResponseMessage(chan, "testMessage2");
+        Assert.assertEquals(1, this.counter);
+    }
+
+    @Test
+    public void testListenOnceWithErrorHandling() {
+        String chan = "#local-simple";
+        this.bus.listenOnce(
+              chan,
+              (Message message) -> {
+                  ++this.counter;
+                  this.message = message;
+              },
+              (Message message) -> {
+                  ++this.errors;
+                  this.message = message;
+              }
+        );
+
+        bus.sendErrorMessage(chan, "error");
+        bus.sendResponseMessage(chan, "testMessage");
+        Assert.assertEquals(1, this.errors);
+        Assert.assertEquals(0, this.counter);
+
+        bus.sendErrorMessage(chan, "error");
+        bus.sendResponseMessage(chan, "testMessage2");
+        Assert.assertEquals(1, this.errors);
+        Assert.assertEquals(0, this.counter);
+    }
+
+    @Test
     public void testListenRequestStream() {
         String chan = "#local-simple";
         BusTransaction busTransaction = this.bus.listenRequestStream(
@@ -1214,6 +1306,97 @@ public class EventBusImplTest {
 
         Assert.assertEquals(1, this.counter);
         Assert.assertEquals(2, this.errors);
+    }
+
+    @Test
+    public void testListenRequestStreamWithId() {
+        String chan = "#local-simple";
+        UUID id = UUID.randomUUID();
+        this.bus.listenRequestStream(
+              chan,
+              (Message message) -> {
+                  ++this.counter;
+                  this.message = message;
+              },
+              (Message message) -> {
+                  ++this.errors;
+                  this.message = message;
+              },
+              id
+        );
+
+        bus.sendRequestMessage(chan, "request1");
+        bus.sendErrorMessage(chan, "error1");
+        Assert.assertEquals(0, this.counter);
+        Assert.assertEquals(0, this.errors);
+
+        bus.sendRequestMessageWithId(chan, "request1", id);
+        bus.sendErrorMessageWithId(chan, "error1", id);
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(1, this.errors);
+    }
+
+    @Test
+    public void testListenRequestOnce() {
+        String chan = "#local-simple";
+        BusTransaction busTransaction = this.bus.listenRequestOnce(
+              chan,
+              (Message message) -> {
+                  ++this.counter;
+                  this.message = message;
+              }
+        );
+
+        Channel chanObj = this.bus.getApi().getChannelMap().get(chan);
+        Assert.assertEquals(chanObj.getRefCount().intValue(), 1);
+
+        Assert.assertTrue(busTransaction.isSubscribed());
+
+        bus.sendRequestMessage(chan, "request1");
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(this.message.getPayload(), "request1");
+
+        // Verify that subsequent requests & errors are ignored.
+        bus.sendErrorMessage(chan, "error");
+        bus.sendRequestMessage(chan, "request2");
+        bus.sendResponseMessage(chan, "response1");
+
+        Assert.assertEquals(1, this.counter);
+        Assert.assertEquals(chanObj.getRefCount().intValue(), 0);
+    }
+
+    @Test
+    public void testListenRequestOnceWithErrorHandling() {
+        String chan = "#local-simple";
+        BusTransaction busTransaction = this.bus.listenRequestOnce(
+              chan,
+              (Message message) -> {
+                  ++this.counter;
+                  this.message = message;
+              },
+              (Message message) -> {
+                  ++this.errors;
+                  this.message = message;
+              }
+        );
+
+        Channel chanObj = this.bus.getApi().getChannelMap().get(chan);
+        Assert.assertEquals(chanObj.getRefCount().intValue(), 1);
+
+        bus.sendErrorMessage(chan, "error");
+        bus.sendRequestMessage(chan, "request1");
+        Assert.assertEquals(1, this.errors);
+        Assert.assertEquals(0, this.counter);
+
+        // Verify that subsequent requests & errors are ignored.
+        bus.sendErrorMessage(chan, "error");
+        bus.sendRequestMessage(chan, "request2");
+        bus.sendResponseMessage(chan, "response1");
+
+        Assert.assertEquals(1, this.errors);
+        Assert.assertEquals(0, this.counter);
+
+        Assert.assertEquals(chanObj.getRefCount().intValue(), 0);
     }
 
     @Test
