@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright(c) VMware Inc. 2018
  */
 package com.vmware.bifrost.core.model;
@@ -11,6 +11,11 @@ import org.springframework.http.HttpMethod;
 import java.net.URI;
 import java.util.Map;
 
+/**
+ * Used by restServiceRequest in AbstractService.
+ * @param <Req> The request payload type (what we're sending)
+ * @param <Resp> the response payload type (what we're expecting back)
+ */
 public class RestServiceRequest<Req, Resp> extends Request<Req> {
 
     @Getter @Setter
