@@ -349,6 +349,33 @@ public class RestServiceTest {
     }
 
     @Test
+    public void testRemoteURIHeaderExecuted() throws Exception {
+
+        stubFor(get(urlEqualTo("/remote-headers"))
+                .withHeader("Some-Header", containing("Melody"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody("headersWork!")));
+
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Some-Header", "Melody");
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setApiClass(String.class.getName());
+        operation.setUri(new URI("http://localhost:9999/remote-headers"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setHeaders(headers);
+        operation.setSuccessHandler(
+                (String response) -> {
+                    Assert.assertEquals("headersWork!", response);
+                }
+        );
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
     public void testLocalURIHeaderMultipleNoNameExecuted() throws Exception {
 
         Map<String, String> headers = new HashMap<>();
@@ -470,7 +497,6 @@ public class RestServiceTest {
                         .withBody("returnAStringNotSampleDTO")));
 
 
-
         RestOperation<Object, String> operation = new RestOperation<>();
         operation.setApiClass(SampleDTO.class.getName());
         operation.setUri(new URI("http://localhost:9999/invalid-return-class"));
@@ -493,7 +519,6 @@ public class RestServiceTest {
                         .withStatus(HttpStatus.OK.value())
                         .withHeader("Content-Type", APPLICATION_JSON_VALUE)
                         .withBody("somethingFancy")));
-
 
 
         RestOperation<Object, String> operation = new RestOperation<>();
@@ -530,7 +555,7 @@ public class RestServiceTest {
                 CoreChannels.RestService,
                 req,
                 (Message message) -> {
-                    RestServiceResponse resp = (RestServiceResponse)message.getPayload();
+                    RestServiceResponse resp = (RestServiceResponse) message.getPayload();
                     Assert.assertEquals("bus-request-success", resp.getPayload().toString());
                 },
                 (Message message) -> {
@@ -563,10 +588,42 @@ public class RestServiceTest {
                     Assert.fail();
                 },
                 (Message message) -> {
-                    RestServiceResponse resp = (RestServiceResponse)message.getPayload();
-                    Assert.assertEquals(500, resp.getErrorCode());
+                    RestError error = (RestError) message.getPayload();
+                    Assert.assertEquals(new Integer(500), error.errorCode);
                     Assert.assertEquals(
-                            "REST Client Error, unable to complete request: 500 Server Error", resp.getErrorMessage());
+                            "REST Client Error, unable to complete request: 500 Server Error", error.message);
+                }
+        );
+    }
+
+    @Test
+    public void testGenericExceptionCaughtAndHandled() throws Exception {
+
+        stubFor(get(urlEqualTo("/throw-exception"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.BAD_REQUEST.value())));
+
+        UUID id = UUID.randomUUID();
+        RestServiceRequest req = new RestServiceRequest();
+
+        // this should cause restServiceRequest to throw a ClassNotFoundException
+        req.setApiClass("com.fake.ClassDoesNotExist");
+        req.setMethod(HttpMethod.GET);
+        req.setUri(new URI("http://localhost:9999/throw-exception"));
+        req.setSentFrom(this.getClass().getSimpleName());
+        req.setId(id);
+        this.bus.requestOnceWithId(
+                id,
+                CoreChannels.RestService,
+                req,
+                (Message message) -> {
+                    Assert.fail();
+                },
+                (Message message) -> {
+                    RestError error = (RestError) message.getPayload();
+                    Assert.assertEquals(new Integer(500), error.errorCode);
+                    Assert.assertEquals(
+                            "Exception thrown 'ClassNotFoundException: com.fake.ClassDoesNotExist'", error.message);
                 }
         );
     }

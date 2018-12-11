@@ -94,11 +94,11 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
             // something bubbled up, throw it back as a response.
             this.logErrorMessage(this.getName() + " Exception thrown when making REST response ", request.getUri().toASCIIString());
 
-            RestError error = new RestError(exp.getMessage(), 500);
+            RestError error = new RestError("Exception thrown '"
+                    + exp.getClass().getSimpleName() + ": " + exp.getMessage() + "'", 500);
             this.sendError(error, message.getId());
 
         }
-
     }
 
     /**
@@ -157,13 +157,13 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
             ResponseEntity resp;
             switch (operation.getMethod()) {
                 case GET:
-                    operation.getSuccessHandler().accept(
-                            (Resp) restTemplate.getForObject(
-                                    operation.getUri(),
-                                    Class.forName(operation.getApiClass()
-                                    )
-                            )
+                    resp = restTemplate.exchange(
+                            operation.getUri(),
+                            HttpMethod.GET,
+                            entity,
+                            Class.forName(operation.getApiClass())
                     );
+                    operation.getSuccessHandler().accept((Resp) resp.getBody());
                     break;
 
                 case POST:
@@ -223,6 +223,7 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
                             + operation.getUri().toString(), 500)
             );
         }
+
     }
 
     private URIMethodResult locateRestControllerForURIAndMethod(RestOperation operation) throws Exception {

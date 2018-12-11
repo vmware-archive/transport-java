@@ -83,10 +83,11 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
                         this.logErrorMessage("Service unable to process request, " +
                                 "request cannot be cast", message.getPayload().getClass().getSimpleName());
 
-                        RestError error = new RestError(
+                        GeneralError error = new GeneralError(
                                 this.getClass().getSimpleName()
                                         + " cannot handle request, payload isn't derived from 'Request', type: "
                                         + message.getPayload().getClass().getSimpleName(),
+                                cce,
                                 500
                         );
                         this.sendError(error, message.getId());

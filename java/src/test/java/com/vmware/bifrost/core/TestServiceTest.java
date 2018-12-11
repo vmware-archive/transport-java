@@ -9,6 +9,7 @@ import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.*;
 import com.vmware.bifrost.core.operations.MockRestController;
@@ -141,9 +142,9 @@ public class TestServiceTest {
                     Assert.fail();
                 },
                 (Message msg) -> {
-                    Response resp = (Response) msg.getPayload();
+                    GeneralError error = (GeneralError) msg.getPayload();
                     Assert.assertEquals("TestService cannot handle request, "
-                            + "payload isn't derived from 'Request', type: String", resp.getErrorMessage());
+                            + "payload isn't derived from 'Request', type: String", error.message);
                 }
         );
     }
