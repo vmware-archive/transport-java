@@ -36,25 +36,29 @@ import java.util.function.Consumer;
  * @see com.vmware.bifrost.core.model.RestOperation
  */
 @Service
+@SuppressWarnings("unchecked")
 public class RestService extends AbstractService<RestServiceRequest, RestServiceResponse> {
-    @Autowired
-    private URIMatcher uriMatcher;
+
+    private final URIMatcher uriMatcher;
+    private final RestControllerInvoker controllerInvoker;
 
     @Autowired
-    private RestControllerInvoker controllerInvoker;
-
-    public RestService() {
+    public RestService(URIMatcher uriMatcher, RestControllerInvoker controllerInvoker) {
         super(CoreChannels.RestService);
+        this.uriMatcher = uriMatcher;
+        this.controllerInvoker = controllerInvoker;
     }
 
     /**
      * Handle bus request.
-     * @param request
+     *
+     * @param request RestServiceRequest instance sent on bus
      */
     @Override
     protected void handleServiceRequest(RestServiceRequest request, Message message) {
 
-        this.logDebugMessage(this.getClass().getSimpleName() + " handling Rest Request for URI: " + request.getUri().toASCIIString());
+        this.logDebugMessage(this.getClass().getSimpleName()
+                + " handling Rest Request for URI: " + request.getUri().toASCIIString());
 
         RestOperation operation = new RestOperation();
         operation.setUri(request.getUri());
@@ -67,21 +71,19 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
 
         // create a success handler to respond
         Consumer<Object> successHandler = (Object restResponseObject) -> {
-
-            this.logDebugMessage(this.getClass().getSimpleName() + " Successful REST response " + request.getUri().toASCIIString());
+            this.logDebugMessage(this.getClass().getSimpleName()
+                    + " Successful REST response " + request.getUri().toASCIIString());
             RestServiceResponse response = new RestServiceResponse(request.getId(), restResponseObject);
             this.sendResponse(response, message.getId());
-
         };
 
         operation.setSuccessHandler(successHandler);
 
         // create an error handler to respond in case something goes wrong.
         Consumer<RestError> errorHandler = (RestError error) -> {
-
-            this.logErrorMessage(this.getClass().getSimpleName() + " Error with making REST response ", request.getUri().toASCIIString());
+            this.logErrorMessage(this.getClass().getSimpleName()
+                    + " Error with making REST response ", request.getUri().toASCIIString());
             this.sendError(error, message.getId());
-
         };
 
         operation.setErrorHandler(errorHandler);
@@ -92,7 +94,8 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
         } catch (Exception exp) {
 
             // something bubbled up, throw it back as a response.
-            this.logErrorMessage(this.getName() + " Exception thrown when making REST response ", request.getUri().toASCIIString());
+            this.logErrorMessage(this.getName()
+                    + " Exception thrown when making REST response ", request.getUri().toASCIIString());
 
             RestError error = new RestError("Exception thrown '"
                     + exp.getClass().getSimpleName() + ": " + exp.getMessage() + "'", 500);
@@ -105,12 +108,11 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
      * If calling the service via DI, then make the requested Rest Request locally via controller, or externally
      * via a standard rest call.
      *
-     * @param operation
+     * @param operation RestOperation to be supplied
      * @param <Req>     request body type
      * @param <Resp>    return body type
      */
-    public <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) throws Exception {
-
+    <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) throws Exception {
 
         // check if the URI is local to the system
         URIMethodResult methodResult = locateRestControllerForURIAndMethod(operation);
@@ -119,39 +121,25 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
             return;
         }
 
-
-        HttpEntity<Req> entity = null;
+        HttpEntity<Req> entity;
         HttpHeaders headers = new HttpHeaders();
 
         // fix patch issue.
         MediaType mediaType = new MediaType("application", "merge-patch+json");
 
         // check if headers are set.
-        if (operation != null && operation.getHeaders() != null) {
-
+        if (operation.getHeaders() != null) {
 
             for (String key : operation.getHeaders().keySet()) {
                 headers.add(key, operation.getHeaders().get(key));
             }
         }
         headers.setContentType(mediaType);
-
-        try {
-            if (headers != null) {
-                entity = new HttpEntity<>(operation.getBody(), headers);
-            } else {
-                entity = new HttpEntity<>(operation.getBody());
-            }
-        } catch (NullPointerException npe) {
-            if (headers != null) {
-                entity = new HttpEntity<>(headers);
-            }
-        }
+        entity = new HttpEntity<>(operation.getBody(), headers);
 
         // required because PATCH causes a freakout.
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         RestTemplate restTemplate = new RestTemplate(requestFactory);
-
 
         try {
             ResponseEntity resp;
@@ -237,7 +225,8 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
             this.logDebugMessage("Located handling method for URI: "
                     + operation.getUri().getRawPath(), result.getMethod().getName());
         } else {
-            this.logDebugMessage("Unable to locate a local handler for for URI: ", operation.getUri().getRawPath());
+            this.logDebugMessage("Unable to locate a local handler for for URI: ",
+                    operation.getUri().getRawPath());
         }
         return result;
     }
