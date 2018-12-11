@@ -354,8 +354,16 @@ public class EventBusImpl extends Loggable implements EventBus {
 
     @Override
     public BusTransaction listenRequestStream(String channel,
+                                              Consumer<Message> successHandler,
+                                              Consumer<Message> errorHandler) {
+        return this.listenRequestStream(channel, successHandler, errorHandler, null);
+    }
+
+    @Override
+    public BusTransaction listenRequestStream(String channel,
                                        Consumer<Message> successHandler,
-                                       Consumer<Message> errorHandler) {
+                                       Consumer<Message> errorHandler,
+                                       UUID id) {
 
         MessageObjectHandlerConfig config
                 = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, null);
@@ -363,6 +371,41 @@ public class EventBusImpl extends Loggable implements EventBus {
         config.setSingleResponse(false);
         config.setReturnChannel(channel);
         config.setSendChannel(channel);
+        config.setId(id);
+
+        MessageHandler messageHandler = this.createMessageHandler(config, true);
+        Disposable sub = messageHandler.handle(successHandler, errorHandler);
+
+        return new BusHandlerTransaction(sub, messageHandler);
+    }
+
+    @Override
+    public BusTransaction listenRequestOnce(String channel,
+                                            Consumer<Message> successHandler) {
+        return this.listenRequestOnce(channel, successHandler, null);
+    }
+
+
+    @Override
+    public BusTransaction listenRequestOnce(String channel,
+                                            Consumer<Message> successHandler,
+                                            Consumer<Message> errorHandler) {
+        return this.listenRequestOnce(channel, successHandler, errorHandler, null);
+    }
+
+    @Override
+    public BusTransaction listenRequestOnce(String channel,
+                                     Consumer<Message> successHandler,
+                                     Consumer<Message> errorHandler,
+                                     UUID id) {
+
+        MessageObjectHandlerConfig config
+              = new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, null);
+
+        config.setSingleResponse(true);
+        config.setReturnChannel(channel);
+        config.setSendChannel(channel);
+        config.setId(id);
 
         MessageHandler messageHandler = this.createMessageHandler(config, true);
         Disposable sub = messageHandler.handle(successHandler, errorHandler);
@@ -381,10 +424,44 @@ public class EventBusImpl extends Loggable implements EventBus {
                                        Consumer<Message> successHandler,
                                        Consumer<Message> errorHandler) {
 
+        return this.listenStream(channel, successHandler, errorHandler, null);
+    }
+
+    @Override
+    public BusTransaction listenStream(String channel,
+                                       Consumer<Message> successHandler,
+                                       Consumer<Message> errorHandler,
+                                       UUID id) {
+
         MessageObjectHandlerConfig config
                 = new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, null);
 
         config.setSingleResponse(false);
+        config.setReturnChannel(channel);
+        config.setSendChannel(channel);
+        config.setId(id);
+
+        MessageHandler messageHandler = this.createMessageHandler(config, false);
+        Disposable sub = messageHandler.handle(successHandler, errorHandler);
+
+        return new BusHandlerTransaction(sub, messageHandler);
+    }
+
+    @Override
+    public BusTransaction listenOnce(String channel,
+                              Consumer<Message> successHandler) {
+        return this.listenOnce(channel, successHandler, null);
+    }
+
+    @Override
+    public BusTransaction listenOnce(String channel,
+                              Consumer<Message> successHandler,
+                              Consumer<Message> errorHandler) {
+
+        MessageObjectHandlerConfig config
+              = new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, null);
+
+        config.setSingleResponse(true);
         config.setReturnChannel(channel);
         config.setSendChannel(channel);
 
