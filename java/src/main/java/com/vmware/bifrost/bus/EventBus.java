@@ -197,6 +197,27 @@ public interface EventBus {
                                      Object payload,
                                      Consumer<Message> successHandler);
 
+
+    /**
+     * Send a command payload to sendChannel with a message ID. Listens for a single response on sendChannel,
+     * but only for a response with the same matching ID. Ideal for multi-message sessions where multiple consumers
+     * are requesting at the same time on the same. The successHandler is used to
+     * process incoming responses. It will stop processing any further responses after the first one.
+     *
+     * @param uuid the UUID of the message.
+     * @param sendChannel the channel to send the command to
+     * @param payload the payload you want to send.
+     * @param successHandler handler which will be invoked in case of success response
+     * @param errorHandler handler which will be invoked in case of error response
+     * @return
+     */
+    BusTransaction requestOnceWithId(UUID uuid,
+                                     String sendChannel,
+                                     Object payload,
+                                     Consumer<Message> successHandler,
+                                     Consumer<Message> errorHandler);
+
+
     /**
      * Send a command payload to sendChannel with a message ID. Listens for a single response on returnChannel,
      * but only for a response with the same matching ID. Ideal for multi-message sessions where multiple consumers

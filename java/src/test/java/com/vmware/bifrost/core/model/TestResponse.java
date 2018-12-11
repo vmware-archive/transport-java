@@ -18,6 +18,11 @@ public class TestResponse extends Response<TestServiceObjectResponse> {
         super(uuid, payload);
     }
 
+    public TestResponse(UUID uuid, TestServiceObjectResponse payload, boolean error) {
+        super(uuid, payload);
+        this.error = error;
+    }
+
     public TestResponse(Integer version, UUID uuid, boolean error) {
         super(version, uuid, error);
     }

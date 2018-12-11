@@ -2,13 +2,20 @@ package com.vmware.bifrost.core.operations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.vmware.bifrost.bus.BusTransaction;
+import com.vmware.bifrost.bus.EventBus;
+import com.vmware.bifrost.bus.EventBusImpl;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.core.CoreChannels;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
+import com.vmware.bifrost.core.model.RestServiceRequest;
+import com.vmware.bifrost.core.model.RestServiceResponse;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
 import com.vmware.bifrost.core.util.RestControllerReflection;
+import com.vmware.bifrost.core.util.ServiceMethodLookupUtil;
 import com.vmware.bifrost.core.util.URIMatcher;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,10 +25,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 
@@ -34,9 +39,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.test.web.client.ExpectedCount.manyTimes;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
 
 @RunWith(SpringRunner.class)
 @RestClientTest(RestService.class)
@@ -48,7 +51,9 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
         DefaultParameterNameDiscoverer.class,
         RestControllerReflection.class,
         URIMatcher.class,
-        RestTemplate.class
+        RestTemplate.class,
+        EventBusImpl.class,
+        ServiceMethodLookupUtil.class
 })
 public class RestServiceTest {
 
@@ -60,6 +65,9 @@ public class RestServiceTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private EventBus bus;
 
 
     private MockResponseA buildMockResponseA() {
@@ -501,5 +509,65 @@ public class RestServiceTest {
         restService.restServiceRequest(operation);
     }
 
+    @Test
+    public void testOperatesOverBus() throws Exception {
 
+        stubFor(get(urlEqualTo("/bus-uri"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody("bus-request-success")));
+
+        UUID id = UUID.randomUUID();
+        RestServiceRequest req = new RestServiceRequest();
+        req.setApiClass(String.class.getName());
+        req.setMethod(HttpMethod.GET);
+        req.setUri(new URI("http://localhost:9999/bus-uri"));
+        req.setSentFrom(this.getClass().getSimpleName());
+        req.setId(id);
+        this.bus.requestOnceWithId(
+                id,
+                CoreChannels.RestService,
+                req,
+                (Message message) -> {
+                    RestServiceResponse resp = (RestServiceResponse)message.getPayload();
+                    Assert.assertEquals("bus-request-success", resp.getPayload().toString());
+                },
+                (Message message) -> {
+                    Assert.fail();
+                }
+        );
+    }
+
+    @Test
+    public void testHandlesErrorsOverBus() throws Exception {
+
+        stubFor(get(urlEqualTo("/bus-uri-error"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody("there-be-monsters-down-here!")));
+
+        UUID id = UUID.randomUUID();
+        RestServiceRequest req = new RestServiceRequest();
+        req.setApiClass(String.class.getName());
+        req.setMethod(HttpMethod.GET);
+        req.setUri(new URI("http://localhost:9999/bus-uri-error"));
+        req.setSentFrom(this.getClass().getSimpleName());
+        req.setId(id);
+        this.bus.requestOnceWithId(
+                id,
+                CoreChannels.RestService,
+                req,
+                (Message message) -> {
+                    Assert.fail();
+                },
+                (Message message) -> {
+                    RestServiceResponse resp = (RestServiceResponse)message.getPayload();
+                    Assert.assertEquals(500, resp.getErrorCode());
+                    Assert.assertEquals(
+                            "REST Client Error, unable to complete request: 500 Server Error", resp.getErrorMessage());
+                }
+        );
+    }
 }

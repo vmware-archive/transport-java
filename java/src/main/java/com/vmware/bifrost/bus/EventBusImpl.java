@@ -145,7 +145,7 @@ public class EventBusImpl extends Loggable implements EventBus {
                                       Consumer<Message> successHandler,
                                       Consumer<Message> errorHandler) {
         return this.requestOnce(sendChannel, payload,
-                sendChannel, null, this.getName(), successHandler, errorHandler);
+                sendChannel, this.getName(), successHandler, errorHandler);
     }
 
     @Override
@@ -184,6 +184,16 @@ public class EventBusImpl extends Loggable implements EventBus {
                                      Consumer<Message> successHandler) {
 
         return this.requestOnceWithId(uuid, sendChannel, payload, sendChannel, successHandler);
+    }
+
+    @Override
+    public BusTransaction requestOnceWithId(UUID uuid,
+                                            String sendChannel,
+                                            Object payload,
+                                            Consumer<Message> successHandler,
+                                            Consumer<Message> errorHandler) {
+
+        return this.requestOnceWithId(uuid, sendChannel, payload, sendChannel, successHandler, errorHandler);
     }
 
     @Override

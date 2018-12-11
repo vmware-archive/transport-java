@@ -3,6 +3,7 @@ package oldsamples.servbot;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
 
+import com.vmware.bifrost.bus.model.Message;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +34,7 @@ public class BaseServbotService extends AbstractService {
      * @param request
      */
     @Override
-    public void handleServiceRequest(Request request) {
+    public void handleServiceRequest(Request request, Message message) {
         switch (request.getCommand()) {
             case ChatCommand.PostMessage:
                 this.postMessage(request);
@@ -89,7 +90,7 @@ public class BaseServbotService extends AbstractService {
                 Arrays.asList("No such command as " + request.getCommand()));
 
         this.methodLookupUtil.runCustomCodeBefore("ServbotService", "error", request);
-        this.sendResponse(response);
+        this.sendResponse(response, request.getId());
     }
 
     private Response messageStats(Request request) {
@@ -97,7 +98,7 @@ public class BaseServbotService extends AbstractService {
         Response response = this.methodLookupUtil.runCustomCodeAndReturnResponse(
                 "ServbotService", "MessageStats", request);
 
-        this.sendResponse(response);
+        this.sendResponse(response, request.getId());
         return response;
     }
 
@@ -112,7 +113,7 @@ public class BaseServbotService extends AbstractService {
         Response response = this.methodLookupUtil.runCustomCodeAndReturnResponse(
                 "ServbotService", "Help", request);
 
-        this.sendResponse(response);
+        this.sendResponse(response, request.getId());
         return response;
     }
 
@@ -121,7 +122,7 @@ public class BaseServbotService extends AbstractService {
         Response response = this.methodLookupUtil.runCustomCodeAndReturnResponse(
                 "ServbotService", "Joke", request);
 
-        this.sendResponse(response);
+        this.sendResponse(response, request.getId());
         return response;
     }
 
@@ -130,7 +131,7 @@ public class BaseServbotService extends AbstractService {
         Response response = this.methodLookupUtil.runCustomCodeAndReturnResponse(
                 "ServbotService", "Motd", request);
 
-        this.sendResponse(response);
+        this.sendResponse(response, request.getId());
         return response;
     }
 }

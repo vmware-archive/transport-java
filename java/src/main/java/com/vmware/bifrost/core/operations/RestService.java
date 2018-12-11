@@ -3,7 +3,11 @@
  */
 package com.vmware.bifrost.core.operations;
 
-import com.vmware.bifrost.core.util.Loggable;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.core.AbstractService;
+import com.vmware.bifrost.core.CoreChannels;
+import com.vmware.bifrost.core.model.RestServiceRequest;
+import com.vmware.bifrost.core.model.RestServiceResponse;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
@@ -15,6 +19,8 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.*;
+
+import java.util.function.Consumer;
 
 /**
  * RestService is responsible for handling UI Rest requests. It operates in two modes:
@@ -30,15 +36,79 @@ import org.springframework.web.client.*;
  * @see com.vmware.bifrost.core.model.RestOperation
  */
 @Service
-public class RestService extends Loggable {
-
-
+public class RestService extends AbstractService<RestServiceRequest, RestServiceResponse> {
     @Autowired
     private URIMatcher uriMatcher;
 
     @Autowired
     private RestControllerInvoker controllerInvoker;
 
+    public RestService() {
+        super(CoreChannels.RestService);
+    }
+
+    /**
+     * Handle bus request.
+     * @param request
+     */
+    @Override
+    protected void handleServiceRequest(RestServiceRequest request, Message message) {
+
+        this.logDebugMessage(this.getClass().getSimpleName() + " handling Rest Request for URI: " + request.getUri().toASCIIString());
+
+        RestOperation operation = new RestOperation();
+        operation.setUri(request.getUri());
+        operation.setBody(request.getBody());
+        operation.setMethod(request.getMethod());
+        operation.setHeaders(request.getHeaders());
+        operation.setApiClass(request.getApiClass());
+        operation.setId(request.getId());
+        operation.setSentFrom(this.getName());
+
+        // create a success handler to respond
+        Consumer<Object> successHandler = (Object restResponseObject) -> {
+
+            this.logDebugMessage(this.getClass().getSimpleName() + " Successful REST response " + request.getUri().toASCIIString());
+            RestServiceResponse response = new RestServiceResponse(request.getId(), restResponseObject);
+            this.sendResponse(response, message.getId());
+
+        };
+
+        operation.setSuccessHandler(successHandler);
+
+        // create an error handler to respond in case something goes wrong.
+        Consumer<RestError> errorHandler = (RestError error) -> {
+
+            this.logErrorMessage(this.getClass().getSimpleName() + " Error with making REST response ", request.getUri().toASCIIString());
+
+            RestServiceResponse response = new RestServiceResponse(request.getId(), error);
+            response.setError(true);
+            response.setErrorCode(error.errorCode);
+            response.setErrorMessage(error.message);
+            this.sendError(response, message.getId());
+
+        };
+
+        operation.setErrorHandler(errorHandler);
+
+        try {
+            this.restServiceRequest(operation);
+
+        } catch (Exception exp) {
+
+            // something bubbled up, throw it back as a response.
+
+            this.logErrorMessage(this.getName() + " Exception thrown when making REST response ", request.getUri().toASCIIString());
+
+            RestServiceResponse response = new RestServiceResponse(request.getId(),  exp);
+            response.setError(true);
+            response.setErrorCode(500);
+            response.setErrorMessage(exp.getMessage());
+            this.sendError(response, message.getId());
+
+        }
+
+    }
 
     /**
      * If calling the service via DI, then make the requested Rest Request locally via controller, or externally
@@ -185,5 +255,4 @@ public class RestService extends Loggable {
         controllerInvoker.invokeMethod(result, operation);
 
     }
-
 }

@@ -5,8 +5,12 @@ package com.vmware.bifrost.core;
 
 
 import com.vmware.bifrost.bridge.spring.BifrostService;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.*;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @BifrostService
 @Component
@@ -17,19 +21,23 @@ public class TestService extends AbstractService<TestRequest, TestResponse>{
     }
 
     @Override
-    protected void handleServiceRequest(TestRequest request) {
+    protected void handleServiceRequest(TestRequest request, Message message) {
         switch (request.getCommand()){
             case TestCommand.COMMAND_A:
-                this.handleCommandA(request);
+                this.handleCommandA(request, message.getId());
                 break;
 
             case TestCommand.COMMAND_B:
-                this.handleCommandB(request);
+                this.handleCommandB(request, message.getId());
+                break;
+
+            case TestCommand.COMMAND_C:
+                this.handleCommandC(request, message.getId());
                 break;
         }
     }
 
-    private void handleCommandA(TestRequest request) {
+    private void handleCommandA(TestRequest request, UUID id) {
 
         TestServiceObjectRequest requestPayload = this.castPayload(TestServiceObjectRequest.class, request);
         TestServiceObjectResponse responsePayload = new TestServiceObjectResponse();
@@ -37,11 +45,11 @@ public class TestService extends AbstractService<TestRequest, TestResponse>{
 
         TestResponse resp = new TestResponse(request.getId(), responsePayload);
 
-        this.sendResponse(resp);
+        this.sendResponse(resp, id);
 
     }
 
-    private void handleCommandB(TestRequest request) {
+    private void handleCommandB(TestRequest request, UUID id) {
 
         TestServiceObjectRequest requestPayload = this.castPayload(TestServiceObjectRequest.class, request);
         TestServiceObjectResponse responsePayload = new TestServiceObjectResponse();
@@ -49,8 +57,34 @@ public class TestService extends AbstractService<TestRequest, TestResponse>{
 
         TestResponse resp = new TestResponse(request.getId(), responsePayload);
 
-        this.sendResponse(resp);
+        this.sendResponse(resp, id);
 
 
+    }
+
+    private void handleCommandC(TestRequest request, UUID id) {
+
+        TestServiceObjectResponse responsePayload = new TestServiceObjectResponse();
+
+        this.restServiceRequest(
+                request.uri,
+                request.method,
+                request.getPayload(),
+                null,
+                String.class.getName(),
+                (String apiResponse) -> {
+                    responsePayload.setResponseValue(apiResponse);
+                    this.sendResponse(
+                            new TestResponse(request.getId(), responsePayload),
+                            id
+                    );
+                },
+                (RestError error) -> {
+                    TestResponse resp = new TestResponse(request.getId(), responsePayload, true);
+                    resp.setErrorCode(error.errorCode);
+                    resp.setErrorMessage(error.message);
+                    this.sendError(resp, id);
+                }
+        );
     }
 }
