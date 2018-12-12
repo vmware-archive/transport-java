@@ -1,4 +1,4 @@
-package com.vmware.bifrost.bridge.util;
+package com.vmware.bifrost.core.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

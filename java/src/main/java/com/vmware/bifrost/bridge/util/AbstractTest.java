@@ -1,5 +1,7 @@
 package com.vmware.bifrost.bridge.util;
 
+import com.vmware.bifrost.core.util.Loggable;
+
 public abstract class AbstractTest extends Loggable {
 
     protected void logTestMessage(String message, String value) {

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright(c) VMware Inc. 2018
  */
 
@@ -17,44 +17,30 @@ public class URISplitter {
     /**
      * Split a URI path into an array (without slashes)
      *
-     * @param uri
-     * @return
+     * @param uri The URI to be looked at
+     * @return List of all the path items in a URI.
      */
-    public static List<String> split(URI uri) {
+    static List<String> split(URI uri) {
         List<String> pathItems = Arrays.asList(uri.getRawPath().split("/"));
-        List<String> cleanedItems = new ArrayList<>();
-
-        for (String val : pathItems) {
-            if (!val.isEmpty()) {
-                cleanedItems.add(val);
-            }
-        }
-        return cleanedItems;
+        return cleanPathItems(pathItems);
     }
 
     /**
      * Split a path (Sting value) into an array, without slashes.
      *
-     * @param uri
-     * @return
+     * @param uri the URI to be looked at (as a string)
+     * @return List of all the path items in a URI
      */
     public static List<String> split(String uri) {
         List<String> pathItems = Arrays.asList(uri.split("/"));
-        List<String> cleanedItems = new ArrayList<>();
-
-        for (String val : pathItems) {
-            if (!val.isEmpty()) {
-                cleanedItems.add(val);
-            }
-        }
-        return cleanedItems;
+        return cleanPathItems(pathItems);
     }
 
     /**
      * Extract query parameters from a URI into a map.
-     *
-     * @param uri
-     * @return
+     * @param uri The URI to be looked at
+     * @param methodArgs Map of method argument names and types
+     * @return Map of query names and the values (String, UUID, Integer)
      */
     public static Map<String, Object> extractQueryParams(URI uri, Map<String, Class> methodArgs) {
         if (uri.getRawQuery() != null) {
@@ -77,7 +63,7 @@ public class URISplitter {
                         // is value a UUID?
                         if(value == null) {
                             UUID uuid = UUID.fromString(valueString);
-                            if(uuid != null && methodArgs.get(keyVal[0]).equals(UUID.class)) {
+                            if(methodArgs.get(keyVal[0]).equals(UUID.class)) {
                                 value = uuid;
                             }
                         }
@@ -96,5 +82,16 @@ public class URISplitter {
             return mappedQueryPairs;
         }
         return null;
+    }
+
+    private static List<String> cleanPathItems(List<String> pathItems) {
+        List<String> cleanedItems = new ArrayList<>();
+
+        for (String val : pathItems) {
+            if (!val.isEmpty()) {
+                cleanedItems.add(val);
+            }
+        }
+        return cleanedItems;
     }
 }

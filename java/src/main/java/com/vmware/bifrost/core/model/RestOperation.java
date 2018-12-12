@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright(c) VMware Inc. 2018
  */
 package com.vmware.bifrost.core.model;
@@ -13,6 +13,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+/**
+ * Used By RestService to convert an incoming request into a RestOperation.
+ * @param <Payld> The Request Payload Type (what is being sent)
+ * @param <Resp> The Response Payload Type (what we're expecting back)
+ */
 public class RestOperation<Payld, Resp> {
 
     @Getter @Setter

@@ -3,22 +3,24 @@
  */
 package com.vmware.bifrost.core.operations;
 
-import com.vmware.bifrost.bridge.util.Loggable;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.core.AbstractService;
+import com.vmware.bifrost.core.CoreChannels;
+import com.vmware.bifrost.core.model.RestServiceRequest;
+import com.vmware.bifrost.core.model.RestServiceResponse;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
 import com.vmware.bifrost.core.util.URIMatcher;
 import com.vmware.bifrost.core.util.URIMethodResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.*;
 
-import java.net.UnknownHostException;
+import java.util.function.Consumer;
 
 /**
  * RestService is responsible for handling UI Rest requests. It operates in two modes:
@@ -34,26 +36,83 @@ import java.net.UnknownHostException;
  * @see com.vmware.bifrost.core.model.RestOperation
  */
 @Service
-public class RestService extends Loggable {
+@SuppressWarnings("unchecked")
+public class RestService extends AbstractService<RestServiceRequest, RestServiceResponse> {
 
+    private final URIMatcher uriMatcher;
+    private final RestControllerInvoker controllerInvoker;
 
     @Autowired
-    private URIMatcher uriMatcher;
+    public RestService(URIMatcher uriMatcher, RestControllerInvoker controllerInvoker) {
+        super(CoreChannels.RestService);
+        this.uriMatcher = uriMatcher;
+        this.controllerInvoker = controllerInvoker;
+    }
 
-    @Autowired
-    private RestControllerInvoker controllerInvoker;
+    /**
+     * Handle bus request.
+     *
+     * @param request RestServiceRequest instance sent on bus
+     */
+    @Override
+    protected void handleServiceRequest(RestServiceRequest request, Message message) {
 
+        this.logDebugMessage(this.getClass().getSimpleName()
+                + " handling Rest Request for URI: " + request.getUri().toASCIIString());
+
+        RestOperation operation = new RestOperation();
+        operation.setUri(request.getUri());
+        operation.setBody(request.getBody());
+        operation.setMethod(request.getMethod());
+        operation.setHeaders(request.getHeaders());
+        operation.setApiClass(request.getApiClass());
+        operation.setId(request.getId());
+        operation.setSentFrom(this.getName());
+
+        // create a success handler to respond
+        Consumer<Object> successHandler = (Object restResponseObject) -> {
+            this.logDebugMessage(this.getClass().getSimpleName()
+                    + " Successful REST response " + request.getUri().toASCIIString());
+            RestServiceResponse response = new RestServiceResponse(request.getId(), restResponseObject);
+            this.sendResponse(response, message.getId());
+        };
+
+        operation.setSuccessHandler(successHandler);
+
+        // create an error handler to respond in case something goes wrong.
+        Consumer<RestError> errorHandler = (RestError error) -> {
+            this.logErrorMessage(this.getClass().getSimpleName()
+                    + " Error with making REST response ", request.getUri().toASCIIString());
+            this.sendError(error, message.getId());
+        };
+
+        operation.setErrorHandler(errorHandler);
+
+        try {
+            this.restServiceRequest(operation);
+
+        } catch (Exception exp) {
+
+            // something bubbled up, throw it back as a response.
+            this.logErrorMessage(this.getName()
+                    + " Exception thrown when making REST response ", request.getUri().toASCIIString());
+
+            RestError error = new RestError("Exception thrown '"
+                    + exp.getClass().getSimpleName() + ": " + exp.getMessage() + "'", 500);
+            this.sendError(error, message.getId());
+
+        }
+    }
 
     /**
      * If calling the service via DI, then make the requested Rest Request locally via controller, or externally
      * via a standard rest call.
      *
-     * @param operation
+     * @param operation RestOperation to be supplied
      * @param <Req>     request body type
      * @param <Resp>    return body type
      */
-    public <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) throws Exception {
-
+    <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) throws Exception {
 
         // check if the URI is local to the system
         URIMethodResult methodResult = locateRestControllerForURIAndMethod(operation);
@@ -62,51 +121,37 @@ public class RestService extends Loggable {
             return;
         }
 
-
-        HttpEntity<Req> entity = null;
+        HttpEntity<Req> entity;
         HttpHeaders headers = new HttpHeaders();
 
         // fix patch issue.
         MediaType mediaType = new MediaType("application", "merge-patch+json");
 
         // check if headers are set.
-        if (operation != null && operation.getHeaders() != null) {
-
+        if (operation.getHeaders() != null) {
 
             for (String key : operation.getHeaders().keySet()) {
                 headers.add(key, operation.getHeaders().get(key));
             }
         }
         headers.setContentType(mediaType);
-
-        try {
-            if (headers != null) {
-                entity = new HttpEntity<>(operation.getBody(), headers);
-            } else {
-                entity = new HttpEntity<>(operation.getBody());
-            }
-        } catch (NullPointerException npe) {
-            if (headers != null) {
-                entity = new HttpEntity<>(headers);
-            }
-        }
+        entity = new HttpEntity<>(operation.getBody(), headers);
 
         // required because PATCH causes a freakout.
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         RestTemplate restTemplate = new RestTemplate(requestFactory);
 
-
         try {
             ResponseEntity resp;
             switch (operation.getMethod()) {
                 case GET:
-                    operation.getSuccessHandler().accept(
-                            (Resp) restTemplate.getForObject(
-                                    operation.getUri(),
-                                    Class.forName(operation.getApiClass()
-                                    )
-                            )
+                    resp = restTemplate.exchange(
+                            operation.getUri(),
+                            HttpMethod.GET,
+                            entity,
+                            Class.forName(operation.getApiClass())
                     );
+                    operation.getSuccessHandler().accept((Resp) resp.getBody());
                     break;
 
                 case POST:
@@ -166,6 +211,7 @@ public class RestService extends Loggable {
                             + operation.getUri().toString(), 500)
             );
         }
+
     }
 
     private URIMethodResult locateRestControllerForURIAndMethod(RestOperation operation) throws Exception {
@@ -179,7 +225,8 @@ public class RestService extends Loggable {
             this.logDebugMessage("Located handling method for URI: "
                     + operation.getUri().getRawPath(), result.getMethod().getName());
         } else {
-            this.logDebugMessage("Unable to locate a local handler for for URI: ", operation.getUri().getRawPath());
+            this.logDebugMessage("Unable to locate a local handler for for URI: ",
+                    operation.getUri().getRawPath());
         }
         return result;
     }
@@ -189,5 +236,4 @@ public class RestService extends Loggable {
         controllerInvoker.invokeMethod(result, operation);
 
     }
-
 }

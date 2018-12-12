@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright(c) VMware Inc. 2018
  */
 package com.vmware.bifrost.core.util;
@@ -25,9 +25,11 @@ import java.util.UUID;
 @Component
 public class URIMatcher {
 
-    @Autowired
-    private RestControllerReflection reflectionUtil;
+    private final RestControllerReflection reflectionUtil;
 
+    URIMatcher(RestControllerReflection reflectionUtil) {
+        this.reflectionUtil = reflectionUtil;
+    }
 
     /**
      * Generate a URIMethodResult if a local URI for a specific request method can be located.
