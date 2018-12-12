@@ -25,7 +25,7 @@ public class MessageController extends Loggable {
     @MessageMapping("/{topicDestination}")
     public void bridgeMessage(Request request, @DestinationVariable String topicDestination) throws RequestException {
 
-        valiateRequest(request);
+        validateRequest(request);
         this.logTraceMessage("New inbound message received for channel: ", topicDestination);
         bus.sendRequestMessage(topicDestination, request);
     }
@@ -44,11 +44,11 @@ public class MessageController extends Loggable {
         return this.handleException(exception);
     }
 
-    private void valiateRequest(Request request) throws RequestException {
+    private void validateRequest(Request request) throws RequestException {
         if(request.getId() == null) {
             throw new RequestException("Request 'id' is missing");
         } else if(request.getCommand() == null) {
-            throw new RequestException("Request 'type' is missing");
+            throw new RequestException("Request 'command' is missing");
         } else if(request.getVersion() == null) {
             throw new RequestException("Request 'version' is missing");
         }
