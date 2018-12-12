@@ -1,3 +1,6 @@
+/*
+ * Copyright(c) VMware Inc. 2017-2018
+ */
 package com.vmware.bifrost.bridge.spring.controllers;
 
 import com.vmware.bifrost.bridge.RequestException;
@@ -15,12 +18,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.UUID;
 
-
 @Controller
 public class MessageController extends Loggable {
 
-    @Autowired
     private EventBus bus;
+
+    @Autowired
+    MessageController(EventBus eventBus) {
+        this.bus = eventBus;
+    }
 
     @MessageMapping("/{topicDestination}")
     public void bridgeMessage(Request request, @DestinationVariable String topicDestination) throws RequestException {
@@ -53,5 +59,4 @@ public class MessageController extends Loggable {
             throw new RequestException("Request 'version' is missing");
         }
     }
-
 }
