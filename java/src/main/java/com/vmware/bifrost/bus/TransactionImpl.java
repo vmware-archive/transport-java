@@ -3,8 +3,8 @@
  */
 package com.vmware.bifrost.bus;
 
-import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.core.util.Loggable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
