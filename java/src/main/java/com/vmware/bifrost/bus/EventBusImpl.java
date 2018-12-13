@@ -5,7 +5,7 @@ package com.vmware.bifrost.bus;
 
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
-import com.vmware.bifrost.bridge.util.Loggable;
+import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
@@ -142,6 +142,15 @@ public class EventBusImpl extends Loggable implements EventBus {
     @Override
     public BusTransaction requestOnce(String sendChannel,
                                       Object payload,
+                                      Consumer<Message> successHandler,
+                                      Consumer<Message> errorHandler) {
+        return this.requestOnce(sendChannel, payload,
+                sendChannel, this.getName(), successHandler, errorHandler);
+    }
+
+    @Override
+    public BusTransaction requestOnce(String sendChannel,
+                                      Object payload,
                                       String returnChannel,
                                       Consumer<Message> successHandler) {
         return this.requestOnce(sendChannel, payload,
@@ -175,6 +184,16 @@ public class EventBusImpl extends Loggable implements EventBus {
                                      Consumer<Message> successHandler) {
 
         return this.requestOnceWithId(uuid, sendChannel, payload, sendChannel, successHandler);
+    }
+
+    @Override
+    public BusTransaction requestOnceWithId(UUID uuid,
+                                            String sendChannel,
+                                            Object payload,
+                                            Consumer<Message> successHandler,
+                                            Consumer<Message> errorHandler) {
+
+        return this.requestOnceWithId(uuid, sendChannel, payload, sendChannel, successHandler, errorHandler);
     }
 
     @Override

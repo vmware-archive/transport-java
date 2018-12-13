@@ -1,4 +1,4 @@
-package com.vmware.bifrost.bridge.util;
+package com.vmware.bifrost.core.util;
 
 import com.vmware.bifrost.bridge.spring.config.BifrostBridgeConfiguration;
 

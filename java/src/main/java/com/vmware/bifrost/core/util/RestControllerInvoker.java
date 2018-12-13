@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright(c) VMware Inc. 2018
  */
 package com.vmware.bifrost.core.util;
@@ -6,7 +6,6 @@ package com.vmware.bifrost.core.util;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.stereotype.Component;
@@ -20,25 +19,25 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class RestControllerInvoker {
 
-    @Autowired private ApplicationContext context;
+    private final ApplicationContext context;
 
-    RestControllerInvoker() {
-
+    RestControllerInvoker(ApplicationContext context) {
+        this.context = context;
     }
 
     /**
      * Check method can be called and invoke accordingly.
      *
-     * @param methodResult
-     * @param operation
-     * @throws RuntimeException
+     * @param methodResult instance of a located method in a controller
+     * @param operation rest operation submitted by requesting service.
+     * @throws RuntimeException if the method cannot be executed because of a mismatch.
      */
     public void invokeMethod(URIMethodResult methodResult, RestOperation operation) {
 
         Object[] formulatedMethodArgs = new Object[methodResult.getMethogArgList().size()];
-        RestError error = null;
 
         if (methodResult.getMethodArgs().size() >= 1) {
 
@@ -51,17 +50,7 @@ public class RestControllerInvoker {
             if (pathItemMap.size() >= 1) {
 
                 if (doPathItemsAndMethodArgsMatch(pathItemMap, methodArgs, methodAnnotationTypes)) {
-
-                    // iterate through all our data and construct the correct signature to call.
-                    error = processMethod(methodResult, pathItemMap, formulatedMethodArgs, operation);
-
-                    // send error instead of invoking method, bypass completely.
-                    if (error != null) {
-                        operation.getErrorHandler().accept(error);
-                        return;
-                    }
-
-                    callControllerMethod(methodResult, operation, formulatedMethodArgs);
+                    processAndCallMethod(methodResult, operation, formulatedMethodArgs, pathItemMap);
 
 
                 } else {
@@ -75,14 +64,7 @@ public class RestControllerInvoker {
 
             } else {
 
-                error = processMethod(methodResult, pathItemMap, formulatedMethodArgs, operation);
-
-                if (error != null) {
-                    operation.getErrorHandler().accept(error);
-                    return;
-                }
-
-                callControllerMethod(methodResult, operation, formulatedMethodArgs);
+                processAndCallMethod(methodResult, operation, formulatedMethodArgs, pathItemMap);
             }
 
         } else {
@@ -91,13 +73,26 @@ public class RestControllerInvoker {
         }
     }
 
+    private void processAndCallMethod(URIMethodResult methodResult, RestOperation operation, Object[] formulatedMethodArgs, Map<String, Object> pathItemMap) {
+        RestError error;// iterate through all our data and construct the correct signature to call.
+        error = processMethod(methodResult, pathItemMap, formulatedMethodArgs, operation);
+
+        // send error instead of invoking method, bypass completely.
+        if (error != null) {
+            operation.getErrorHandler().accept(error);
+            return;
+        }
+
+        callControllerMethod(methodResult, operation, formulatedMethodArgs);
+    }
+
     /**
-     * Validate path and method arguements align
+     * Validate path and method arguments align
      *
-     * @param pathItemMap
-     * @param methodArgs
-     * @param methodAnnotations
-     * @return
+     * @param pathItemMap       map of the path items and the instance (string, number UUID)
+     * @param methodArgs        a map of every argument to the method and the type
+     * @param methodAnnotations a map of every method annotation.
+     * @return true if path items and method arguments match (for path variables only)
      */
     private boolean doPathItemsAndMethodArgsMatch(
             Map<String, Object> pathItemMap,
@@ -110,17 +105,8 @@ public class RestControllerInvoker {
         for (String pathItem : pathItemMap.keySet()) {
 
             String className = methodAnnotations.get(pathItem).getName();
-            switch (className) {
-                case "org.springframework.web.bind.annotation.PathVariable":
-                    if (methodArgs.get(pathItem) != null) {
-                        match = true;
-                        continue;
-                    } else {
-                        match = false;
-                        break;
-                    }
-                default:
-                    break;
+            if (className.contentEquals("org.springframework.web.bind.annotation.PathVariable")) {
+                match = methodArgs.get(pathItem) != null;
             }
         }
         return match;
@@ -130,7 +116,6 @@ public class RestControllerInvoker {
         Method method = methodResult.getMethod();
         Object bean = context.getBean(methodResult.getController().getClass());
         try {
-
             if (formulatedMethodArgs != null) {
                 operation.getSuccessHandler().accept(
                         method.invoke(bean, formulatedMethodArgs)
@@ -142,7 +127,7 @@ public class RestControllerInvoker {
             }
 
         } catch (InvocationTargetException e) {
-            if(e.getTargetException().getClass().equals(AuthenticationCredentialsNotFoundException.class)) {
+            if (e.getTargetException().getClass().equals(AuthenticationCredentialsNotFoundException.class)) {
                 operation.getErrorHandler().accept(
                         this.getRestError(e.getTargetException().getMessage(), 500)
                 );
@@ -319,10 +304,7 @@ public class RestControllerInvoker {
     }
 
     private boolean checkForNullQueryString(URIMethodResult methodResult) {
-        if (methodResult.getQueryString() == null)
-            return true;
-
-        return false;
+        return methodResult.getQueryString() == null;
     }
 
     private RestError getRestError(String message, Integer status) {

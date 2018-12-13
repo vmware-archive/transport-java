@@ -3,7 +3,6 @@
  */
 package com.vmware.bifrost.bus;
 
-import com.vmware.bifrost.bridge.util.Loggable;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.model.MessageObject;
@@ -11,6 +10,7 @@ import com.vmware.bifrost.bus.model.MessageType;
 import com.vmware.bifrost.bus.model.MonitorChannel;
 import com.vmware.bifrost.bus.model.MonitorObject;
 import com.vmware.bifrost.bus.model.MonitorType;
+import com.vmware.bifrost.core.util.Loggable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.Subject;
 

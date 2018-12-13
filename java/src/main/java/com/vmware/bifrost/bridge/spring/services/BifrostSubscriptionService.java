@@ -1,6 +1,6 @@
 package com.vmware.bifrost.bridge.spring.services;
 
-import com.vmware.bifrost.bridge.util.Loggable;
+import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;

@@ -88,7 +88,7 @@
 //    @Test
 //    public void testPlantSeed() {
 //        Seed seed = new Seed();
-//        seed.setType(Seed.TypeEnum.FLOWER);
+//        seed.setCommand(Seed.TypeEnum.FLOWER);
 //
 //        SeedRequest request
 //                = new SeedRequest(1, UUID.randomUUID(), "PlantSeed", seed);
@@ -141,7 +141,7 @@
 //    public void testKillPlant() {
 //
 //        Seed seed = new Seed();
-//        seed.setType(Seed.TypeEnum.FLOWER);
+//        seed.setCommand(Seed.TypeEnum.FLOWER);
 //
 //        SeedRequest request
 //                = new SeedRequest(1, UUID.randomUUID(), "KillPlant", seed);

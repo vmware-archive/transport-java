@@ -46,7 +46,7 @@
 //
 //    @Override
 //    public void handleServiceRequest(Request request) {
-//        switch (request.getType()) {
+//        switch (request.getCommand()) {
 //            case "GetSeeds":
 //                this.getSeeds(request);
 //                break;
@@ -72,7 +72,7 @@
 //        // really want to do something useful here.
 //        Seed seed = new Seed();
 //        seed.setId(new Random().nextLong());
-//        seed.setType(Seed.TypeEnum.BUSH);
+//        seed.setCommand(Seed.TypeEnum.BUSH);
 //
 //        Response response = new Response(request.getId(), Arrays.asList(seed));
 //        // push to bus and return response (for any restful callers)
