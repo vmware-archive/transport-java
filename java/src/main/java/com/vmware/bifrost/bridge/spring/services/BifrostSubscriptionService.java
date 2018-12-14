@@ -23,118 +23,147 @@ public class BifrostSubscriptionService extends Loggable {
 
     private Map<String, BifrostSubscription> openSubscriptions;
     private Map<String, List<String>> sessionChannels;
-    private List<String> openChannels;
+    private HashMap<String, OpenChannel> openChannels;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     BifrostSubscriptionService() {
         openSubscriptions = new HashMap<>();
-        openChannels = new ArrayList<>();
+        openChannels = new HashMap<>();
         sessionChannels = new HashMap<>();
     }
 
-    public Map<String, BifrostSubscription> getSubscriptions() {
-        return openSubscriptions;
+    public Collection<BifrostSubscription> getSubscriptions() {
+        return openSubscriptions.values();
     }
 
-    public List<String> getOpenChannels() {
-        return openChannels;
+    public Collection<String> getOpenChannels() {
+        return openChannels.keySet();
     }
 
     public void addSubscription(String subId, String sessionId, String channelName, String destinationPrefix) {
 
-        if (!openChannels.contains(channelName)) {
+        BifrostSubscription subscription = new BifrostSubscription(channelName, subId, sessionId);
+        if (openSubscriptions.containsKey(subscription.uniqueId)) {
+            logger.info(String.format("[!] Bifröst Bus: subscription %s for channel %s already exists, ignoring",
+                  subscription.uniqueId, channelName));
+            return;
+        }
 
-            logger.info("[+] Bifröst Bus: creating channel subscription to '" + channelName + "' subId: (" + subId + ")");
+        logger.info(String.format("[+] Bifröst Bus: creating channel subscription to '%s' subId: (%s)",
+              channelName, subscription.uniqueId));
 
-
+        if (!openChannels.containsKey(channelName)) {
             BusTransaction transaction = bus.listenStream(channelName,
-                    (Message msg) -> {
-                        this.logDebugMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
-                        msgTmpl.convertAndSend(destinationPrefix + channelName, msg.getPayload());
-                    }
-
+                  (Message msg) -> {
+                      this.logDebugMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
+                      msgTmpl.convertAndSend(destinationPrefix + channelName, msg.getPayload());
+                  }
             );
+            openChannels.put(channelName, new OpenChannel(channelName, transaction));
+        }
 
+        openSubscriptions.put(subscription.uniqueId, subscription);
+        openChannels.get(channelName).activeSubscriptionsCount++;
 
-
-            openSubscriptions.put(subId, new BifrostSubscription(channelName, subId, sessionId, transaction));
-            openChannels.add(channelName);
-
-            // check if this user has other channel subscriptions
-            if (sessionChannels.containsKey(sessionId)) {
-                sessionChannels.get(sessionId).add(channelName);
-            } else {
-                List<String> chanList = new ArrayList<>();
-                chanList.add(channelName);
-                sessionChannels.put(sessionId, chanList);
-            }
-
+        // check if this user has other channel subscriptions
+        if (sessionChannels.containsKey(sessionId)) {
+            sessionChannels.get(sessionId).add(channelName);
         } else {
-            logger.info("[!] Bifröst Bus: subscription " + channelName + " already exists, ignoring");
+            List<String> chanList = new ArrayList<>();
+            chanList.add(channelName);
+            sessionChannels.put(sessionId, chanList);
         }
     }
 
     public void removeSubscription(String subId, String sessionId) {
-        BifrostSubscription sub;
 
-        if (openSubscriptions.containsKey(subId)) {
+        String uniqueSubId = BifrostSubscription.generateUniqueSubId(subId, sessionId);
 
-            sub = openSubscriptions.get(subId);
-            logger.info("[-] Bifröst Bus: unsubscribing from channel '" + sub.channelName + "' (" + sub.subId + ")");
-
-            sub.transaction.unsubscribe();
-            openSubscriptions.remove(subId);
-            openChannels.remove(sub.channelName);
+        if (openSubscriptions.containsKey(uniqueSubId)) {
+            BifrostSubscription sub = openSubscriptions.get(uniqueSubId);
+            logger.info(String.format("[-] Bifröst Bus: unsubscribing from channel '%s' (%s)",
+                  sub.channelName, sub.uniqueId));
+            openSubscriptions.remove(uniqueSubId);
+            onUnsubscribeFromChannel(sub.channelName);
 
             // remove from session mappings.
             if (sessionChannels.containsKey(sessionId)) {
                 List<String> chans = sessionChannels.get(sessionId);
-                if (chans.contains(sub.channelName)) {
-                    chans.remove(sub.channelName);
-                }
+                chans.remove(sub.channelName);
             }
         }
     }
 
-    public void unsubsribeSessionsAfterDisconnect(String sessionId) {
-
+    public void unsubscribeSessionsAfterDisconnect(String sessionId) {
         if (sessionChannels.containsKey(sessionId)) {
-            List<String> chans = sessionChannels.get(sessionId);
 
-            for (String chan : chans) {
+            Collection<BifrostSubscription> subs = openSubscriptions.values();
+            List<String> subscriptionsToRemove = new ArrayList<>();
+            for (BifrostSubscription sub : subs) {
+                if (sub.sessionId.equals(sessionId)) {
+                    logger.info(String.format(
+                          "[-] Bifröst Bus: closing subscription %s to channel '%s' after disconnect",
+                          sub.uniqueId, sub.channelName));
 
-                // close subscription.
-                bus.closeChannel(chan, this.getClass().getName());
-                openChannels.remove(chan);
-
-                Collection<BifrostSubscription> subs = openSubscriptions.values();
-                List<String> removeSubs = new ArrayList<>();
-                for (BifrostSubscription sub : subs) {
-                    if (sub.sessionId.equals(sessionId)) {
-                        sub.transaction.unsubscribe();
-                        removeSubs.add(sub.subId);
-                    }
+                    // close subscription.
+                    onUnsubscribeFromChannel(sub.channelName);
+                    subscriptionsToRemove.add(sub.uniqueId);
                 }
-                for (String subId : removeSubs) {
-                    openSubscriptions.remove(subId);
-                }
-
-                logger.info("[-] Bifröst Bus: closing subscription to channel '" + chan + "' after disconnect");
             }
+            for (String subId : subscriptionsToRemove) {
+                openSubscriptions.remove(subId);
+            }
+
+            sessionChannels.remove(sessionId);
+        }
+    }
+
+    private void onUnsubscribeFromChannel(String channel) {
+        OpenChannel openChannel = openChannels.get(channel);
+        if (openChannel != null) {
+            openChannel.activeSubscriptionsCount--;
+            if (openChannel.activeSubscriptionsCount <= 0) {
+                if (openChannel.transaction != null) {
+                    openChannel.transaction.unsubscribe();
+                }
+                bus.closeChannel(channel, this.getClass().getName());
+                openChannels.remove(channel);
+            }
+        }
+    }
+
+    private static class OpenChannel {
+
+        public final String channelName;
+        public final BusTransaction transaction;
+
+        public int activeSubscriptionsCount;
+
+        public OpenChannel(String channelName, BusTransaction transaction) {
+            this.channelName = channelName;
+            this.transaction = transaction;
+            this.activeSubscriptionsCount = 0;
+        }
+    }
+
+    public static class BifrostSubscription {
+        public String channelName;
+        public String subId;
+        public String sessionId;
+
+        public final String uniqueId;
+
+        public static String generateUniqueSubId(String subId, String sessionId) {
+            return String.format("%s-%s", sessionId, subId);
+        }
+
+        BifrostSubscription(String channelName, String subId, String sessionId) {
+            this.uniqueId = generateUniqueSubId(subId, sessionId);
+            this.channelName = channelName;
+            this.subId = subId;
+            this.sessionId = sessionId;
         }
     }
 }
 
-class BifrostSubscription {
-    public String channelName;
-    public String subId;
-    public String sessionId;
-    public BusTransaction transaction;
 
-    BifrostSubscription(String channelName, String subId, String sessionId, BusTransaction transaction) {
-        this.channelName = channelName;
-        this.subId = subId;
-        this.transaction = transaction;
-        this.sessionId = sessionId;
-    }
-}

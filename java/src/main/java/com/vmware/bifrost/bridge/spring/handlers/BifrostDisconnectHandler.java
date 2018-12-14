@@ -20,7 +20,7 @@ public class BifrostDisconnectHandler implements ApplicationListener<SessionDisc
     public void onApplicationEvent(SessionDisconnectEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
         logger.info("[x] Bifröst Bridge: disconnect:" + sha.getSessionId());
-        subService.unsubsribeSessionsAfterDisconnect(sha.getSessionId());
+        subService.unsubscribeSessionsAfterDisconnect(sha.getSessionId());
     }
 
 }
