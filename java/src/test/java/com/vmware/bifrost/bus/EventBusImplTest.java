@@ -1421,6 +1421,12 @@ public class EventBusImplTest {
     }
 
     @Test
+    public void testCreateTransaction() {
+        Transaction transaction = this.bus.createTransaction();
+        Assert.assertNotNull(transaction);
+    }
+
+    @Test
     public void testMonitor() {
 
         String chan = "#scooby-do";

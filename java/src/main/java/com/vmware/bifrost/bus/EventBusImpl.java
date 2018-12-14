@@ -539,6 +539,21 @@ public class EventBusImpl extends Loggable implements EventBus {
         this.api.close(channel, from);
     }
 
+    @Override
+    public Transaction createTransaction() {
+        return this.createTransaction(Transaction.TransactionType.ASYNC);
+    }
+
+    @Override
+    public Transaction createTransaction(Transaction.TransactionType type) {
+        return this.createTransaction(type, null);
+    }
+
+    @Override
+    public Transaction createTransaction(Transaction.TransactionType type, String name) {
+        return new TransactionImpl(this, type, name);
+    }
+
     private  void init() {
         this.logBannerMessage("\uD83C\uDF08","Starting Bifröst");
         Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostService.class);

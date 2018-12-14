@@ -575,4 +575,29 @@ public interface EventBus {
      * @param from optional calling actor (for logging)
      */
     void closeChannel(String channel, String from);
+
+    /**
+     * Create a new asynchronous transaction that can be composed of bus requests. It will fire
+     * all requests at once and return once they return.
+     */
+    Transaction createTransaction();
+
+    /**
+     * Create a new synchronous or asynchronous transaction that can be composed of bus requests. Asynchronous
+     * transactions will all fire at once and return once all requests return. Synchronous transactions will
+     * fire in sequence and only proceed to the next transaction event once the preceding response has returned.
+     *
+     * @param type type of transaction you want, synchronous or asynchronous.
+     */
+    Transaction createTransaction(Transaction.TransactionType type);
+
+    /**
+     * Create a new synchronous or asynchronous transaction that can be composed of bus requests. Asynchronous
+     * transactions will all fire at once and return once all requests return. Synchronous transactions will
+     * fire in sequence and only proceed to the next transaction event once the preceding response has returned.
+     *
+     * @param type type of transaction you want, synchronous or asynchronous.
+     * @param name optional name of the transaction, helps you track progress in the console (if enabled)
+     */
+    Transaction createTransaction(Transaction.TransactionType type, String name);
 }
