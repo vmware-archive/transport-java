@@ -57,12 +57,18 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
 
     @Override
     public void close(String cname, String from) {
-        if (!this.internalChannelMap.containsKey(cname)) {
-            return;
+
+        Channel channel;
+        synchronized (this.internalChannelMap) {
+            channel = this.internalChannelMap.get(cname);
+            if (channel == null) {
+                return;
+            }
+            if (channel.decrement() == 0) {
+                this.internalChannelMap.remove(cname);
+            }
         }
 
-        Channel channel = this.internalChannelMap.get(cname);
-        channel.decrement();
         MonitorObject mo = new MonitorObject(
               MonitorType.MonitorCloseChannel, cname, from,
               "close [" + cname.trim() + "] " + channel.getRefCount() + " references remaining");
@@ -70,25 +76,29 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
         this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
 
         if (channel.getRefCount() == 0) {
-            this.complete(channel, from);
+            // Complete and destroy the channel without removing it from the internalChannelMap,
+            // as it's already removed.
+            this.completeAndDestroyInternal(channel, from, false);
         }
     }
 
     @Override
     public void complete(String channel, String from) {
-        Channel chan = this.getChannelObject(channel, from);
+        Channel chan = this.getChannelObject(channel, from, true);
         this.complete(chan, from);
     }
 
     @Override
     public void complete(Channel channel, String from) {
+        completeAndDestroyInternal(channel, from, true);
+    }
 
+    private void completeAndDestroyInternal(Channel channel, String from, boolean removeFromChannelMap) {
         MonitorObject mo = new MonitorObject(MonitorType.MonitorCompleteChannel, channel.getName(), from,
               "completed [" + channel.getName() + "]");
         this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
         channel.complete();
-        this.destroy(channel, from);
-
+        this.destroy(channel, from, removeFromChannelMap);
     }
 
     @Override
@@ -101,19 +111,22 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
         Channel channel;
         String symbol = " [+] ";
 
-        if (this.internalChannelMap.containsKey(cname)) {
-            channel = this.internalChannelMap.get(cname);
-        } else {
-            channel = new Channel(cname);
-            this.internalChannelMap.put(cname, channel);
-            symbol = " [+++] ";
+        synchronized (this.internalChannelMap) {
+            if (this.internalChannelMap.containsKey(cname)) {
+                channel = this.internalChannelMap.get(cname);
+            } else {
+                channel = new Channel(cname);
+                this.internalChannelMap.put(cname, channel);
+                symbol = " [+++] ";
+            }
+            if (!noRefCount) {
+                channel.increment();
+            }
         }
 
         MonitorObject mo = new MonitorObject(MonitorType.MonitorNewChannel, cname, from, symbol);
         this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
-        if (!noRefCount) {
-            channel.increment();
-        }
+
         return channel;
     }
 
@@ -171,7 +184,12 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
     public void send(String channel, MessageObject messageObject, String from) {
         MonitorObject mo;
 
-        if (!this.internalChannelMap.containsKey(channel)) {
+        Channel channelObj;
+        synchronized (this.internalChannelMap) {
+            channelObj = this.internalChannelMap.get(channel);
+        }
+
+        if (channelObj == null) {
             mo = new MonitorObject(MonitorType.MonitorDropped, channel, from, messageObject);
             this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
             return;
@@ -187,24 +205,33 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
 
         mo = new MonitorObject(type, channel, from, messageObject);
         this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
-        this.internalChannelMap.get(channel).send(messageObject);
+        channelObj.send(messageObject);
 
     }
 
     @Override
     public void error(String channel, Error error) {
-        if (!this.internalChannelMap.containsKey(channel)) {
+        Channel channelObj;
+        synchronized (this.internalChannelMap) {
+            channelObj = this.internalChannelMap.get(channel);
+        }
+
+        if (channelObj == null) {
             return;
         }
 
         MonitorObject mo = new MonitorObject(MonitorType.MonitorError, channel, "bus error", error);
         this.monitorStream.send(new MessageObject(MessageType.MessageTypeError, mo));
-        this.internalChannelMap.get(channel).error(error);
+        channelObj.error(error);
     }
 
-    private void destroy(Channel channel, String from) {
+    private void destroy(Channel channel, String from, boolean removeFromMap) {
         MonitorObject mo = new MonitorObject(MonitorType.MonitorDestroyChannel, channel.getName(), from);
         this.monitorStream.send(new MessageObject(MessageType.MessageTypeResponse, mo));
-        this.internalChannelMap.remove(channel.getName());
+        if (removeFromMap) {
+            synchronized (this.internalChannelMap) {
+                this.internalChannelMap.remove(channel.getName());
+            }
+        }
     }
 }
