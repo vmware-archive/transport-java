@@ -3,6 +3,7 @@
  */
 package com.vmware.bifrost.bridge.spring.config;
 
+import com.vmware.bifrost.bridge.spring.config.interceptors.BifrostChannelInterceptor;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +11,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.messaging.simp.config.ChannelRegistration;
+import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
 /**
  * Loads Bifrost message bus and bridge components.
@@ -25,7 +29,8 @@ import org.springframework.core.ParameterNameDiscoverer;
         "com.vmware.bifrost.core",
         "com.vmware.bifrost.core.operations"
 })
-public class BifrostSpringConfig implements SmartInitializingSingleton {
+public class BifrostSpringConfig extends AbstractWebSocketMessageBrokerConfigurer
+      implements SmartInitializingSingleton {
 
     @Autowired(required = false)
     private BifrostBridgeConfigurer[] bifrostBridgeConfigurers;
@@ -47,7 +52,22 @@ public class BifrostSpringConfig implements SmartInitializingSingleton {
         if (bifrostBridgeConfigurers != null) {
             for (BifrostBridgeConfigurer configurer : bifrostBridgeConfigurers) {
                 configurer.registerBifrostDestinationPrefixes(bifrostBridgeConfiguration());
+                configurer.registerBifrostStompInterceptors(bifrostBridgeConfiguration());
             }
         }
+    }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // Do nothing. We are interested only in overriding the
+        // configureClientInboundChannel method.
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        BifrostChannelInterceptor bifrostChannelInterceptor =
+              new BifrostChannelInterceptor(this.bridgeConfiguration);
+
+        registration.interceptors(bifrostChannelInterceptor);
     }
 }

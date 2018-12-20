@@ -111,6 +111,7 @@ dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
     testCompile group: 'org.springframework', name: 'spring-web', version: '5.0.3.RELEASE'
     testCompile 'org.mockito:mockito-core:2.+'
+    testCompile 'org.powermock:powermock-module-junit4:1.7.1'
 
 
 

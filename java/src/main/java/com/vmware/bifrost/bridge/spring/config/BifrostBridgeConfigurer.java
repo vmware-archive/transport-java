@@ -9,4 +9,6 @@ package com.vmware.bifrost.bridge.spring.config;
 public interface BifrostBridgeConfigurer {
 
    default void registerBifrostDestinationPrefixes(BifrostBridgeConfiguration configuration) { };
+
+   default void registerBifrostStompInterceptors(BifrostBridgeConfiguration configuration) { };
 }
