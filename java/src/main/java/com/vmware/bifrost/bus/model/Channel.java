@@ -3,6 +3,8 @@ package com.vmware.bifrost.bus.model;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Copyright(c) VMware Inc., 2017
  * <p>
@@ -17,7 +19,7 @@ import io.reactivex.subjects.Subject;
 
 public class Channel {
     private String name;
-    private Integer refCount;
+    private AtomicInteger refCount = new AtomicInteger(0);
     private Boolean closed;
     private Boolean galactic;
 
@@ -26,15 +28,13 @@ public class Channel {
 
     public Channel(String name) {
         this.name = name;
-        refCount = 0;
         streamObject = PublishSubject.create();
         closed = false;
         galactic = false;
     }
 
     public Integer getRefCount() {
-
-        return refCount;
+        return refCount.get();
     }
 
     public String getName() {
@@ -66,14 +66,11 @@ public class Channel {
     }
 
     public Integer increment() {
-        return ++refCount;
+        return refCount.incrementAndGet();
     }
 
     public Integer decrement() {
-        if (refCount > 0) {
-            return --refCount;
-        }
-        return refCount;
+        return refCount.updateAndGet(i -> i > 0 ? i - 1 : i);
     }
 
     public Channel setGalatic() {
