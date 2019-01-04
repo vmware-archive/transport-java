@@ -31,7 +31,6 @@ import java.util.function.Consumer;
  * method, and then calls the method using the correct sequence of arguments, with the correct types, in the correct
  * order.
  * <p>
- * //TODO: This service will eventually be called from any class implementing AbstractService via the bus
  *
  * @see com.vmware.bifrost.core.model.RestOperation
  */
