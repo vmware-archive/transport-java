@@ -24,6 +24,11 @@ public interface EventBusLowApi {
     Subject<Message> getMonitor();
 
     /**
+     * Get raw monitor channel object.
+     */
+    Channel getMonitorStream();
+
+    /**
      * Turn logging on/off
      *
      * @param flag turn logging on/off.

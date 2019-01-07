@@ -56,6 +56,11 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
     }
 
     @Override
+    public Channel getMonitorStream() {
+        return this.monitorStream;
+    }
+
+    @Override
     public void close(String cname, String from) {
 
         Channel channel;
