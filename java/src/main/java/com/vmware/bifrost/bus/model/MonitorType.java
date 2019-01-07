@@ -10,5 +10,6 @@ public enum MonitorType {
     MonitorNewChannel,
     MonitorData,
     MonitorError,
-    MonitorDropped
+    MonitorDropped,
+    MonitorNewBridgeSubscription
 }

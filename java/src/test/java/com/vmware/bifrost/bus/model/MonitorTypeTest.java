@@ -11,7 +11,7 @@ public class MonitorTypeTest {
 
     @Test
     public void testModel() {
-        Assert.assertEquals(7, MonitorType.values().length);
+        Assert.assertEquals(8, MonitorType.values().length);
         Assert.assertEquals(MonitorType.valueOf("MonitorCloseChannel"), MonitorType.MonitorCloseChannel);
         Assert.assertEquals(MonitorType.valueOf("MonitorCompleteChannel"), MonitorType.MonitorCompleteChannel);
         Assert.assertEquals(MonitorType.valueOf("MonitorDestroyChannel"), MonitorType.MonitorDestroyChannel);
@@ -19,6 +19,7 @@ public class MonitorTypeTest {
         Assert.assertEquals(MonitorType.valueOf("MonitorData"), MonitorType.MonitorData);
         Assert.assertEquals(MonitorType.valueOf("MonitorError"), MonitorType.MonitorError);
         Assert.assertEquals(MonitorType.valueOf("MonitorDropped"), MonitorType.MonitorDropped);
+        Assert.assertEquals(MonitorType.valueOf("MonitorNewBridgeSubscription"), MonitorType.MonitorNewBridgeSubscription);
 
     }
 

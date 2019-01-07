@@ -1,5 +1,9 @@
 package com.vmware.bifrost.bridge.spring.services;
 
+import com.vmware.bifrost.bus.model.MessageObject;
+import com.vmware.bifrost.bus.model.MessageType;
+import com.vmware.bifrost.bus.model.MonitorObject;
+import com.vmware.bifrost.bus.model.MonitorType;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bus.EventBus;
@@ -73,6 +77,12 @@ public class BifrostSubscriptionService extends Loggable {
             chanList.add(channelName);
             sessionChannels.put(sessionId, chanList);
         }
+
+        // Notify listeners that there is a new subscription to the channel.
+        MonitorObject mo = new MonitorObject(
+              MonitorType.MonitorNewBridgeSubscription, channelName, this.getClass().getName(), subscription);
+        this.bus.getApi().getMonitorStream().send(
+              new MessageObject<>(MessageType.MessageTypeRequest, mo));
     }
 
     public void removeSubscription(String subId, String sessionId) {

@@ -3,9 +3,12 @@
  */
 package com.vmware.bifrost.bridge.spring.services;
 
+import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MonitorObject;
+import com.vmware.bifrost.bus.model.MonitorType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +20,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.UUID;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {
@@ -39,15 +44,27 @@ public class BifrostSubscriptionServiceTest {
     private String channel2;
     private String destinationPrefix;
 
+    private MonitorObject monitorObject;
+    private int count;
+
     @Before
     public void before() {
         this.channel = "local-channel";
         this.channel2 = "local-channel2";
         this.destinationPrefix = "/destinationPrefix/";
+        this.monitorObject = null;
+        this.count = 0;
     }
 
     @Test
     public void testAddSubscriptionWithResponse() {
+
+        this.bus.getApi().getMonitor().subscribe(message -> {
+            MonitorObject mo = (MonitorObject) message.getPayload();
+            if (mo.getType() == MonitorType.MonitorNewBridgeSubscription) {
+                this.monitorObject = mo;
+            }
+        });
 
         subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix);
 
@@ -63,12 +80,29 @@ public class BifrostSubscriptionServiceTest {
         Assert.assertEquals(sub.sessionId, "session1");
         Assert.assertEquals(sub.channelName, this.channel);
 
-        bus.sendResponseMessage(this.channel, "response1");
-        Mockito.verify(msgTmpl).convertAndSend(this.destinationPrefix + this.channel, "response1");
+        Response<String> response = new Response<>(Integer.valueOf(1), UUID.randomUUID(), false);
+        response.setPayload("response1");
+
+        bus.sendResponseMessage(this.channel, response);
+        Mockito.verify(msgTmpl).convertAndSend(this.destinationPrefix + this.channel, response);
+
+        Assert.assertNotNull(this.monitorObject);
+        BifrostSubscriptionService.BifrostSubscription subscription =
+              (BifrostSubscriptionService.BifrostSubscription) this.monitorObject.getData();
+        Assert.assertNotNull(subscription);
+        Assert.assertEquals(subscription.channelName, this.channel);
     }
 
     @Test
     public void testAddSubscriptionWithMultipleSubscriptions() {
+
+        this.bus.getApi().getMonitor().subscribe(message -> {
+            MonitorObject mo = (MonitorObject) message.getPayload();
+            if (mo.getType() == MonitorType.MonitorNewBridgeSubscription &&
+                  mo.getChannel().equals(this.channel)) {
+                this.count++;
+            }
+        });
 
         // Verify that we can add subscriptions from different sessions with the same subscriptionId
         subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix);
@@ -87,6 +121,10 @@ public class BifrostSubscriptionServiceTest {
 
         subscriptionService.removeSubscription("sub1", "session1");
         Assert.assertEquals(subscriptionService.getSubscriptions().size(), 2);
+
+        // Verify that we have one MonitorNewBridgeSubscription event for each
+        // subscription.
+        Assert.assertEquals(this.count, 3);
     }
 
     @Test
