@@ -13,11 +13,10 @@ buildscript {
     }
 }
 
+// Configure latest Lombok
 plugins {
-    id 'io.franzbecker.gradle-lombok' version '1.8'
+    id 'io.franzbecker.gradle-lombok' version '1.14'
 }
-
-
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 apply plugin: 'eclipse'
@@ -92,13 +91,6 @@ dependencies {
     compile('org.springframework.security:spring-security-web:5.0.0.RELEASE')
     compile('org.springframework.security:spring-security-config:5.0.0.RELEASE')
     compile('org.springframework.security:spring-security-test:5.0.0.RELEASE')
-    testCompile('com.github.tomakehurst:wiremock:2.19.0')
-
-
-    testCompile('org.springframework.boot:spring-boot-starter-test')
-    testCompile('io.projectreactor:reactor-test')
-
-    testCompile("junit:junit")
     runtime "io.reactivex.rxjava2:rxjava:2.1.9"
     compile "io.reactivex.rxjava2:rxjava:2.1.9"
     compile group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.9.4"
@@ -112,6 +104,10 @@ dependencies {
     testCompile group: 'org.springframework', name: 'spring-web', version: '5.0.3.RELEASE'
     testCompile 'org.mockito:mockito-core:2.+'
     testCompile 'org.powermock:powermock-module-junit4:1.7.1'
+    testCompile('com.github.tomakehurst:wiremock:2.19.0')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('io.projectreactor:reactor-test')
+    testCompile("junit:junit")
 
 
 

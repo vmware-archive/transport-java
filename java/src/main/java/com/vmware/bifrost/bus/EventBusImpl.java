@@ -560,6 +560,7 @@ public class EventBusImpl extends Loggable implements EventBus {
         for (Map.Entry<String, Object> entry : peerBeans.entrySet()) {
             Object value = entry.getValue();
             if (value instanceof BifrostEnabled) {
+                this.logDebugMessage("Initializing Bifröst Service: " + value.getClass().getSimpleName());
                 ((BifrostEnabled) value).initializeSubscriptions();
             }
         }
