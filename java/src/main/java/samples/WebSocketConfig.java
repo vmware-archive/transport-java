@@ -62,11 +62,11 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer
               new StartsWithDestinationMatcher("/topic/sample-stream/", "/topic/servbot/"),
               500);
 
-        // Adds a new interceptor that drops every 5th request to servbot channel.
+        // Adds a new interceptor that drops every 5th request to some-service channel.
         configuration.addBifrostStompInterceptor(
               new DropStompMessageInterceptor(5),
               EnumSet.of(StompCommand.SEND),
-              new StartsWithDestinationMatcher("/pub/servbot"),
+              new StartsWithDestinationMatcher("/pub/some-service"),
               1000);
     }
 }
