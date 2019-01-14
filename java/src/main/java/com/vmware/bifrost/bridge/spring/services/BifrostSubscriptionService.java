@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 import java.util.*;
 
@@ -44,9 +45,12 @@ public class BifrostSubscriptionService extends Loggable {
         return openChannels.keySet();
     }
 
-    public void addSubscription(String subId, String sessionId, String channelName, String destinationPrefix) {
+    public synchronized void addSubscription(
+          String subId, String sessionId, String channelName,
+          String destinationPrefix,
+          SessionSubscribeEvent subscribeEvent) {
 
-        BifrostSubscription subscription = new BifrostSubscription(channelName, subId, sessionId);
+        BifrostSubscription subscription = new BifrostSubscription(channelName, subId, sessionId, destinationPrefix);
         if (openSubscriptions.containsKey(subscription.uniqueId)) {
             logger.info(String.format("[!] Bifröst Bus: subscription %s for channel %s already exists, ignoring",
                   subscription.uniqueId, channelName));
@@ -80,12 +84,13 @@ public class BifrostSubscriptionService extends Loggable {
 
         // Notify listeners that there is a new subscription to the channel.
         MonitorObject mo = new MonitorObject(
-              MonitorType.MonitorNewBridgeSubscription, channelName, this.getClass().getName(), subscription);
+              MonitorType.MonitorNewBridgeSubscription, channelName, this.getClass().getName(),
+              new NewBridgeSubscriptionEvent(subscription, subscribeEvent));
         this.bus.getApi().getMonitorStream().send(
               new MessageObject<>(MessageType.MessageTypeRequest, mo));
     }
 
-    public void removeSubscription(String subId, String sessionId) {
+    public synchronized void removeSubscription(String subId, String sessionId) {
 
         String uniqueSubId = BifrostSubscription.generateUniqueSubId(subId, sessionId);
 
@@ -104,7 +109,7 @@ public class BifrostSubscriptionService extends Loggable {
         }
     }
 
-    public void unsubscribeSessionsAfterDisconnect(String sessionId) {
+    public synchronized void unsubscribeSessionsAfterDisconnect(String sessionId) {
         if (sessionChannels.containsKey(sessionId)) {
 
             Collection<BifrostSubscription> subs = openSubscriptions.values();
@@ -156,10 +161,22 @@ public class BifrostSubscriptionService extends Loggable {
         }
     }
 
+    public static class NewBridgeSubscriptionEvent {
+        public final BifrostSubscription bifrostSubscription;
+        public final SessionSubscribeEvent subscribeEvent;
+
+        public NewBridgeSubscriptionEvent(
+              BifrostSubscription subscription, SessionSubscribeEvent subscribeEvent) {
+            this.bifrostSubscription = subscription;
+            this.subscribeEvent = subscribeEvent;
+        }
+    }
+
     public static class BifrostSubscription {
-        public String channelName;
-        public String subId;
-        public String sessionId;
+        public final String channelName;
+        public final String subId;
+        public final String sessionId;
+        public final String destinationPrefix;
 
         public final String uniqueId;
 
@@ -167,11 +184,12 @@ public class BifrostSubscriptionService extends Loggable {
             return String.format("%s-%s", sessionId, subId);
         }
 
-        BifrostSubscription(String channelName, String subId, String sessionId) {
+        BifrostSubscription(String channelName, String subId, String sessionId, String destinationPrefix) {
             this.uniqueId = generateUniqueSubId(subId, sessionId);
             this.channelName = channelName;
             this.subId = subId;
             this.sessionId = sessionId;
+            this.destinationPrefix = destinationPrefix;
         }
     }
 }
