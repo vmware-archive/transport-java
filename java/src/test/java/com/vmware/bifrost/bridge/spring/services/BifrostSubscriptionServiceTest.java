@@ -18,8 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 import java.util.UUID;
 
@@ -43,6 +46,8 @@ public class BifrostSubscriptionServiceTest {
     private String channel;
     private String channel2;
     private String destinationPrefix;
+    private SessionSubscribeEvent subscribeEvent1;
+    private SessionSubscribeEvent subscribeEvent2;
 
     private MonitorObject monitorObject;
     private int count;
@@ -54,6 +59,8 @@ public class BifrostSubscriptionServiceTest {
         this.destinationPrefix = "/destinationPrefix/";
         this.monitorObject = null;
         this.count = 0;
+        this.subscribeEvent1 = createSessionSubscribeEvent(this.destinationPrefix + this.channel);
+        this.subscribeEvent2 = createSessionSubscribeEvent(this.destinationPrefix + this.channel2);
     }
 
     @Test
@@ -66,7 +73,7 @@ public class BifrostSubscriptionServiceTest {
             }
         });
 
-        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix);
+        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
 
         Assert.assertTrue(bus.getApi().getChannelMap().containsKey(this.channel));
         Assert.assertEquals(bus.getApi().getChannelMap().get(this.channel).getRefCount().intValue(), 1);
@@ -87,10 +94,11 @@ public class BifrostSubscriptionServiceTest {
         Mockito.verify(msgTmpl).convertAndSend(this.destinationPrefix + this.channel, response);
 
         Assert.assertNotNull(this.monitorObject);
-        BifrostSubscriptionService.BifrostSubscription subscription =
-              (BifrostSubscriptionService.BifrostSubscription) this.monitorObject.getData();
-        Assert.assertNotNull(subscription);
-        Assert.assertEquals(subscription.channelName, this.channel);
+        BifrostSubscriptionService.NewBridgeSubscriptionEvent subscriptionEvent =
+              (BifrostSubscriptionService.NewBridgeSubscriptionEvent) this.monitorObject.getData();
+        Assert.assertNotNull(subscriptionEvent);
+        Assert.assertEquals(subscriptionEvent.bifrostSubscription.channelName, this.channel);
+        Assert.assertEquals(subscriptionEvent.subscribeEvent, this.subscribeEvent1);
     }
 
     @Test
@@ -105,9 +113,9 @@ public class BifrostSubscriptionServiceTest {
         });
 
         // Verify that we can add subscriptions from different sessions with the same subscriptionId
-        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix);
-        subscriptionService.addSubscription("sub1", "session2", this.channel, this.destinationPrefix);
-        subscriptionService.addSubscription("sub2", "session1", this.channel, this.destinationPrefix);
+        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
+        subscriptionService.addSubscription("sub1", "session2", this.channel, this.destinationPrefix, this.subscribeEvent1);
+        subscriptionService.addSubscription("sub2", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
 
         Assert.assertTrue(bus.getApi().getChannelMap().containsKey(this.channel));
         Assert.assertEquals(bus.getApi().getChannelMap().get(this.channel).getRefCount().intValue(), 1);
@@ -133,9 +141,9 @@ public class BifrostSubscriptionServiceTest {
         this.bus.listenRequestStream(this.channel, (Message m) ->  {});
         this.bus.listenRequestStream(this.channel2, (Message m) ->  {});
 
-        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix);
-        subscriptionService.addSubscription("sub2", "session1", this.channel2, this.destinationPrefix);
-        subscriptionService.addSubscription("sub3", "session2", this.channel, this.destinationPrefix);
+        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
+        subscriptionService.addSubscription("sub2", "session1", this.channel2, this.destinationPrefix, this.subscribeEvent2);
+        subscriptionService.addSubscription("sub3", "session2", this.channel, this.destinationPrefix, this.subscribeEvent1);
 
         Assert.assertEquals(subscriptionService.getSubscriptions().size(), 3);
         Assert.assertEquals(subscriptionService.getOpenChannels().size(), 2);
@@ -170,7 +178,7 @@ public class BifrostSubscriptionServiceTest {
               this.destinationPrefix + this.channel, "channel-response1");
 
         // Verify that we can re-subscribe successfully to first channel
-        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix);
+        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
 
         Assert.assertEquals(subscriptionService.getSubscriptions().size(), 1);
         Assert.assertEquals(subscriptionService.getOpenChannels().size(), 1);
@@ -182,7 +190,7 @@ public class BifrostSubscriptionServiceTest {
 
     @Test
     public void testRemoveSubscriptionWithInvalidSubId() {
-        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix);
+        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
         Assert.assertEquals(subscriptionService.getOpenChannels().size(), 1);
         Assert.assertEquals(subscriptionService.getSubscriptions().size(), 1);
 
@@ -193,13 +201,23 @@ public class BifrostSubscriptionServiceTest {
 
     @Test
     public void testAddSubscriptionWithAlreadySubscribedSubId() {
-        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix);
-        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix);
+        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
+        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
         Assert.assertEquals(subscriptionService.getOpenChannels().size(), 1);
         Assert.assertEquals(subscriptionService.getSubscriptions().size(), 1);
 
         subscriptionService.removeSubscription("sub1", "session1");
         Assert.assertEquals(subscriptionService.getOpenChannels().size(), 0);
         Assert.assertEquals(subscriptionService.getSubscriptions().size(), 0);
+    }
+
+    private SessionSubscribeEvent createSessionSubscribeEvent(String destination) {
+        MessageBuilder<byte[]> messageBuilder = MessageBuilder.withPayload(new byte[0]);
+        messageBuilder.setHeader("simpDestination", destination)
+              .setHeader("simpSubscriptionId", "subscriptionId")
+              .setHeader("simpSessionId", "sessionId")
+              .setHeader("stompCommand", StompCommand.SUBSCRIBE);
+
+        return new SessionSubscribeEvent(new Object(), messageBuilder.build());
     }
 }

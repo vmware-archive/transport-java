@@ -38,16 +38,18 @@ public class BifrostSubscriptionHandlerTest {
 
     @Test
     public void testSubscriptionToNonBifrostDestination() {
-        this.handler.onApplicationEvent(createSessionSubscribeEvent("/non-bifrost/channel1"));
+        SessionSubscribeEvent event = createSessionSubscribeEvent("/non-bifrost/channel1");
+        this.handler.onApplicationEvent(event);
         Mockito.verify(this.subService, Mockito.never()).addSubscription(
-              Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+              Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
     public void testSubscriptionToBifrostDestination() {
-        this.handler.onApplicationEvent(createSessionSubscribeEvent("/topic1/channel1"));
+        SessionSubscribeEvent event = createSessionSubscribeEvent("/topic1/channel1");
+        this.handler.onApplicationEvent(event);
         Mockito.verify(this.subService).addSubscription(
-              "subscriptionId", "sessionId", "channel1", "/topic1/");
+              "subscriptionId", "sessionId", "channel1", "/topic1/", event);
     }
 
     private SessionSubscribeEvent createSessionSubscribeEvent(String destination) {

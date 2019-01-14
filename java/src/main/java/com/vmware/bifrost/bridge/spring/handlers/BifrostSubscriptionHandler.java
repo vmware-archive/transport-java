@@ -43,6 +43,6 @@ public class BifrostSubscriptionHandler implements ApplicationListener<SessionSu
         String channel = BifrostUtil.extractChannelName(bifrostBridgeConfiguration, destination);
 
         logger.info("[>] Bifröst Bridge: subscription requested: (" + channel + "), subId: " + sha.getSubscriptionId());
-        subService.addSubscription(sha.getSubscriptionId(), sha.getSessionId(), channel, bifrostDestinationPrefix);
+        subService.addSubscription(sha.getSubscriptionId(), sha.getSessionId(), channel, bifrostDestinationPrefix, event);
     }
 }
