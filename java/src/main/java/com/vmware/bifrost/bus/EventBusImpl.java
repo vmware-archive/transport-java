@@ -43,8 +43,7 @@ public class EventBusImpl extends Loggable implements EventBus {
     private Channel monitorStream;
     private String monitorChannel;
 
-    public EventBusImpl() throws Exception {
-
+    public EventBusImpl() {
         this.channelMap = new HashMap<>();
         this.monitorChannel = stream;
         this.monitorStream = new Channel(this.monitorChannel);
