@@ -31,7 +31,7 @@ public class BifrostSubscriptionService extends Loggable {
     private HashMap<String, OpenChannel> openChannels;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    BifrostSubscriptionService() {
+    public BifrostSubscriptionService() {
         openSubscriptions = new HashMap<>();
         openChannels = new HashMap<>();
         sessionChannels = new HashMap<>();
@@ -184,7 +184,7 @@ public class BifrostSubscriptionService extends Loggable {
             return String.format("%s-%s", sessionId, subId);
         }
 
-        BifrostSubscription(String channelName, String subId, String sessionId, String destinationPrefix) {
+        public BifrostSubscription(String channelName, String subId, String sessionId, String destinationPrefix) {
             this.uniqueId = generateUniqueSubId(subId, sessionId);
             this.channelName = channelName;
             this.subId = subId;
