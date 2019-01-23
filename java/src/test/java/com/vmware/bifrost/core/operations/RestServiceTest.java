@@ -43,7 +43,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RunWith(SpringRunner.class)
 @RestClientTest(RestService.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK, classes = {
         SecurityConfiguration.class,
         RestService.class,
         MockRestController.class,
