@@ -195,6 +195,7 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
         }
 
         if (channelObj == null) {
+            this.logWarnMessage(String.format("Failed to send message. Cannot find channel: %s", channel));
             mo = new MonitorObject(MonitorType.MonitorDropped, channel, from, messageObject);
             this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
             return;

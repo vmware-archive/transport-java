@@ -209,6 +209,12 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
                     new RestError("Null Pointer exception thrown for: "
                             + operation.getUri().toString(), 500)
             );
+        } catch (RuntimeException rex) {
+            this.logErrorMessage("Runtime Exception when making REST Call", rex.toString());
+            operation.getErrorHandler().accept(
+                    new RestError("Runtime exception thrown for: "
+                                  + operation.getUri().toString(), 500)
+            );
         }
 
     }
