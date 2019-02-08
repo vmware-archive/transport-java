@@ -4,6 +4,7 @@ import { DocumentationComponent } from './documentation/documentation.component'
 import { DemosComponent } from './demos/demos.component';
 import { HomeComponent } from './documentation/home/home.component';
 import { GettingStartedComponent } from './documentation/getting-started/getting-started.component';
+import { WelcomeComponent } from './welcome/welcome.component';
 
 const routes: Routes = [
     {
@@ -15,7 +16,8 @@ const routes: Routes = [
 
         ]
     },
-    { path: 'demos', component: DemosComponent }
+    { path: 'demos', component: DemosComponent },
+    { path: '', component: WelcomeComponent }
 ];
 
 @NgModule({
