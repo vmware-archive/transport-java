@@ -90,5 +90,5 @@ publish:ui:
   - ./scripts/deploy-ui.sh
   when: on_success
   only:
-  - tags
+  - master
 

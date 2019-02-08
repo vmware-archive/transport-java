@@ -37,7 +37,7 @@ trap '_trap' SIGINT SIGTERM
 
 # prepare the script
 cat <<EOT > $ROOT/scripts/deploy.sh
-#!/bin/bash -e
+#!/bin/bash
 COLOR_RESET="\033[0m"
 COLOR_RED="\033[38;5;9m"
 COLOR_LIGHTCYAN="\033[1;36m"
@@ -76,12 +76,15 @@ info "Starting sample-ui using tag ${TARGET_TAG}..."
 docker run --name sample-ui -d -p 80:80 ${REGISTRY_PREFIX}/sample-ui:${TARGET_TAG}
 
 # check if container is running normally
+echo
+info "Checking if container is running..."
 sleep 5
 docker top sample-ui >/dev/null 2>&1
 if [ \$? -gt 0 ] ; then
     docker logs sample-ui
     error "Nginx failed to start! See the logs above"
 fi
+success "Deployment was successful"
 EOT
 
 set +e
@@ -93,7 +96,7 @@ set -e
 
 echo
 info "Checking if Container is up and running..."
-wget -O- --retry-connrefused --waitretry=5 -t 15 http://${UI_HOST} > /dev/null 2>&1
+wget -O- --retry-connrefused --waitretry=5 -t 15 http://appfabric.eng.vmware.com > /dev/null 2>&1
 if [ $? -gt 0 ] ; then
     error "Container did not start normally"
 fi
