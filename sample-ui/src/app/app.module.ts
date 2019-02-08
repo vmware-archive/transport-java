@@ -8,12 +8,14 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DocumentationComponent } from './documentation/documentation.component';
 import { DemosComponent } from './demos/demos.component';
 import { DocumentationModule } from './documentation/documentation.module';
+import { WelcomeComponent } from './welcome/welcome.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         DocumentationComponent,
-        DemosComponent
+        DemosComponent,
+        WelcomeComponent
     ],
     imports: [
         BrowserModule,
