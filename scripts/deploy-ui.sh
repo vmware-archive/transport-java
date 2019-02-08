@@ -73,7 +73,7 @@ fi
 # start sample-ui container
 echo
 info "Starting sample-ui using tag ${TARGET_TAG}..."
-docker run --name sample-ui -d -p 80:80 ${REGISTRY_PREFIX}/sample-ui:${TARGET_TAG}
+docker run --name sample-ui -d -p 80:80 ${REGISTRY_PREFIX}/app-fabric-ui:${TARGET_TAG}
 
 # check if container is running normally
 echo

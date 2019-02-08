@@ -81,12 +81,13 @@ publish:ui:
   - use-docker
   variables:
     DOCKER_HOST: "tcp://docker:2375"
+    TARGET_TAG: ${CI_PIPELINE_ID}
   dependencies:
   - build:ui
   script:
-  - ./scripts/build-image.sh -t ${CI_COMMIT_TAG} -n app-fabric-ui
+  - ./scripts/build-image.sh -t ${TARGET_TAG} -n app-fabric-ui
   - docker login ${REGISTRY_PREFIX}
-  - docker push ${REGISTRY_PREFIX}/app-fabric-ui:${CI_COMMIT_TAG}
+  - docker push ${REGISTRY_PREFIX}/app-fabric-ui:${TARGET_TAG}
   - ./scripts/deploy-ui.sh
   when: on_success
   only:

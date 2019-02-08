@@ -11,7 +11,7 @@ ENV=${ENV:-dev}
 ENV=${ENV/dev*/dev}
 ENV=${ENV/prod*/prd}
 ENV=${ENV/staging*/stg}
-IMAGE_TAG="${IMAGE_TAG:-latest}"
+IMAGE_TAG="${CI_PIPELINE_ID:-latest}"
 
 REGISTRY_PREFIX=${REGISTRY_PREFIX:-appfabric-service-docker-local.artifactory.eng.vmware.com}
 ROOT=$(cd $(dirname $0)/.. ; pwd)
@@ -30,9 +30,9 @@ build_ui_docker_image() {
     local name=$1
     local tag=$2
     info "\nBuilding Docker image $name with tag $tag..."
-    docker build -f $ROOT/ui/Dockerfile -t $name:$tag $ROOT/ui/
+    docker build -f $ROOT/sample-ui/Dockerfile -t $name:$tag $ROOT/sample-ui/
     info "\nTagging the image as $REGISTRY_PREFIX/$name:$tag..."
-    docker tag $name:$tag$REGISTRY_PREFIX/$name:$tag
+    docker tag $name:$tag $REGISTRY_PREFIX/$name:$tag
 }
 
 while getopts :t:n:a: flag ; do
@@ -47,7 +47,7 @@ while getopts :t:n:a: flag ; do
             DOCKER_BUILD_ARGS=$OPTARG
             ;;
         *)
-            info "Usage: $0 -t tag (e.g. 1.0) -n name [-a addtional args]"
+            info "Usage: $0 -t tag -n name [-a addtional args]"
             exit 0
             ;;
     esac
@@ -55,7 +55,7 @@ done
 shift $((OPTIND-1))
 
 if [ -z $IMAGE_NAME ] ; then
-    error "Please provide image name as in $0 -t tag (e.g. 1.0) -n name [-a additional args]"
+    error "Please provide image name as in $0 -t tag -n name [-a additional args]"
 fi
 
 build_ui_docker_image $IMAGE_NAME $IMAGE_TAG
