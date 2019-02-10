@@ -13,9 +13,7 @@ export class WelcomeComponent implements OnInit {
     }
 
     ngOnInit() {
-        particlesJS.load('particles-js', 'assets/particles.json', () => {
-            console.log('callback - particles.js config loaded');
-        });
+        particlesJS.load('fabric-bg', 'assets/particles.json');
 
 
     }
