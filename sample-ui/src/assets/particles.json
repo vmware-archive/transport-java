@@ -8,7 +8,7 @@
             }
         },
         "color": {
-            "value": "#bbbbbb"
+            "value": "#8800A4"
         },
         "shape": {
             "type": "circle",
@@ -26,7 +26,7 @@
             }
         },
         "opacity": {
-            "value": 0.8658425128673823,
+            "value": 0.8,
             "random": true,
             "anim": {
                 "enable": false,
@@ -36,25 +36,25 @@
             }
         },
         "size": {
-            "value": 8.017060304327615,
+            "value": 9,
             "random": true,
             "anim": {
                 "enable": false,
                 "speed": 40,
-                "size_min": 0.1,
+                "size_min": 3,
                 "sync": false
             }
         },
         "line_linked": {
             "enable": true,
             "distance": 150,
-            "color": "#ffffff",
-            "opacity": 0.4,
+            "color": "#8800A4",
+            "opacity": 0.6,
             "width": 1
         },
         "move": {
             "enable": true,
-            "speed": 0.7,
+            "speed": 1.5,
             "direction": "none",
             "random": true,
             "straight": false,
@@ -89,7 +89,7 @@
             },
             "bubble": {
                 "distance": 158.35505639876231,
-                "size": 28.42270243054708,
+                "size": 20.42270243054708,
                 "duration": 1.7865698670629593,
                 "opacity": 0.17865698670629593,
                 "speed": 3

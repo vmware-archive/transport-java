@@ -1,8 +1,67 @@
-.particles-js {
+
+.bold {
+    font-weight: bolder;
+    color: orange;
+}
+
+.white {
+    color: #ffffff;
+}
+
+.fabric-logo {
+}
+
+#fabric-intro {
+    height: 400px;
+    position: relative;
+    background-color: #0f171c;
+}
+
+#fabric-bg-image {
     position: absolute;
+    top: 0px;
+    left: 0px;
     width: 100%;
-    height: 100%;
-    background-repeat: no-repeat;
+    height: 400px;
+    background-repeat: repeat-x;
+    opacity: 0.3;
+    background-color: #3f004d;
+    background-blend-mode: multiply;
+}
+
+#fabric-bg {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 400px;
     background-size: cover;
     background-position: 50% 50%;
+}
+
+#fabric-banner {
+    position: absolute;
+    top: 80px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    pointer-events: none;
+    text-align: center;
+}
+
+#fabric-banner h1 {
+
+    font-size: 60px;
+    text-shadow: 0px 3px 3px #62388e;
+}
+
+#welcome-content {
+    padding-top: 50px;
+    text-align: center;
+    background-image: linear-gradient(to bottom, #111020 0%, #211b31 25%);
+}
+
+#welcome-content h1 {
+    margin: 0;
+    padding-top: 20px;
 }
