@@ -1,15 +1,38 @@
+<div style="position: relative">
+    <particle-header></particle-header>
+</div>
 <div class="content-container">
-  <div class="content-area">
-    <router-outlet></router-outlet>
-  </div>
-  <nav class="sidenav">
-    <section class="nav-group collapsible">
-      <input id="tab2" type="checkbox"><label for="tab2">Patterns</label>
-      <ul class="nav-list">
-        <li><a routerLink="/documentation/getting-started" class="nav-link">Getting Started </a></li>
-      </ul>
-    </section>
-  </nav>
+    <div class="content-area">
+        <router-outlet></router-outlet>
+    </div>
+    <nav class="sidenav">
+        <section class="nav-group collapsible">
+            <input id="tab2" type="checkbox"><label for="tab2">Bifröst Documentation</label>
+            <ul class="nav-list">
+                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/home">
+                    Bifröst Docs Home
+                </a></li>
+                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/importing">
+                   Importing
+                </a></li>
+                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/configuring-angular">
+                    Configuring Angular
+                </a></li>
+                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/configuring-java">
+                    Configuring Java
+                </a></li>
+                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/initializing">
+                    Initializing the bus
+                </a></li>
+                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/helloworld-ts">
+                    Hello World (TypeScript)
+                </a></li>
+                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/helloworld-java">
+                    Hello World (Java)
+                </a></li>
+            </ul>
+        </section>
+    </nav>
 </div>
 
 

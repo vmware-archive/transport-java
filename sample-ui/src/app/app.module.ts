@@ -5,24 +5,24 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ClarityModule } from '@clr/angular';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { DocumentationComponent } from './documentation/documentation.component';
 import { DemosComponent } from './demos/demos.component';
 import { DocumentationModule } from './documentation/documentation.module';
 import { WelcomeComponent } from './welcome/welcome.component';
+import { SharedModule } from './shared/shared.module';
 
 @NgModule({
     declarations: [
         AppComponent,
-        DocumentationComponent,
         DemosComponent,
-        WelcomeComponent
+        WelcomeComponent,
     ],
     imports: [
         BrowserModule,
         AppRoutingModule,
         ClarityModule,
         BrowserAnimationsModule,
-        DocumentationModule
+        DocumentationModule,
+        SharedModule
     ],
     providers: [],
     bootstrap: [AppComponent]
