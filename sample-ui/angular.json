@@ -7,7 +7,7 @@
       "root": "",
       "sourceRoot": "src",
       "projectType": "application",
-      "prefix": "myprefix",
+      "prefix": "appfab",
       "schematics": {
         "@schematics/angular:component": {
           "style": "scss"

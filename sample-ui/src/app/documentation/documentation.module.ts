@@ -5,11 +5,17 @@ import { DocumentationRoutingModule } from './documentation-routing.module';
 import { HomeComponent } from './home/home.component';
 import { DocumentationComponent } from './documentation.component';
 import { SharedModule } from '../shared/shared.module';
+import { ClarityModule } from '@clr/angular';
 
 @NgModule({
-    declarations: [GettingStartedComponent, HomeComponent, DocumentationComponent],
+    declarations: [
+        GettingStartedComponent,
+        HomeComponent,
+        DocumentationComponent
+    ],
     imports: [
         CommonModule,
+        ClarityModule,
         SharedModule,
         DocumentationRoutingModule
     ]

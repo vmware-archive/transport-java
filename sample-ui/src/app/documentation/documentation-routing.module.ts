@@ -11,7 +11,7 @@ const documentationRoutes: Routes = [
         children: [
             { path: '', component: HomeComponent },
             { path: 'getting-started', component: GettingStartedComponent },
-            { path: 'bifrost', loadChildren: './bifrost/bifrost.module#BifrostModule'  }
+            { path: 'bifrost', loadChildren: './bifrost/bifrost.module#BifrostModule' }
         ]
     }
 ];

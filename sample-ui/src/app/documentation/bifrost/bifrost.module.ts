@@ -1,24 +1,30 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ImportingComponent } from './importing/importing.component';
 import { BifrostHomeComponent } from './bifrost-home/bifrost-home.component';
 import { BifrostRoutingModule } from './bifrost-routing.module';
 import { SharedModule } from '../../shared/shared.module';
-import { ConfiguringAngularComponent } from './configuring-angular/configuring-angular.component';
-import { ConfiguringJavaComponent } from './configuring-java/configuring-java.component';
-import { InitializingComponent } from './initializing/initializing.component';
-import { HelloworldTsComponent } from './helloworld-ts/helloworld-ts.component';
-import { HelloworldJavaComponent } from './helloworld-java/helloworld-java.component';
+import { TsImportingComponent } from './ts-importing/ts-importing.component';
+import { TsConfiguringComponent } from './ts-configuring/ts-configuring.component';
+import { TsConfiguringAngularComponent } from './ts-configuring-angular/ts-configuring-angular.component';
+import { TsInitializingComponent } from './ts-initializing/ts-initializing.component';
+import { TsHelloworldComponent } from './ts-helloworld/ts-helloworld.component';
+import { JavaImportingComponent } from './java-importing/java-importing.component';
+import { JavaConfiguringComponent } from './java-configuring/java-configuring.component';
+import { JavaInitializingComponent } from './java-initializing/java-initializing.component';
+import { JavaHelloworldComponent } from './java-helloworld/java-helloworld.component';
 
 @NgModule({
     declarations: [
-        ImportingComponent,
         BifrostHomeComponent,
-        ConfiguringAngularComponent,
-        ConfiguringJavaComponent,
-        InitializingComponent,
-        HelloworldTsComponent,
-        HelloworldJavaComponent
+        TsImportingComponent,
+        TsConfiguringComponent,
+        TsConfiguringAngularComponent,
+        TsInitializingComponent,
+        TsHelloworldComponent,
+        JavaImportingComponent,
+        JavaConfiguringComponent,
+        JavaInitializingComponent,
+        JavaHelloworldComponent,
     ],
     imports: [
         CommonModule,

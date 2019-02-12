@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 declare var particlesJS: any;
 
 @Component({
-    selector: 'app-welcome',
+    selector: 'appfab-welcome',
     templateUrl: './welcome.component.html',
     styleUrls: ['./welcome.component.scss']
 })

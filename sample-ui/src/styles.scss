@@ -4,5 +4,8 @@
 
 @import "../node_modules/@clr/ui/src/utils/components.clarity";
 
+@import "~prismjs/plugins/toolbar/prism-toolbar.css";
+@import "~prismjs/themes/prism-tomorrow";
+
 // Hallowedding theme.
 @import "./hallowedding-theme.scss";
