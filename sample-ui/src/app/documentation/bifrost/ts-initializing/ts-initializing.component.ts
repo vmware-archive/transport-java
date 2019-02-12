@@ -1,15 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, OnInit } from '@angular/core';
+import { BaseBifrostComponent } from '../base.bifrost.component';
+import { HighlightService } from '../../../local-services/highlight.service';
 
 @Component({
-  selector: 'myprefix-ts-initializing',
-  templateUrl: './ts-initializing.component.html',
-  styleUrls: ['./ts-initializing.component.scss']
+    selector: 'appfab-ts-initializing',
+    templateUrl: './ts-initializing.component.html',
+    styleUrls: ['./ts-initializing.component.scss']
 })
-export class TsInitializingComponent implements OnInit {
+export class TsInitializingComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
 
-  constructor() { }
+    constructor(private highlightService: HighlightService) {
+        super('InitializingComponent');
+    }
 
-  ngOnInit() {
-  }
+    ngOnInit() {
+        this.setBifrostTsDocsActive(true);
+    }
+
+    ngAfterViewChecked() {
+        if (!this.highlighted) {
+            this.highlightService.highlightAll();
+            this.highlighted = true;
+        }
+    }
 
 }

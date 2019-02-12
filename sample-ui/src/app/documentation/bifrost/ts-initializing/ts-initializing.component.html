@@ -1,3 +1,53 @@
+<h1 id="initializing">
+Initializing the Bus
+</h1>
+
 <p>
-  ts-initializing works!
+    The Bifröst operates outside of any vendor UI technology framework. It's completely decoupled, allowing it to be
+    used by any framework. Because it's independent, it needs to be initialized before
+    any other frameworks have booted or started e.g. Angular.
+</p>
+<p>
+    There are a couple of ways to do this, the first is to create an initialization script that is auto-loaded into the
+    <code class="clr-code">&lt;head/&gt;</code> of the DOM (and would therefore boot before the UI framework does).
+</p>
+<h5>Init script example coming soon</h5>
+<p>
+    The quickest way to initialize the Bifröst is to boot it in your <code class="clr-code">app.component.ts</code>
+    class (for Angular). This should be done outside your actual
+    <code class="clr-code">AppComponent</code> class definition, to ensure the Bifröst is booted before your application
+    is. Your <code class="clr-code">app.component.ts</code> file would end up looking something like this:
+</p>
+
+<pre class="code">
+<code class="language-typescript" ngNonBindable>
+import &#123; Component &#125; from '@angular/core';
+import &#123; BusUtil &#125; from '@vmw/bifrost/util/bus.util';
+
+// create bus instance with debug level logging.
+BusUtil.bootBusWithOptions(LogLevel.Debug, false);
+
+@Component(&#123;
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss']
+&#125;)
+export class AppComponent &#123;
+
+&#125;
+</code>
+</pre>
+<p>
+    The Bifröst is now active and ready to be be used. If you want to just boot the bus with default options, you can
+    use <code class="clr-code">BusUtil.bootBus()</code>.
+
+    You can find out about some of the other methods available by looking at the <code class="clr-code">BusUtil</code>
+    API, you can find the code here:
+    <a href="https://gitlab.eng.vmware.com/bifrost/typescript/blob/master/src/util/bus.util.ts " target="_blank">https://gitlab.eng.vmware.com/bifrost/typescript/blob/master/src/util/bus.util.ts</a>
+</p>
+
+<p>
+    If you haven't disabled the boot message, you should see a banner in your developer console that looks something
+    like:<br/>
+    <img src="/assets/bifrost/bootmessage.png"/>
 </p>

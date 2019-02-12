@@ -1,15 +1,18 @@
 import { Component, OnInit } from '@angular/core';
+import { BaseBifrostComponent } from '../base.bifrost.component';
 
 @Component({
-  selector: 'myprefix-java-importing',
-  templateUrl: './java-importing.component.html',
-  styleUrls: ['./java-importing.component.scss']
+    selector: 'myprefix-java-importing',
+    templateUrl: './java-importing.component.html',
+    styleUrls: ['./java-importing.component.scss']
 })
-export class JavaImportingComponent implements OnInit {
+export class JavaImportingComponent extends BaseBifrostComponent implements OnInit {
 
-  constructor() { }
+    constructor() {
+        super('BaseBifrostComponent');
+    }
 
-  ngOnInit() {
-  }
-
+    ngOnInit() {
+        this.setBifrostJavaDocsActive(true);
+    }
 }

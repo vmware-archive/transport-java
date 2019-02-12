@@ -1,0 +1,29 @@
+<div class="alert alert-app-level alert-warning" *ngIf="showAlerts">
+    <div class="alert-items">
+        <div class="alert-item static">
+            <div class="alert-icon-wrapper">
+                <clr-icon class="alert-icon" shape="exclamation-info"></clr-icon>
+            </div>
+            <div class="alert-text">
+                Documentation is under active development, check back frequently.
+            </div>
+        </div>
+    </div>
+    <button type="button" class="close" aria-label="Close" (click)="hideAlerts()">
+        <clr-icon aria-hidden="true" shape="close"></clr-icon>
+    </button>
+</div>
+<clr-header class="header-6">
+    <div class="branding">
+        <a href="/">
+            <clr-icon shape="vm-bug"></clr-icon>
+            <span class="title">VMware Application Fabric</span>
+        </a>
+    </div>
+    <div class="header-nav">
+        <a routerLink="/documentation" routerLinkActive="active" class="nav-link nav-text">Documentation</a>
+        <!--<a routerLink="/demos" routerLinkActive="active" class="nav-link nav-text">Demos</a>-->
+    </div>
+    <div class="header-actions">
+    </div>
+</clr-header>

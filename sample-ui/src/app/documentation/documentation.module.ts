@@ -5,6 +5,7 @@ import { DocumentationRoutingModule } from './documentation-routing.module';
 import { HomeComponent } from './home/home.component';
 import { DocumentationComponent } from './documentation.component';
 import { SharedModule } from '../shared/shared.module';
+import { ClarityModule } from '@clr/angular';
 
 @NgModule({
     declarations: [
@@ -14,6 +15,7 @@ import { SharedModule } from '../shared/shared.module';
     ],
     imports: [
         CommonModule,
+        ClarityModule,
         SharedModule,
         DocumentationRoutingModule
     ]

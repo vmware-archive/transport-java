@@ -1,3 +1,4 @@
+html, body {margin:0;padding:0;height:100%;}
 .main-container {
     background-color:#211b31;
 }
@@ -49,4 +50,40 @@ header .header-nav .nav-link.active, .header .header-nav .nav-link.active {
     background: rgb(28, 23, 41);
     border-right: 1px solid #3a2b52;
     border-left: 1px solid #3a2b52;
+}
+
+.alert.alert-info {
+    background-color: #302846;
+}
+
+.orange {
+    color: orange;
+}
+
+pre {
+    border: none;
+    max-height: none;
+
+    display: block;
+    overflow-x: auto;
+    padding: 0.5em;
+    padding-left: 2em;
+    color: #abb2bf;
+    background: #1c1729;
+    border-radius: 10px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #0a0a14 #170f29 #332e40 #131020;
+
+}
+
+code.clr-code {
+    color: orange;
+    padding: 0;
+    background: transparent;
+}
+
+/* prism override */
+:not(pre) > code[class*="language-"], pre[class*="language-"] {
+    background: #1c1729;
 }

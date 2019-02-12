@@ -1,3 +1,28 @@
+<h1>What is the Bifröst?</h1>
 <p>
- bifrost docs home!
+    Before using the Bifröst, we should understand what it is exactly and where it fits into an application's
+    architecture.
+</p>
+<h4 class="orange">
+    The Bifröst is the thread of the Application Fabric.
+</h4>
+<h3>
+    A distributed event bus
+</h3>
+
+<p>
+    An event bus that can be distributed across applications and connected up to AMQP or Kafka Brokers.
+    It is also an API transport infrastructure, & state store.
+</p>
+<p>
+    It's a framework independent backbone for applications. One that provides a reactive pub-sub core
+    and facilitates decoupling, modularization and universal design.
+</p>
+
+<h3>
+    An internal freeway system, for applications.
+</h3>
+<p>
+    The Bifröst is part of our core UI architecture strategy. It decouples presentation logic, from business logic via an asynchronous event bus. This bus is built on top of ReactiveX, that
+    results in a super fast, super scalable mechanism for actors to communicate and decouple logic. The Bifröst can be extended from the UI/CLI to fabric applications, and between fabric applications.
 </p>
