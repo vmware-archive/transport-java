@@ -7,7 +7,11 @@ import { DocumentationComponent } from './documentation.component';
 import { SharedModule } from '../shared/shared.module';
 
 @NgModule({
-    declarations: [GettingStartedComponent, HomeComponent, DocumentationComponent],
+    declarations: [
+        GettingStartedComponent,
+        HomeComponent,
+        DocumentationComponent
+    ],
     imports: [
         CommonModule,
         SharedModule,

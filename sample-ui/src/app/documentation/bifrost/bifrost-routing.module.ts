@@ -1,23 +1,27 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { BifrostHomeComponent } from './bifrost-home/bifrost-home.component';
-import { ImportingComponent } from './importing/importing.component';
-import { ConfiguringAngularComponent } from './configuring-angular/configuring-angular.component';
-import { ConfiguringJavaComponent } from './configuring-java/configuring-java.component';
-import { InitializingComponent } from './initializing/initializing.component';
-import { HelloworldJavaComponent } from './helloworld-java/helloworld-java.component';
-import { HelloworldTsComponent } from './helloworld-ts/helloworld-ts.component';
+import { TsImportingComponent } from './ts-importing/ts-importing.component';
+import { TsConfiguringComponent } from './ts-configuring/ts-configuring.component';
+import { TsConfiguringAngularComponent } from './ts-configuring-angular/ts-configuring-angular.component';
+import { TsInitializingComponent } from './ts-initializing/ts-initializing.component';
+import { TsHelloworldComponent } from './ts-helloworld/ts-helloworld.component';
+import { JavaImportingComponent } from './java-importing/java-importing.component';
+import { JavaConfiguringComponent } from './java-configuring/java-configuring.component';
+import { JavaInitializingComponent } from './java-initializing/java-initializing.component';
+import { JavaHelloworldComponent } from './java-helloworld/java-helloworld.component';
 
 const bifrostRoutes: Routes = [
-    {path: '', redirectTo: 'home'},
-    {path: 'home', component: BifrostHomeComponent},
-    {path: 'importing', component: ImportingComponent, pathMatch: 'full'},
-    {path: 'configuring-angular', component: ConfiguringAngularComponent, pathMatch: 'full'},
-    {path: 'configuring-java', component: ConfiguringJavaComponent, pathMatch: 'full'},
-    {path: 'initializing', component: InitializingComponent, pathMatch: 'full'},
-    {path: 'helloworld-java', component: HelloworldJavaComponent, pathMatch: 'full'},
-    {path: 'helloworld-ts', component: HelloworldTsComponent, pathMatch: 'full'},
-
+    {path: '', component: BifrostHomeComponent, pathMatch: 'true'},
+    {path: 'ts/importing', component: TsImportingComponent, pathMatch: 'true'},
+    {path: 'ts/configuring', component: TsConfiguringComponent, pathMatch: 'true'},
+    {path: 'ts/configuring-angular', component: TsConfiguringAngularComponent, pathMatch: 'true'},
+    {path: 'ts/initializing', component: TsInitializingComponent, pathMatch: 'true'},
+    {path: 'ts/helloworld', component: TsHelloworldComponent, pathMatch: 'true'},
+    {path: 'java/importing', component: JavaImportingComponent, pathMatch: 'true'},
+    {path: 'java/configuring', component: JavaConfiguringComponent, pathMatch: 'true'},
+    {path: 'java/initializing', component: JavaInitializingComponent, pathMatch: 'true'},
+    {path: 'java/helloworld', component: JavaHelloworldComponent, pathMatch: 'true'},
 ];
 
 @NgModule({

@@ -6,32 +6,77 @@
         <router-outlet></router-outlet>
     </div>
     <nav class="sidenav">
-        <section class="nav-group collapsible">
-            <input id="tab2" type="checkbox"><label for="tab2">Bifröst Documentation</label>
-            <ul class="nav-list">
-                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/home">
+        <section class="nav-group">
+            <label>
+                <a routerLink="/documentation/bifrost">
                     Bifröst Docs Home
-                </a></li>
-                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/importing">
-                   Importing
-                </a></li>
-                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/configuring-angular">
-                    Configuring Angular
-                </a></li>
-                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/configuring-java">
-                    Configuring Java
-                </a></li>
-                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/initializing">
-                    Initializing the bus
-                </a></li>
-                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/helloworld-ts">
-                    Hello World (TypeScript)
-                </a></li>
-                <li class="nav-link" routerLinkActive="active"><a routerLink="/documentation/bifrost/helloworld-java">
-                    Hello World (Java)
-                </a></li>
+                </a>
+            </label>
+        </section>
+        <section class="nav-group collapsible">
+
+
+            <input id="typescript" type="checkbox" checked="false">
+            <label for="typescript">Bifröst - TypeScript (JavaScript)</label>
+            <ul class="nav-list">
+                <li class="nav-link" routerLinkActive="active">
+                    <a routerLink="/documentation/bifrost/ts/importing">
+                        Importing
+                    </a>
+                </li>
+                <li class="nav-link" routerLinkActive="active">
+                    <a routerLink="/documentation/bifrost/ts/configuring">
+                        Configuring
+                    </a>
+                </li>
+                <li class="nav-link" routerLinkActive="active">
+                    <a routerLink="/documentation/bifrost/ts/configuring-angular">
+                        Configuring Angular
+                    </a>
+                </li>
+                <li class="nav-link" routerLinkActive="active">
+                    <a routerLink="/documentation/bifrost/ts/initializing">
+                        Initializing the Event Bus
+                    </a>
+                </li>
+                <li class="nav-link" routerLinkActive="active">
+                    <a routerLink="/documentation/bifrost/ts/helloworld">
+                        Hello World
+                    </a>
+                </li>
             </ul>
         </section>
+
+        <!--<section class="nav-group collapsible">-->
+            <!--<input id="tab2" type="checkbox" checked="false"><label for="tab2">Bifröst - Java</label>-->
+            <!--<ul class="nav-list">-->
+                <!--<li class="nav-link" routerLinkActive="active">-->
+                    <!--<a routerLink="/documentation/bifrost/java/importing">-->
+                        <!--Importing-->
+                    <!--</a>-->
+                <!--</li>-->
+                <!--<li class="nav-link" routerLinkActive="active">-->
+                    <!--<a routerLink="/documentation/bifrost/java/configuring">-->
+                        <!--Configuring Spring Application-->
+                    <!--</a>-->
+                <!--</li>-->
+                <!--<li class="nav-link" routerLinkActive="active">-->
+                    <!--<a routerLink="/documentation/bifrost/java/initializing">-->
+                        <!--Initializing-->
+                    <!--</a>-->
+                <!--</li>-->
+                <!--<li class="nav-link" routerLinkActive="active">-->
+                    <!--<a routerLink="/documentation/bifrost/java/helloworld">-->
+                        <!--Hello World-->
+                    <!--</a>-->
+                <!--</li>-->
+            <!--</ul>-->
+        <!--</section>-->
+
+
+
+
+
     </nav>
 </div>
 
