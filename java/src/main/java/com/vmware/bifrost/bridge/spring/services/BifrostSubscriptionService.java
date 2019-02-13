@@ -17,8 +17,8 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 import java.util.*;
 
-@Service
-public class BifrostSubscriptionService extends Loggable {
+@Service("bifrostSubscriptionService")
+public class BifrostSubscriptionService extends Loggable implements BifrostBridgeSubscriptionRegistry {
 
     @Autowired
     private EventBus bus;

@@ -4,6 +4,7 @@
 package com.vmware.bifrost.bridge.spring.config.interceptors;
 
 import com.vmware.bifrost.bridge.spring.config.BifrostBridgeConfiguration;
+import com.vmware.bifrost.bridge.spring.config.StompInterceptorRegistration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -27,7 +28,7 @@ public class BifrostChannelInterceptor extends ChannelInterceptorAdapter {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
 
-        List<BifrostBridgeConfiguration.StompInterceptorRegistration> interceptors =
+        List<StompInterceptorRegistration> interceptors =
               this.configuration.getRegisteredBifrostStompInterceptors();
 
         if (interceptors.isEmpty()) {
@@ -46,8 +47,7 @@ public class BifrostChannelInterceptor extends ChannelInterceptorAdapter {
         StompCommand stompCommand = header.getCommand();
 
         // this.configuration.interceptors list should be sorted by priority.
-        for (BifrostBridgeConfiguration.StompInterceptorRegistration
-              interceptorRegistration : interceptors) {
+        for (StompInterceptorRegistration interceptorRegistration : interceptors) {
 
             // Determine whether the current interceptor is applicable for the incoming
             // message.

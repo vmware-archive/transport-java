@@ -49,7 +49,7 @@ public class BifrostBridgeConfigurationTest {
               new StartsWithDestinationMatcher("/test"),
               20);
 
-        List<BifrostBridgeConfiguration.StompInterceptorRegistration> interceptors =
+        List<StompInterceptorRegistration> interceptors =
               this.configuration.getRegisteredBifrostStompInterceptors();
         Assert.assertEquals(interceptors.size(), 2);
         Assert.assertEquals(interceptors.get(0).priority, 20);
