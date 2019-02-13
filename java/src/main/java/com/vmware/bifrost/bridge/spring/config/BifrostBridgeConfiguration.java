@@ -76,26 +76,4 @@ public class BifrostBridgeConfiguration {
       // Keep interceptors sorted by priority.
       interceptors.sort((o1, o2) -> o1.priority - o2.priority);
    }
-
-   /**
-    * Describes single {@link BifrostStompInterceptor} registration.
-    */
-   public static class StompInterceptorRegistration {
-      public final BifrostStompInterceptor interceptor;
-      public final EnumSet<StompCommand> commandSet;
-      public final BifrostDestinationMatcher destinationMatcher;
-      public final int priority;
-
-      public StompInterceptorRegistration(
-            BifrostStompInterceptor interceptor,
-            EnumSet<StompCommand> commandSet,
-            BifrostDestinationMatcher destinationMatcher,
-            int priority) {
-
-         this.interceptor = interceptor;
-         this.commandSet = commandSet;
-         this.destinationMatcher = destinationMatcher;
-         this.priority = priority;
-      }
-   }
 }

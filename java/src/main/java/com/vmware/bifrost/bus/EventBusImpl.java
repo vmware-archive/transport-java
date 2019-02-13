@@ -25,7 +25,7 @@ import java.util.function.Function;
 
 import static com.vmware.bifrost.bus.model.MonitorChannel.stream;
 
-@Component
+@Component("eventBusImpl")
 @SuppressWarnings("unchecked")
 public class EventBusImpl extends Loggable implements EventBus {
 
