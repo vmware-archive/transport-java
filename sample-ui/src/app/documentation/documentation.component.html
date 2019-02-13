@@ -1,0 +1,77 @@
+<clr-main-container>
+    <appfab-header></appfab-header>
+    <particle-header></particle-header>
+    <div class="content-container">
+        <nav class="sidenav">
+            <section class="nav-group">
+                <label class="docs-home">
+                    <a routerLink="/documentation/bifrost">
+                        Bifröst
+                    </a>
+                </label>
+            </section>
+            <section class="nav-group collapsible">
+                <input id="typescript" type="checkbox" [checked]="!this.areBifrostTsDocsActive()">
+                <label for="typescript">Bifröst - TypeScript (JavaScript)</label>
+                <ul class="nav-list">
+                    <li class="nav-link" routerLinkActive="active">
+                        <a routerLink="/documentation/bifrost/ts/importing">
+                            Importing
+                        </a>
+                    </li>
+                    <li class="nav-link" routerLinkActive="active">
+                        <a routerLink="/documentation/bifrost/ts/configuring-angular">
+                            Configuring Angular
+                        </a>
+                    </li>
+                    <li class="nav-link" routerLinkActive="active">
+                        <a routerLink="/documentation/bifrost/ts/initializing">
+                            Initializing the Event Bus
+                        </a>
+                    </li>
+                    <li class="nav-link" routerLinkActive="active">
+                        <a routerLink="/documentation/bifrost/ts/helloworld">
+                            Hello World
+                        </a>
+                    </li>
+                </ul>
+            </section>
+            <!--<section class="nav-group collapsible">-->
+                <!--<input id="tab2" type="checkbox" [checked]="!this.areBifrostJavaDocsActive()">-->
+                <!--<label for="tab2">Bifröst - Java</label>-->
+                <!--<ul class="nav-list">-->
+                    <!--<li class="nav-link" routerLinkActive="active">-->
+                        <!--<a routerLink="/documentation/bifrost/java/importing">-->
+                            <!--Importing-->
+                        <!--</a>-->
+                    <!--</li>-->
+                    <!--<li class="nav-link" routerLinkActive="active">-->
+                        <!--<a routerLink="/documentation/bifrost/java/configuring">-->
+                            <!--Configuring Spring Application-->
+                        <!--</a>-->
+                    <!--</li>-->
+                    <!--<li class="nav-link" routerLinkActive="active">-->
+                        <!--<a routerLink="/documentation/bifrost/java/initializing">-->
+                            <!--Initializing-->
+                        <!--</a>-->
+                    <!--</li>-->
+                    <!--<li class="nav-link" routerLinkActive="active">-->
+                        <!--<a routerLink="/documentation/bifrost/java/helloworld">-->
+                            <!--Hello World-->
+                        <!--</a>-->
+                    <!--</li>-->
+                <!--</ul>-->
+            <!--</section>-->
+
+        </nav>
+        <div class="content-area">
+            <router-outlet></router-outlet>
+        </div>
+        <footer-component></footer-component>
+    </div>
+</clr-main-container>
+
+
+
+
+

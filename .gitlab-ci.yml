@@ -1,4 +1,7 @@
-image: java:8-jdk
+image: appfabric-service.artifactory.eng.vmware.com/appfabric-build:1.0
+
+services:
+- name: docker:dind
 
 stages:
 - test
@@ -41,6 +44,25 @@ build:bifrost:
   - pushes
   - web
 
+build:ui:
+  stage: build
+  tags:
+  - use-docker
+  variables:
+    ENV: prd
+  script:
+  - npm --unsafe-perm --prefix sample-ui install
+  - ./scripts/run-unittests.sh ci
+  - ./scripts/build-ui.sh
+  artifacts:
+    paths:
+    - sample-ui/dist # check if this right
+    expire_in: 1 week
+  when: on_success
+  only:
+  - pushes
+  - web
+
 publish:bifrost:
   stage: publish
   dependencies:
@@ -52,3 +74,22 @@ publish:bifrost:
   when: on_success
   only:
   - master
+
+publish:ui:
+  stage: publish
+  tags:
+  - use-docker
+  variables:
+    DOCKER_HOST: "tcp://docker:2375"
+    TARGET_TAG: ${CI_PIPELINE_ID}
+  dependencies:
+  - build:ui
+  script:
+  - ./scripts/build-image.sh -t ${TARGET_TAG} -n app-fabric-ui
+  - docker login ${REGISTRY_PREFIX}
+  - docker push ${REGISTRY_PREFIX}/app-fabric-ui:${TARGET_TAG}
+  - ./scripts/deploy-ui.sh
+  when: on_success
+  only:
+  - master
+
