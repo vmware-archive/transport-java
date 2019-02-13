@@ -14,14 +14,17 @@
     folder. Just provide an entry like the one below.
 </p>
 
-<pre class="code">
-<code clr-code-highlight="language-javascript" ngNonBindable>
+<h3>Configuring <code class="clr-code">angular.json</code></h3>
+<pre class="code"><code class="language-json" ngNonBindable>...
 "scripts": [
     "node_modules/@vmw/bifrost/bifrost.umd.min.js"
 ]
-</code>
-</pre>
+...</code></pre>
 
 <p>
-    Your application is ready!
+    Your application is ready to go, now you just need to boot the bus.
+</p>
+<p>
+    Angular provides a  <code class="clr-code">src/main.ts</code> file, which is essentially your initialization script, that
+    you can use to <a routerLink="/documentation/bifrost/ts/initializing">Initialize the Bus.</a>
 </p>

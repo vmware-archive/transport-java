@@ -3,27 +3,25 @@
 <p>To demonstrate the simplest possible use of the event bus, we will create a simple Angular component that simply
     talks to its self.</p>
 
-<pre class="code">
-<code class="language-typescript" ngNonBindable>
-import &#123; Component, OnInit &#125; from '@angular/core';
-import &#123; AbstractCore &#125; from '@vmw/bifrost/core';
+<pre class="code"><code class="language-typescript" ngNonBindable>import &#123; Component, OnInit &#125; from '@angular/core';
+import &#123; AbstractBase &#125; from '@vmw/bifrost/core';
 
 @Component(&#123;
     selector: 'hello-world',
     template: `&#123;&#123;message&#125;&#125;`
 &#125;)
-export class HelloWorldComponent extends AbstractCore implements OnInit &#123;
+export class HelloWorldComponent extends AbstractBase implements OnInit &#123;
 
     public message: string;
 
     constructor() &#123;
-        super();
+        super('HelloWorldComponent');
     &#125;
 
     ngOnInit() &#123;
 
         // define a channel to talk on.
-        let myChannel = 'myChannel';
+        let myChannel = 'some-channel';
 
         // listen for requests on 'myChannel' and return a response.
         this.bus.respondOnce(myChannel)
@@ -43,17 +41,14 @@ export class HelloWorldComponent extends AbstractCore implements OnInit &#123;
                     this.message = `hello $&#123;response&#125;`;
                 &#125;
             );
-
     &#125;
-&#125;
-</code>
-</pre>
+&#125;</code></pre>
 
 <p>The output of the component is pretty basic, see it running below:</p>
 
-<!--<tryitout-component>-->
-    <!--<hello-world></hello-world>-->
-<!--</tryitout-component>-->
+<appfab-tryitout-component>
+  <ts-hello-world></ts-hello-world>
+</appfab-tryitout-component>
 
 <p>
     In the above example, we set up a simple lambda to handle an inbound message (request). This responder uses the
@@ -64,7 +59,7 @@ export class HelloWorldComponent extends AbstractCore implements OnInit &#123;
     argument (in the case of this example <code class="clr-code">request: string</code>),
     and returns a response (in this example <code class="clr-code">'world'</code>).
 </p>
-<p>
-    If you have logging enabled, you should see the following output in your developer console.<br/>
-    <img src="/assets/bifrost/hello-world-console.png"/>
-</p>
+<pre>
+▫️️ <span class="console-purple">[Inf]:</span> <span class="console-pink">Sending Request</span>
+▫️️ <span class="console-purple">[Inf]:</span> <span class="console-pink">Request Received: hello, Sending Response...</span>
+</pre>

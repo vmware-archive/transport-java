@@ -4,23 +4,27 @@
     Configuring <code class="clr-code">npm</code> to use VMware's internal npm registry.
 </h4>
 
-<p>Installing the UI / Front-end component is simple, it's published on our internal NPM repository, that is located
-    at <a href="https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm" target="_blank">https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm</a>.
+<p>
+    Installing the UI / Front-end component is simple, it's published on our <a href="https://build-artifactory.eng.vmware.com" target="_blank">internal NPM repository.</a>
 </p>
 <p>
     If you haven't pulled any of VMware's internal projects before, you will need to either configure your
-    <code class="clr-code">~/.npmrc</code> file to set your registry. You can just add the line <code class="clr-code">registry=https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm</code>
-    to the config.
-    Each time you run <code class="clr-code">npm</code>, it will read you config file.
+    <code class="clr-code">~/.npmrc</code> file to set your registry, or you can set the registry when you install the module.
 </p>
+<p>
+    The easiest method is just to use our internal artifactory for everything, as it is also a mirror/proxy. You can do this by adding the following
+    line to your <code class="clr-code">~/.npmrc</code> file.
+</p>
+<pre class="code"><code class="language-bash" ngNonBindable>registry=https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm</code></pre>
 
 <p>
-    You can use the command <code class="clr-code">npm config set registry
-    https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm</code> to set your registry.
+    Each time you run <code class="clr-code">npm</code>, it will read your config file, no need to remember moving forward.
 </p>
+<h4>Setting your registry using <code class="clr-code">npm</code></h4>
+<pre class="code"><code class="language-bash" ngNonBindable>npm config set registry https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm</code></pre>
 
 <h4>
     Installing the Bifröst via <code class="clr-code">npm</code>
 </h4>
 
-<pre class="code"><code class="language-markup" ngNonBindable>npm install @vmw/bifrost --save</code></pre>
+<pre class="code"><code class="language-bash" ngNonBindable>npm install @vmw/bifrost --save</code></pre>
