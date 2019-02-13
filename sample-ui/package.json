@@ -29,7 +29,7 @@
         "@clr/angular": "^1.0.5",
         "@clr/icons": "^1.0.5",
         "@clr/ui": "^1.0.5",
-        "@vmw/bifrost": "^0.11.1",
+        "@vmw/bifrost": "^0.11.2-alpha-1",
         "@webcomponents/custom-elements": "^1.0.0",
         "core-js": "^2.5.4",
         "prismjs": "^1.15.0",

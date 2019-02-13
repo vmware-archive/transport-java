@@ -3,14 +3,14 @@ import { BaseBifrostComponent } from '../base.bifrost.component';
 import { HighlightService } from '../../../local-services/highlight.service';
 
 @Component({
-  selector: 'appfab-ts-helloworld',
-  templateUrl: './ts-helloworld.component.html',
-  styleUrls: ['./ts-helloworld.component.scss']
+    selector: 'appfab-ts-abstractions',
+    templateUrl: './ts-abstractions.component.html',
+    styleUrls: ['./ts-abstractions.component.scss']
 })
-export class TsHelloworldComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
+export class TsAbstractionsComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
 
     constructor(private highlightService: HighlightService) {
-        super('TsHelloWorldComponent');
+        super('TsAbstractionsComponent');
     }
 
     ngOnInit() {
@@ -23,4 +23,5 @@ export class TsHelloworldComponent extends BaseBifrostComponent implements OnIni
             this.highlighted = true;
         }
     }
+
 }
