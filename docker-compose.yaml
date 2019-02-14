@@ -14,7 +14,6 @@ services:
   appfabric-ui:
     image: appfabric-service.artifactory.eng.vmware.com/appfabric-ui
     hostname: appfabric-ui
-    build: sample-ui
     ports:
       - "80:80"
     networks:

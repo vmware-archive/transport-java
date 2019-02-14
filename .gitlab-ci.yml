@@ -10,39 +10,39 @@ stages:
 
 cache: {}
 
-test:unit:
-  stage: test
-  script:
-  - echo "Run unit tests"  
-  - cd ./java 
-  - ./gradlew test  
-  - ./gradlew jacocoTestReport
-  - cat ./build/reports/jacoco/test/html/index.html | sed -rn 's/.*Total[^%]*>([0-9]{1,3})%.*/Total test coverage:\1%\n/p'
+#test:unit:
+#  stage: test
+#  script:
+#  - echo "Run unit tests"
+#  - cd ./java
+#  - ./gradlew test
+#  - ./gradlew jacocoTestReport
+#  - cat ./build/reports/jacoco/test/html/index.html | sed -rn 's/.*Total[^%]*>([0-9]{1,3})%.*/Total test coverage:\1%\n/p'
+#
+#  artifacts:
+#    paths:
+#    - java/build/reports/jacoco/
+#
+#    expire_in: 1 week
+#  when: always
+#  only:
+#  - pushes
+#  - web
 
-  artifacts:
-    paths:
-    - java/build/reports/jacoco/
-
-    expire_in: 1 week
-  when: always
-  only:
-  - pushes
-  - web
-
-build:bifrost:
-  stage: build
-  script:
-  - echo "Building vmw-bifrost"
-  - cd ./java
-  - ./gradlew assemble
-  artifacts:
-    paths:
-    - java/build/libs
-    expire_in: 1 week
-  when: on_success
-  only:
-  - pushes
-  - web
+#build:bifrost:
+#  stage: build
+#  script:
+#  - echo "Building vmw-bifrost"
+#  - cd ./java
+#  - ./gradlew assemble
+#  artifacts:
+#    paths:
+#    - java/build/libs
+#    expire_in: 1 week
+#  when: on_success
+#  only:
+#  - pushes
+#  - web
 
 build:ui:
   stage: build
@@ -63,17 +63,17 @@ build:ui:
   - pushes
   - web
 
-publish:bifrost:
-  stage: publish
-  dependencies:
-  - build:bifrost
-  script:  
-  - echo "Publishing vmw-bifrost"
-  - cd ./java
-  - ./gradlew publish -PbuildType=snapshot
-  when: on_success
-  only:
-  - master
+#publish:bifrost:
+#  stage: publish
+#  dependencies:
+#  - build:bifrost
+#  script:
+#  - echo "Publishing vmw-bifrost"
+#  - cd ./java
+#  - ./gradlew publish -PbuildType=snapshot
+#  when: on_success
+#  only:
+#  - master
 
 publish:appfabric:
   stage: publish

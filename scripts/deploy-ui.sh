@@ -60,25 +60,26 @@ success() {
     echo -e "${COLOR_LIGHTGREEN}\$1${COLOR_RESET}"
 }
 
-# stop sample-ui container
+# stop containers
 echo
 info "Stopping App Fabric containers..."
 docker-compose -f /tmp/docker-compose.yaml down 2>/dev/null
 
-# start sample-ui container
+# start containers
 echo
 info "Starting App Fabric containers using tag ${TARGET_TAG}..."
-docker-compose -d -f /tmp/docker-compose.yaml up
+docker-compose -f /tmp/docker-compose.yaml up -d
 
 # check if container is running normally
-echo
-info "Checking if containers are running... TODO"
-sleep 5
-#docker top sample-ui >/dev/null 2>&1
-#if [ \$? -gt 0 ] ; then
-#    docker logs sample-ui
-#    error "Nginx failed to start! See the logs above"
-#fi
+info "Checking if containers are running..."
+sleep 10
+docker-compose -f /tmp/docker-compose.yaml logs
+docker-compose -f /tmp/docker-compose.yaml top >/dev/null 2>&1
+if [ \$? -gt 0 ] ; then
+    docker-compose -f /tmp/docker-compose.yaml logs appfabric-ui
+    docker-compose -f /tmp/docker-compose.yaml logs appfabric-service
+    error "Containers failed to start! See the logs above"
+fi
 success "Deployment was successful"
 EOT
 
