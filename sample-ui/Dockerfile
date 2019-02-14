@@ -17,6 +17,7 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log \
 	&& ln -sf /dev/stderr /var/log/nginx/error.log
 
 EXPOSE 80
+
 ADD ./nginx.conf  /etc/nginx/
 RUN ls -la /opt/app/dist
 

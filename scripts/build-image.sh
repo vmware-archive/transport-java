@@ -26,42 +26,57 @@ info() {
     echo -e "${COLOR_LIGHTCYAN}$1${COLOR_RESET}"
 }
 
-build_ui_docker_image() {
-    local name=$1
+build_service_docker_image() {
+    local prefix=$1
     local tag=$2
-    info "\nBuilding Docker image $name with tag $tag..."
-    docker build -f $ROOT/sample-ui/Dockerfile -t $name:$tag $ROOT/sample-ui/
-    info "\nTagging the image as $REGISTRY_PREFIX/$name:$tag..."
-    docker tag $name:$tag $REGISTRY_PREFIX/$name:$tag
+    info "\nBuilding Docker image ${prefix}-service with tag $tag..."
+    docker build -f $ROOT/java/Dockerfile -t ${prefix}-service:$tag $ROOT/java/
+    info "\nTagging the image as $REGISTRY_PREFIX/${prefix}-service:$tag..."
+    docker tag ${prefix}-service:$tag $REGISTRY_PREFIX/${prefix}-service:$tag
 }
 
-while getopts :t:n:a: flag ; do
+build_ui_docker_image() {
+    local prefix=$1
+    local tag=$2
+    info "\nBuilding Docker image ${prefix}-ui with tag $tag..."
+    docker build -f $ROOT/sample-ui/Dockerfile -t ${prefix}-ui:$tag $ROOT/sample-ui/
+    info "\nTagging the image as $REGISTRY_PREFIX/${prefix}-ui:$tag..."
+    docker tag ${prefix}-ui:$tag $REGISTRY_PREFIX/${prefix}-ui:$tag
+}
+
+while getopts :t:p:a: flag ; do
     case $flag in
         t)
             IMAGE_TAG=$OPTARG
             ;;
-        n)
-            IMAGE_NAME=$OPTARG
+        p)
+            APP_PREFIX=$OPTARG
             ;;
         a)
             DOCKER_BUILD_ARGS=$OPTARG
             ;;
         *)
-            info "Usage: $0 -t tag -n name [-a addtional args]"
+            info "Usage: $0 -t tag -p image_name_prefix [-a addtional args]"
             exit 0
             ;;
     esac
 done
 shift $((OPTIND-1))
 
-if [ -z $IMAGE_NAME ] ; then
-    error "Please provide image name as in $0 -t tag -n name [-a additional args]"
+if [ -z $IMAGE_TAG ] ; then
+    error "Image tag is missing.\nUsage: $0 -t tag -p image_name_prefix [-a addtional args]"
 fi
 
-build_ui_docker_image $IMAGE_NAME $IMAGE_TAG
+if [ -z $APP_PREFIX ] ; then
+    error "Image prefix is missing.\nUsage: $0 -t tag -p image_name_prefix [-a addtional args]"
+fi
+
+build_ui_docker_image $APP_PREFIX $IMAGE_TAG
+build_service_docker_image $APP_PREFIX $IMAGE_TAG
 
 if [ $? -eq 0 ] ; then
     echo
-    echo "You can now deploy image by typing the following:"
-    echo "docker push $REGISTRY_PREFIX/$IMAGE_NAME:$IMAGE_TAG"
+    echo "You can now deploy the images by typing the following:"
+    echo "docker push $REGISTRY_PREFIX/$APP_PREFIX-ui:$IMAGE_TAG"
+    echo "docker push $REGISTRY_PREFIX/$APP_PREFIX-service:$IMAGE_TAG"
 fi

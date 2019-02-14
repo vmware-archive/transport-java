@@ -6,9 +6,9 @@ import { environment } from './environments/environment';
 import { BusUtil } from '@vmw/bifrost/util/bus.util';
 import { LogLevel } from '@vmw/bifrost/log';
 import { BusStore } from '@vmw/bifrost';
-import { PongService } from './app/documentation/bifrost/sample-code/ts/ping-component/pong.service';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { RestService } from '@vmw/bifrost/core/services/rest/rest.service';
+import { AppStores, FabricConnectionState, FabricConnectionStoreKey } from './constants';
 
 if (environment.production) {
   enableProdMode();
@@ -18,7 +18,7 @@ platformBrowserDynamic().bootstrapModule(AppModule)
   .catch(err => console.error(err));
 
 // boot event bus.
-const bus = BusUtil.bootBusWithOptions(LogLevel.Verbose, false, true);
+const bus = BusUtil.bootBusWithOptions(LogLevel.Info, false, true);
 
 let docsStore: BusStore<boolean>;
 
@@ -26,10 +26,11 @@ let docsStore: BusStore<boolean>;
 configureStores();
 populateStores();
 loadServices();
+connectFabric();
 
 
 function configureStores() {
-    docsStore = bus.stores.createStore('docs');
+    docsStore = bus.stores.createStore(AppStores.Docs);
 }
 
 function populateStores() {
@@ -38,4 +39,19 @@ function populateStores() {
 }
 function loadServices() {
     ServiceLoader.addService(RestService);
+}
+
+function connectFabric() {
+
+    // function called when connected to fabric
+    const connectedHandler = (sessionId: string) => {
+        bus.logger.info(`Connected to Application Fabric with sessionId ${sessionId}`, 'main.ts');
+    };
+
+    // function called when disconnected.
+    const disconnectedHandler = () => {
+        bus.logger.info('Disconnected from Application Fabric.', 'main.ts');
+    };
+
+    bus.fabric.connect(connectedHandler, disconnectedHandler);
 }

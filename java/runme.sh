@@ -1,1 +1,1 @@
-./gradlew buildBootJar && java -jar build/libs/vmw-bifrost-boot.jar
+./gradlew buildBootJar && java -Done-jar.silent=true -jar build/libs/vmw-bifrost-boot.jar
