@@ -3,11 +3,11 @@
     "version": "0.0.3",
     "scripts": {
         "ng": "ng",
-        "start": "npm run build:version; ng serve",
+        "start": "npm run build:version; ng serve --proxy-config proxy.config.local.json",
         "prebuild": "",
         "build:version": "node version.js",
         "postinstall": "npm run build:version",
-        "start:prd": "ng serve --configuration production --host 0.0.0.0",
+        "start:prd": "ng serve --configuration production --host 0.0.0.0 --proxy-config proxy.config.local.json",
         "build": "npm run build:version; ng build",
         "build:prd": "ng build --configuration production",
         "test": "ng test",

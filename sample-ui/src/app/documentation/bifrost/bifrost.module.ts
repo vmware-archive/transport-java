@@ -24,6 +24,8 @@ import { PingTransactionComponent } from './sample-code/ts/ping-component/ping-t
 import { TsRestServiceComponent } from './ts-restservice/ts-restservice.component';
 import { MyAPIComponent } from './sample-code/ts/restservice/myapi.component';
 import { ClarityModule } from '@clr/angular';
+import { TsConnectingToFabricComponent } from './ts-connecting-to-fabric/ts-connecting-to-fabric.component';
+import { FabricConnectionComponent } from './sample-code/ts/connecting-fabric/connection.component';
 
 @NgModule({
     declarations: [
@@ -41,6 +43,7 @@ import { ClarityModule } from '@clr/angular';
         PingComponent,
         PingTransactionComponent,
         MyAPIComponent,
+        FabricConnectionComponent,
         TryItOutComponent,
         TsAbstractionsComponent,
         TsServicesComponent,
@@ -48,6 +51,7 @@ import { ClarityModule } from '@clr/angular';
         TsBroadcastVsDirectComponent,
         TsTransactionsComponent,
         TsRestServiceComponent,
+        TsConnectingToFabricComponent,
     ],
     imports: [
         CommonModule,

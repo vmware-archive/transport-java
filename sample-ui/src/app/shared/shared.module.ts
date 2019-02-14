@@ -6,12 +6,14 @@ import { HeaderComponent } from '../header/header.component';
 import { ClarityModule } from '@clr/angular';
 import { RouterModule } from '@angular/router';
 import { HighlightService } from '../local-services/highlight.service';
+import { FabricConnectionStateComponent } from '../fabric-connection-state/fabric-connection-state.component';
 
 @NgModule({
     declarations: [
         ParticleHeaderComponent,
         FooterComponent,
-        HeaderComponent
+        HeaderComponent,
+        FabricConnectionStateComponent
     ],
     imports: [
         CommonModule,
@@ -21,7 +23,8 @@ import { HighlightService } from '../local-services/highlight.service';
     exports: [
         ParticleHeaderComponent,
         FooterComponent,
-        HeaderComponent
+        HeaderComponent,
+        FabricConnectionStateComponent
     ],
     providers: [
         HighlightService

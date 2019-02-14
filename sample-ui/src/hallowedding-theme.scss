@@ -118,6 +118,19 @@ code.clr-code {
     color: #000;
 }
 
+.btn.btn-danger, .btn.btn-warning, .btn-danger .btn, .btn-warning .btn {
+    border-color: #ea0b00;
+    background-color: #bf0900;
+    color: #fff;
+}
+
+.btn.btn-danger:hover, .btn.btn-warning:hover, .btn-danger .btn:hover, .btn-warning .btn:hover {
+    background-color: #ffffff;
+    color: #af0000;
+    font-weight: bold;
+    border-color: #fb0000;
+}
+
 body .p5, body p.p5 {
     color: #a592d8;
 }
