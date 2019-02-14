@@ -2,6 +2,7 @@
  * Copyright(c) VMware Inc. 2019
  */
 import {
+    ChangeDetectorRef,
     Component,
     OnDestroy,
     OnInit
@@ -29,7 +30,7 @@ export class FabricConnectionComponent extends AbstractBase implements OnInit, O
     public connectedStateStream: StoreStream<FabricConnectionState>;
     public simpleStream: MessageHandler<SimpleStreamObject>;
 
-    constructor() {
+    constructor(private cd: ChangeDetectorRef) {
         super('FabricConnectionComponent');
     }
 
@@ -52,6 +53,9 @@ export class FabricConnectionComponent extends AbstractBase implements OnInit, O
     ngOnDestroy(): void {
         this.connectedStateStream.unsubscribe();
         this.simpleStream.close();
+
+        // mark this channel as local, this will stop streams.
+        this.bus.markChannelAsLocal('simple-stream');
     }
 
     private listenToSimpleStream() {
@@ -60,6 +64,11 @@ export class FabricConnectionComponent extends AbstractBase implements OnInit, O
         this.simpleStream.handle(
             (response: SimpleStreamObject) => {
                 this.item = `Stream: ${response.payload}`;
+                try {
+                    this.cd.detectChanges();
+                } catch (e) {
+                    // ignore.
+                }
             }
         );
     }

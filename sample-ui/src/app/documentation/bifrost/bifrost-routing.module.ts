@@ -17,6 +17,7 @@ import { TsBroadcastVsDirectComponent } from './ts-broadcast-vs-direct/ts-broadc
 import { TsTransactionsComponent } from './ts-transactions/ts-transactions.component';
 import { TsRestServiceComponent } from './ts-restservice/ts-restservice.component';
 import { TsConnectingToFabricComponent } from './ts-connecting-to-fabric/ts-connecting-to-fabric.component';
+import { TsGalacticConversationsComponent } from './ts-galactic-conversations/ts-galactic-conversations.component';
 
 const bifrostRoutes: Routes = [
     {path: '', component: BifrostHomeComponent, pathMatch: 'true'},
@@ -32,6 +33,7 @@ const bifrostRoutes: Routes = [
     {path: 'ts/transactions', component: TsTransactionsComponent, pathMatch: 'true'},
     {path: 'ts/making-rest-calls', component: TsRestServiceComponent, pathMatch: 'true'},
     {path: 'ts/connecting-to-fabric', component: TsConnectingToFabricComponent, pathMatch: 'true'},
+    {path: 'ts/galactic-conversations', component: TsGalacticConversationsComponent, pathMatch: 'true'},
     {path: 'java/importing', component: JavaImportingComponent, pathMatch: 'true'},
     {path: 'java/configuring', component: JavaConfiguringComponent, pathMatch: 'true'},
     {path: 'java/initializing', component: JavaInitializingComponent, pathMatch: 'true'},

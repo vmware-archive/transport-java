@@ -26,7 +26,7 @@ let docsStore: BusStore<boolean>;
 configureStores();
 populateStores();
 loadServices();
-//connectFabric();
+connectFabric();
 
 
 function configureStores() {

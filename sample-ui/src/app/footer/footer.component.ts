@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { VERSION } from '@appfab/environments/version';
 import { StoreStream } from '@vmw/bifrost';
 import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
@@ -20,7 +20,7 @@ export class FooterComponent extends BaseBifrostComponent implements OnInit, OnD
     public connected = false;
     public connectedStateStream: StoreStream<FabricConnectionState>;
 
-    constructor() {
+    constructor(private cd: ChangeDetectorRef) {
         super('HeaderComponent');
     }
 
@@ -55,6 +55,8 @@ export class FooterComponent extends BaseBifrostComponent implements OnInit, OnD
                         this.connectionState = 'Unable to connect to Fabric';
                         break;
                 }
+                // ensure component re-renders.
+                this.cd.detectChanges();
             }
         );
     }

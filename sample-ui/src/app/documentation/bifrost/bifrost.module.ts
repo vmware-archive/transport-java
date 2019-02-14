@@ -26,6 +26,8 @@ import { MyAPIComponent } from './sample-code/ts/restservice/myapi.component';
 import { ClarityModule } from '@clr/angular';
 import { TsConnectingToFabricComponent } from './ts-connecting-to-fabric/ts-connecting-to-fabric.component';
 import { FabricConnectionComponent } from './sample-code/ts/connecting-fabric/connection.component';
+import { TsGalacticConversationsComponent } from './ts-galactic-conversations/ts-galactic-conversations.component';
+import { GalacticRequestComponent } from './sample-code/ts/connecting-fabric/conversation.component';
 
 @NgModule({
     declarations: [
@@ -44,6 +46,7 @@ import { FabricConnectionComponent } from './sample-code/ts/connecting-fabric/co
         PingTransactionComponent,
         MyAPIComponent,
         FabricConnectionComponent,
+        GalacticRequestComponent,
         TryItOutComponent,
         TsAbstractionsComponent,
         TsServicesComponent,
@@ -52,6 +55,7 @@ import { FabricConnectionComponent } from './sample-code/ts/connecting-fabric/co
         TsTransactionsComponent,
         TsRestServiceComponent,
         TsConnectingToFabricComponent,
+        TsGalacticConversationsComponent,
     ],
     imports: [
         CommonModule,

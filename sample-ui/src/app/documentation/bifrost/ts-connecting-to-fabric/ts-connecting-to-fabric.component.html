@@ -90,7 +90,7 @@ const disconnectedHandler = () => &#123;
 &#123;
 
 // Connect to Application Fabric.
-this.bus.fabric.connect(connectedHandler, disconnectedHandler);</code></pre>
+thi.fabric.connect(connectedHandler, disconnectedHandler);</code></pre>
 
 <p>
     If you need to configure the endpoint, host, port etc, you can also pass those in also as optional args.
@@ -104,7 +104,7 @@ this.bus.fabric.connect(connectedHandler, disconnectedHandler);</code></pre>
 
 <h4>Connecting to appfabric.vmware.com as an test endpoint</h4>
 <pre class="code"><code class="language-typescript" ngNonBindable>// Connect to Application Fabric (on appfabric.vmware.com)
-this.bus.fabric.connect(
+this.fabric.connect(
     connectedHandler,
     disconnectedHandler
     'appfabric.vmware.com'
@@ -113,5 +113,53 @@ this.bus.fabric.connect(
 <appfab-tryitout-component>
     <fabric-connect-sample></fabric-connect-sample>
 </appfab-tryitout-component>
+
+<p>
+    Disconnecting is easy, you'll go offline instantly.
+</p>
+
+<h4>Disconnecting from fabric</h4>
+<pre class="code"><code class="language-typescript" ngNonBindable>// Disconnect (close socket completely).
+this.fabric.disconnect();</code></pre>
+
+<hr/>
+
+<h3>How does my application monitor the fabric connection state?</h3>
+
+<p>
+    How do I know if my application gets knocked offline? What is there is a hiccup on the WebSocket? The <code class="clr-code">this.fabric.whenConnectionStateChanges()</code>
+    returns a <code class="clr-code">StoreStream&lt;FabricConnectionState&gt;</code> instance, that will stream connection state changes to the consumer.
+</p>
+<p>
+    There are three different state changes emitted from this stream.
+</p>
+<ol class="list">
+    <li><code class="clr-code">FabricConnectionState.Connected</code> - <span class="emphasis">Fabric connected!</span></li>
+    <li><code class="clr-code">FabricConnectionState.Disconnected</code> - <span class="emphasis">Fabric disconnected!</span></li>
+    <li><code class="clr-code">FabricConnectionState.Failed</code> - <span class="emphasis">Fabric unable to connect!</span></li>
+</ol>
+
+<h4>Using whenConnectionStateChanges()</h4>
+<pre class="code"><code class="language-typescript" ngNonBindable>import &#123; FabricConnectionState &#125; from '@vmw/bifrost/fabric.api';
+
+this.fabric.whenConnectionStateChanges()
+    .subscribe(
+        (stateChange: FabricConnectionState) => &#123;
+            switch (stateChange) &#123;
+                case FabricConnectionState.Connected:
+                    // .. do something, now we're online.
+                    break;
+
+                case FabricConnectionState.Disconnected:
+                    // .. do something, now we're offline.
+                    break;
+
+                case FabricConnectionState.Failed:
+                    // .. do something important, we can't connect!
+                    break;
+                &#125;
+            &#125;
+     );
+</code></pre>
 
 
