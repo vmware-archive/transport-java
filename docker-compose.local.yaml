@@ -3,17 +3,17 @@ version: '2'
 services:
 
   appfabric-service:
-    image: appfabric-service.artifactory.eng.vmware.com/appfabric-service
     container_name: appfabric-service
-    hostname: appfabric-service
+    hostname: appfabric-service 
+    build: java
     ports:
       - "8090:8090"
     networks:
       - fabric
 
   appfabric-ui:
-    image: appfabric-service.artifactory.eng.vmware.com/appfabric-ui
-    hostname: appfabric-ui
+    container_name: appfabric-ui
+    hostname: appfabric-ui 
     build: sample-ui
     ports:
       - "80:80"

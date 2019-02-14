@@ -62,34 +62,31 @@ success() {
 
 # stop sample-ui container
 echo
-info "Stopping sample-ui..."
-docker rm -f sample-ui 2>/dev/null
-if [ \$? -gt 0 ] ; then
-    info "sample-ui not running"
-else
-    success "sample-ui stopped and removed"
-fi
+info "Stopping App Fabric containers..."
+docker-compose -f /tmp/docker-compose.yaml down 2>/dev/null
 
 # start sample-ui container
 echo
-info "Starting sample-ui using tag ${TARGET_TAG}..."
-docker run --name sample-ui -d -p 80:80 ${REGISTRY_PREFIX}/app-fabric-ui:${TARGET_TAG}
+info "Starting App Fabric containers using tag ${TARGET_TAG}..."
+docker-compose -d -f /tmp/docker-compose.yaml up
 
 # check if container is running normally
 echo
-info "Checking if container is running..."
+info "Checking if containers are running... TODO"
 sleep 5
-docker top sample-ui >/dev/null 2>&1
-if [ \$? -gt 0 ] ; then
-    docker logs sample-ui
-    error "Nginx failed to start! See the logs above"
-fi
+#docker top sample-ui >/dev/null 2>&1
+#if [ \$? -gt 0 ] ; then
+#    docker logs sample-ui
+#    error "Nginx failed to start! See the logs above"
+#fi
 success "Deployment was successful"
 EOT
 
 set +e
 info "Running deploy script remotely..."
+sed "s/\/appfabric\(.*\)/\/appfabric\1:${TARGET_TAG}/g" $ROOT/docker-compose.yaml > $ROOT/docker-compose-tmp.yaml
 sshpass -p "${UI_HOST_PASSWORD}" scp -o StrictHostKeyChecking=no $ROOT/scripts/deploy.sh ${UI_HOST_USERNAME}@${UI_HOST}:/tmp/
+sshpass -p "${UI_HOST_PASSWORD}" scp -o StrictHostKeyChecking=no $ROOT/docker-compose-tmp.yaml ${UI_HOST_USERNAME}@${UI_HOST}:/tmp/docker-compose.yaml
 sshpass -p "${UI_HOST_PASSWORD}" ssh -o StrictHostKeyChecking=no ${UI_HOST_USERNAME}@${UI_HOST} "chmod +x /tmp/deploy.sh && bash /tmp/deploy.sh"
 rm $ROOT/scripts/deploy.sh
 set -e
