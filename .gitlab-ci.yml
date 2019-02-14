@@ -13,9 +13,9 @@ cache: {}
 test:unit:
   stage: test
   script:
-  - echo "Run unit tests"  
-  - cd ./java 
-  - ./gradlew test  
+  - echo "Run unit tests"
+  - cd ./java
+  - ./gradlew test
   - ./gradlew jacocoTestReport
   - cat ./build/reports/jacoco/test/html/index.html | sed -rn 's/.*Total[^%]*>([0-9]{1,3})%.*/Total test coverage:\1%\n/p'
 
@@ -56,7 +56,7 @@ build:ui:
   - ./scripts/build-ui.sh
   artifacts:
     paths:
-    - sample-ui/dist # check if this right
+    - sample-ui/dist
     expire_in: 1 week
   when: on_success
   only:
@@ -67,7 +67,7 @@ publish:bifrost:
   stage: publish
   dependencies:
   - build:bifrost
-  script:  
+  script:
   - echo "Publishing vmw-bifrost"
   - cd ./java
   - ./gradlew publish -PbuildType=snapshot
@@ -75,7 +75,7 @@ publish:bifrost:
   only:
   - master
 
-publish:ui:
+publish:appfabric:
   stage: publish
   tags:
   - use-docker
@@ -85,9 +85,13 @@ publish:ui:
   dependencies:
   - build:ui
   script:
-  - ./scripts/build-image.sh -t ${TARGET_TAG} -n app-fabric-ui
+  # since UI artifacts are already passed from the previous job we're not building UI here
+  - ./scripts/build-server.sh
+  - ./scripts/build-image.sh -p appfabric -t ${TARGET_TAG}
   - docker login ${REGISTRY_PREFIX}
-  - docker push ${REGISTRY_PREFIX}/app-fabric-ui:${TARGET_TAG}
+  # publish images to the registry
+  - docker push ${REGISTRY_PREFIX}/appfabric-ui:${TARGET_TAG}
+  - docker push ${REGISTRY_PREFIX}/appfabric-service:${TARGET_TAG}
   - ./scripts/deploy-ui.sh
   when: on_success
   only:
