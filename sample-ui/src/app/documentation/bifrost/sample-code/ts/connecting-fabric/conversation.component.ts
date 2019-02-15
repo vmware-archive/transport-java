@@ -23,7 +23,7 @@ export class GalacticRequestComponent extends AbstractBase implements OnInit, On
 
     public connected = false;
     public item: string;
-    private store: BusStore<boolean>
+    private store: BusStore<boolean>;
     private storeChangeListener: StoreStream<boolean, any>;
 
     requestLoading: ClrLoadingState = ClrLoadingState.DEFAULT;
@@ -54,6 +54,6 @@ export class GalacticRequestComponent extends AbstractBase implements OnInit, On
     }
 
     ngOnDestroy() {
-        //this.storeChangeListener.unsubscribe();
+        // this.storeChangeListener.unsubscribe();
     }
 }
