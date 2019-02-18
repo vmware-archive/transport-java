@@ -1,6 +1,12 @@
-html, body {margin:0;padding:0;height:100%;}
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    color: #ffffff;
+}
+
 .main-container {
-    background-color:#211b31;
+    background-color: #211b31;
 }
 
 h1 {
@@ -24,6 +30,7 @@ h4 {
 body p {
     color: #dcd3f5;
 }
+
 a:visited, a:link {
     color: #c2abff;
 }
@@ -63,7 +70,6 @@ header .header-nav .nav-link.active, .header .header-nav .nav-link.active {
 pre {
     border: none;
     max-height: none;
-
     display: block;
     overflow-x: auto;
     padding: 0.5em;
@@ -74,16 +80,86 @@ pre {
     border-width: 1px;
     border-style: solid;
     border-color: #0a0a14 #170f29 #332e40 #131020;
+    font-size: 0.90em;
 
 }
+
+hr {
+    display: block;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    margin-left: auto;
+    margin-right: auto;
+    border-style: dashed;
+    border-width: 2px;
+    border-color: #3e3554;
+    border-radius: 5px;
+}
+
+
 
 code.clr-code {
     color: orange;
     padding: 0;
     background: transparent;
+    font-size: 1em;
 }
+
+
+.btn.btn-primary, .btn-primary .btn {
+    border-color: #766998;
+    background-color: #4c4169;
+    color: #fff;
+}
+
+.btn.btn-primary:hover, .btn-primary .btn:hover {
+    background-color: #a993e2;
+    border-color: #c8b4ff;
+    color: #000;
+}
+
+.btn.btn-danger, .btn.btn-warning, .btn-danger .btn, .btn-warning .btn {
+    border-color: #ea0b00;
+    background-color: #bf0900;
+    color: #fff;
+}
+
+.btn.btn-danger:hover, .btn.btn-warning:hover, .btn-danger .btn:hover, .btn-warning .btn:hover {
+    background-color: #ffffff;
+    color: #af0000;
+    font-weight: bold;
+    border-color: #fb0000;
+}
+
+body .p5, body p.p5 {
+    color: #a592d8;
+}
+
 
 /* prism override */
 :not(pre) > code[class*="language-"], pre[class*="language-"] {
     background: #1c1729;
+}
+
+
+/* console colors */
+.console-pink {
+    color: #ec96fb;
+}
+.console-purple {
+    color: mediumpurple;
+}
+
+.console-who {
+    color: orange;
+    font-weight: bold;
+}
+
+.console-time {
+    color: cyan;
+}
+
+.emphasis {
+    font-style: italic;
+    color: #cbb8ff;
 }

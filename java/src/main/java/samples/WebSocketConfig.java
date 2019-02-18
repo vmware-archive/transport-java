@@ -30,6 +30,7 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/bifrost").setAllowedOrigins("*");
+        registry.addEndpoint("/fabric").setAllowedOrigins("*");
     }
 
     @Override

@@ -7,6 +7,7 @@ package samples;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.EventBus;
+import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.core.util.Loggable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,7 @@ public class SimpleStreamTicker extends Loggable implements BifrostEnabled {
 
     private ScheduledExecutorService executorService;
     private EventBus bus;
+    private Channel simpleStreamChannel;
 
     @Autowired
     SimpleStreamTicker(EventBus bus) {
@@ -32,11 +34,18 @@ public class SimpleStreamTicker extends Loggable implements BifrostEnabled {
 
     @Override
     public void initializeSubscriptions() {
+        // create reference to simple stream
+        simpleStreamChannel = bus.getApi().getChannelObject("simple-stream", this.getName());
 
         Runnable runnableTask = () -> {
-            String msg = "{\"payload\": \"ping-" + GregorianCalendar.getInstance().get(GregorianCalendar.SECOND) + "\"}";
-            this.bus.sendResponseMessage("simple-stream", msg);
+            String msg = "{\"payload\": \"ping-" + GregorianCalendar.getInstance().get(GregorianCalendar.MILLISECOND)
+                    + GregorianCalendar.getInstance().get(GregorianCalendar.SECOND) + "\"}";
+            bus.sendResponseMessage("simple-stream", msg);
         };
-        executorService.scheduleAtFixedRate(runnableTask, 1, 5, TimeUnit.SECONDS);
+        executorService.scheduleAtFixedRate(runnableTask, 1000, 300, TimeUnit.MILLISECONDS);
+    }
+
+    public void finalize() {
+        simpleStreamChannel.complete();
     }
 }

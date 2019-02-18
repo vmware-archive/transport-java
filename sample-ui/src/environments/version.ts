@@ -2,14 +2,14 @@
 /* tslint:disable */
 export const VERSION = {
     "dirty": true,
-    "raw": "7b26014-dirty",
-    "hash": "7b26014",
+    "raw": "6086bdd-dirty",
+    "hash": "6086bdd",
     "distance": null,
     "tag": null,
     "semver": null,
-    "suffix": "7b26014-dirty",
+    "suffix": "6086bdd-dirty",
     "semverString": null,
-    "version": "0.0.2",
-    "time": "2019-02-12T05:52:55.490Z"
+    "version": "0.0.3",
+    "time": "2019-02-14T21:49:40.902Z"
 };
 /* tslint:enable */

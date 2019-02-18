@@ -23,5 +23,4 @@ export class TsHelloworldComponent extends BaseBifrostComponent implements OnIni
             this.highlighted = true;
         }
     }
-
 }

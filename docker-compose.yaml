@@ -1,0 +1,26 @@
+version: '2'
+
+services:
+
+  appfabric-service:
+    image: appfabric-service.artifactory.eng.vmware.com/appfabric-service
+    container_name: appfabric-service
+    hostname: appfabric-service
+    ports:
+      - "8090:8090"
+    networks:
+      - fabric
+
+  appfabric-ui:
+    image: appfabric-service.artifactory.eng.vmware.com/appfabric-ui
+    hostname: appfabric-ui
+    ports:
+      - "80:80"
+    networks:
+      - fabric
+    depends_on:
+      - appfabric-service 
+
+networks:
+  fabric:
+    driver: bridge

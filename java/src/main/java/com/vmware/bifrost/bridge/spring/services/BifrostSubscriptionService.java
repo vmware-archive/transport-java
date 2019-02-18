@@ -63,7 +63,7 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
         if (!openChannels.containsKey(channelName)) {
             BusTransaction transaction = bus.listenStream(channelName,
                   (Message msg) -> {
-                      this.logDebugMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
+                      this.logTraceMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
                       msgTmpl.convertAndSend(destinationPrefix + channelName, msg.getPayload());
                   }
             );

@@ -1,7 +1,10 @@
 
-<section id="footer">
+<footer id="footer">
     &copy; {{date}} VMware Inc.
     <span class="build-version">
         Commit Hash: {{version.hash}} | Version: {{version.version}} | Built: {{buildTime | date:'short'}}
     </span>
-</section>
+    <section class="connection-status">
+        <span class="label {{connectionClass}}">{{connectionState}}</span>
+    </section>
+</footer>

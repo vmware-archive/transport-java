@@ -1,0 +1,29 @@
+
+<h1>Talking to peers across the fabric.</h1>
+
+<p>
+    The concept is that you send and receive messages to remote services or local services. In fact there is no difference in the API used. The only difference is that
+    a channel marked as <span class="emphasis">Galactic</span> is going to become a distributed channel that is operating across the fabric, and not just locally in your application.
+</p>
+<p>
+    Once your application is connected to the fabric, your requests and responses should behave as normal.
+</p>
+
+<appfab-tryitout-component>
+    <galactic-request-sample></galactic-request-sample>
+</appfab-tryitout-component>
+
+<!--<p>-->
+    <!--Sending requests and listening for respones is basically the same when performed on Galactic channels. There are a couple-->
+    <!--of small differences however, an <code class="clr-code">APIRequest</code> and <code class="clr-code">APIResponse</code> object-->
+    <!--are wrapped around requests and responses.-->
+<!--</p>-->
+<!--<p>-->
+    <!--To make a galactic request on a galactic channel, use the <code class="clr-code">this.bus.requestGalactic()</code> method. This will-->
+    <!--send a payload, wrapped in an <code class="clr-code">APIRequest</code> object. The request will be sent over the distributed bus to the backend on a galactic channel.-->
+    <!--The backend service will respond with a response payload, wrapped in an <code class="clr-code">APIRequest</code> object.-->
+<!--</p>-->
+
+<!--<h6>-->
+    <!--This API will mature in coming releases, we intend to remove the need for different methods for galactic services, or the need for wrappers.-->
+<!--</h6>-->
