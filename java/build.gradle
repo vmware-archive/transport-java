@@ -44,6 +44,11 @@ initProperties()
 
 jar {
     enabled = true
+
+    // Exclude application, samples and oldsamples resources and classes
+    from sourceSets.main.output
+    include 'com/vmware/bifrost/**/*'
+
     manifest {
         attributes (
                 'Bundle-Name': 'Bifrost',
@@ -100,7 +105,14 @@ jar {
     }
 }
 
+task buildAppJar(type: Jar) {
+    classifier "app"
+    from sourceSets.main.output
+}
+
 task buildBootJar(type: OneJar) {
+    dependsOn buildAppJar
+    baseJar = buildAppJar
     mainClass = 'app.Application'
     archiveName = 'vmw-bifrost-boot.jar'
 }
