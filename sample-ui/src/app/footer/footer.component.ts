@@ -33,7 +33,9 @@ export class FooterComponent extends BaseBifrostComponent implements OnInit, OnD
     }
 
     ngOnDestroy(): void {
-        this.connectedStateStream.unsubscribe();
+        if (this.connectedStateStream) {
+            this.connectedStateStream.unsubscribe();
+        }
     }
 
     private setConnected(): void {
@@ -54,7 +56,7 @@ export class FooterComponent extends BaseBifrostComponent implements OnInit, OnD
         this.connectionState = 'Unable to connect to Fabric';
     }
 
-    private listenForConnectionStateChange(): void {
+    listenForConnectionStateChange(): void {
         // when connection state changes, change our view state.
         this.connectedStateStream = this.fabric.whenConnectionStateChanges();
         this.connectedStateStream.subscribe(
