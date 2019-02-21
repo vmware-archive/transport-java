@@ -73,6 +73,33 @@
     You can create Galactic Channels at any time, once the Broker Connector is connected to a broker, those Galactic channels will be distributed.
 </p>
 
+<hr/>
+<h4>How do I create a galactic channel?</h4>
+
+<p>
+    If you want to extend a local channel to the fabric, you can use the <code class="clr-code">markChannelAsGalactic()</code> method.
+</p>
+<pre class="code"><code class="language-typescript" ngNonBindable>this.bus.markChannelAsGalactic('simple-stream');</code></pre>
+<p>
+    This will result in a subscription to a topic with the same name as your channel. You won't have to worry about any of that however.
+</p>
+<hr/>
+
+<h4>How do I stop extending a channel to the fabric?</h4>
+
+<p>
+    If you want to stop extending a channel to the fabric (no longer galactic) then you can use the <code class="clr-code">markChannelAsLocal()</code> method.
+</p>
+<pre class="code"><code class="language-typescript" ngNonBindable>this.bus.markChannelAsLocal('simple-stream');</code></pre>
+
+
+<p>
+    This will result in an unsubscription from the topic with the same name as your channel. You won't have to worry about any of that however.
+</p>
+<hr/>
+
+<h3>Connecting.</h3>
+
 <h4>How do I connect my bus to the fabric?</h4>
 
 <p>
@@ -99,6 +126,7 @@ thi.fabric.connect(connectedHandler, disconnectedHandler);</code></pre>
 <p>
     You can actually connect to <strong class="emphasis">appfabric.vmware.com</strong> and interact with the fabric for testing purposes.
 </p>
+
 
 <hr/>
 
