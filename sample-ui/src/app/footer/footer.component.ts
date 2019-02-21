@@ -26,33 +26,51 @@ export class FooterComponent extends BaseBifrostComponent implements OnInit, OnD
 
     ngOnInit() {
         this.listenForConnectionStateChange();
+        this.connected = this.fabric.isConnected();
+        if (this.connected) {
+            this.setConnected();
+        }
     }
 
     ngOnDestroy(): void {
-        this.connectedStateStream.unsubscribe();
+        if (this.connectedStateStream) {
+            this.connectedStateStream.unsubscribe();
+        }
     }
 
-    private listenForConnectionStateChange(): void {
+    private setConnected(): void {
+        this.connected = true;
+        this.connectionClass = 'label-success';
+        this.connectionState = 'Connected to Fabric';
+    }
+
+    private setDisconnected(): void {
+        this.connected = false;
+        this.connectionClass = 'label-purple';
+        this.connectionState = 'Disconnected from Fabric';
+    }
+
+    private setConnectError(): void {
+        this.connected = false;
+        this.connectionClass = 'label-danger';
+        this.connectionState = 'Unable to connect to Fabric';
+    }
+
+    listenForConnectionStateChange(): void {
         // when connection state changes, change our view state.
         this.connectedStateStream = this.fabric.whenConnectionStateChanges();
         this.connectedStateStream.subscribe(
             (stateChange: FabricConnectionState) => {
                 switch (stateChange) {
                     case FabricConnectionState.Connected:
-                        this.connected = true;
-                        this.connectionClass = 'label-success';
-                        this.connectionState = 'Connected to Fabric';
+                        this.setConnected();
                         break;
 
                     case FabricConnectionState.Disconnected:
-                        this.connected = false;
-                        this.connectionClass = 'label-purple';
-                        this.connectionState = 'Disconnected from Fabric';
+                        this.setDisconnected();
                         break;
                     case FabricConnectionState.Failed:
-                        this.connected = false;
-                        this.connectionClass = 'label-danger';
-                        this.connectionState = 'Unable to connect to Fabric';
+                        this.setConnectError();
                         break;
                 }
                 // ensure component re-renders.

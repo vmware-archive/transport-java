@@ -10,9 +10,6 @@ import { MyAPIService } from './bifrost/sample-code/ts/restservice/myapi.service
     styleUrls: ['./documentation.component.scss']
 })
 export class DocumentationComponent extends BaseBifrostComponent implements OnInit {
-    public tsDocsActive: string;
-    public javaDocsActive: string;
-
     constructor() {
         super('DocumentationComponent');
     }
@@ -20,7 +17,8 @@ export class DocumentationComponent extends BaseBifrostComponent implements OnIn
     ngOnInit() {
         ServiceLoader.addService(PongService);
         ServiceLoader.addService(MyAPIService);
-        this.tsDocsActive = String(this.areBifrostTsDocsActive());
-        this.javaDocsActive = String(this.areBifrostJavaDocsActive());
+        // this.tsDocsActive = String(this.areBifrostTsDocsActive());
+        // this.javaDocsActive = String(this.areBifrostJavaDocsActive());
+        this.setBifrostTsDocsActive(true);
     }
 }

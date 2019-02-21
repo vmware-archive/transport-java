@@ -131,6 +131,15 @@ code.clr-code {
     border-color: #fb0000;
 }
 
+.btn.btn-secondary, .btn.btn-info, .btn.btn-outline, .btn.btn-primary-outline, .btn.btn-secondary-outline, .btn.btn-outline-primary, .btn.btn-outline-secondary, .btn.btn-info-outline, .btn-secondary .btn, .btn-info .btn, .btn-outline .btn, .btn-primary-outline .btn, .btn-secondary-outline .btn, .btn-outline-primary .btn, .btn-outline-secondary .btn, .btn-info-outline .btn, .btn-outline-info .btn {
+    border-color: #ba97f9;
+    color: #ba97f9;
+}
+
+.btn.btn-secondary:hover, .btn.btn-info:hover, .btn.btn-outline:hover, .btn.btn-primary-outline:hover, .btn.btn-secondary-outline:hover, .btn.btn-outline-primary:hover, .btn.btn-outline-secondary:hover, .btn.btn-info-outline:hover, .btn-secondary .btn:hover, .btn-info .btn:hover, .btn-outline .btn:hover, .btn-primary-outline .btn:hover, .btn-secondary-outline .btn:hover, .btn-outline-primary .btn:hover, .btn-outline-secondary .btn:hover, .btn-info-outline .btn:hover, .btn-outline-info .btn:hover {
+    color: #ffffff;
+}
+
 body .p5, body p.p5 {
     color: #a592d8;
 }
@@ -159,7 +168,43 @@ body .p5, body p.p5 {
     color: cyan;
 }
 
+.console-orange {
+    color: orange;
+}
+
+.console-red {
+    color: red;
+}
+
 .emphasis {
     font-style: italic;
     color: #cbb8ff;
+}
+
+blockquote {
+    position: relative;
+    font-size: 1.2em;
+    font-style: italic;
+}
+
+blockquote:before {
+    position: absolute;
+    content: open-quote;
+    font-size: 4em;
+    margin-left: -0.6em;
+    margin-top: -0.0em;
+    color: #673ab7;
+}
+blockquote:after {
+    position: absolute;
+    content: close-quote;
+    font-size: 4em;
+    bottom: 0;
+    right: 0;
+    margin-right: -0.6em;
+    margin-bottom: -0.5em;
+    color: #673ab7;
+}
+blockquote p {
+    display: inline;
 }

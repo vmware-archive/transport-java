@@ -28,6 +28,8 @@ import { TsConnectingToFabricComponent } from './ts-connecting-to-fabric/ts-conn
 import { FabricConnectionComponent } from './sample-code/ts/connecting-fabric/connection.component';
 import { TsGalacticConversationsComponent } from './ts-galactic-conversations/ts-galactic-conversations.component';
 import { GalacticRequestComponent } from './sample-code/ts/connecting-fabric/conversation.component';
+import { TsLoggingComponent } from './ts-logging/ts-logging.component';
+import { LogComponent } from './sample-code/ts/logging/logging.component';
 
 @NgModule({
     declarations: [
@@ -47,6 +49,7 @@ import { GalacticRequestComponent } from './sample-code/ts/connecting-fabric/con
         MyAPIComponent,
         FabricConnectionComponent,
         GalacticRequestComponent,
+        LogComponent,
         TryItOutComponent,
         TsAbstractionsComponent,
         TsServicesComponent,
@@ -56,6 +59,7 @@ import { GalacticRequestComponent } from './sample-code/ts/connecting-fabric/con
         TsRestServiceComponent,
         TsConnectingToFabricComponent,
         TsGalacticConversationsComponent,
+        TsLoggingComponent,
     ],
     imports: [
         CommonModule,

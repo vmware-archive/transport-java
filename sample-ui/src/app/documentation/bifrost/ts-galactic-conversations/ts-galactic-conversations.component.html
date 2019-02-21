@@ -8,10 +8,73 @@
 <p>
     Once your application is connected to the fabric, your requests and responses should behave as normal.
 </p>
-
+<h3>Joke-o-matic</h3>
+<p>
+    Ask the fabric for a joke, see what comes back.
+</p>
 <appfab-tryitout-component>
     <galactic-request-sample></galactic-request-sample>
 </appfab-tryitout-component>
+
+<p>
+    This demo requests a joke via the fabric. This service is not running locally, it's actually running as a Java micro-service on the fabric.
+</p>
+<p>
+    The component does not care if the service is local, or remote however.
+</p>
+
+<pre class="code"><code class="language-typescript" ngNonBindable>import &#123; ChangeDetectorRef, Component, OnDestroy, OnInit &#125; from '@angular/core';
+import &#123; AbstractBase &#125; from '@vmw/bifrost/core';
+import &#123; APIRequest, APIResponse, BusStore, StoreStream &#125; from '@vmw/bifrost';
+import &#123; GeneralUtil &#125; from '@vmw/bifrost/util/util';
+import &#123; ClrLoadingState &#125; from '@clr/angular';
+import &#123; FabricConnectionState &#125; from '@vmw/bifrost/fabric.api';
+
+@Component(&#123;
+    selector: 'joke-o-matic',
+    template: `
+        &lt;div class="clr-row"&gt;
+            &lt;div class="clr-col-2"&gt;
+                &lt;button [clrLoading]="requestLoading" class="btn btn-primary-outline btn-sm" (click)="makeRequest()"&gt;
+                    Ask For A Joke
+                &lt;/button&gt;
+            &lt;/div&gt;
+            &lt;div class="clr-col-10" *ngIf="joke"&gt;
+                &lt;blockquote&gt;&#123;&#123;joke&#125;&#125;&lt;/blockquote&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;`
+&#125;)
+export class GalacticRequestComponent extends AbstractBase implements OnInit &#123;
+
+    public joke: string;
+    requestLoading: ClrLoadingState = ClrLoadingState.DEFAULT;
+
+    constructor(private cd: ChangeDetectorRef) &#123;
+        super('GalacticRequestComponent');
+    &#125;
+
+    ngOnInit(): void &#123;
+        // mark the channel as galactic, so requests will be sent over the fabric as well as locally.
+        this.bus.markChannelAsGalactic('servbot');
+    &#125;
+
+    makeRequest(): void &#123;
+
+        // show state on the button
+        this.requestLoading = ClrLoadingState.LOADING;
+
+        // make galactic joke request!
+        this.bus.requestOnce('servbot', 'Joke')
+            .handle(
+                (response: string) =&gt; &#123;
+                    this.joke = response;
+                    this.requestLoading = ClrLoadingState.DEFAULT;
+                &#125;
+            );
+        );
+    &#125;
+&#125;</code></pre>
+
 
 <!--<p>-->
     <!--Sending requests and listening for respones is basically the same when performed on Galactic channels. There are a couple-->

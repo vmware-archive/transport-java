@@ -6,34 +6,40 @@ import { AbstractBase } from '@vmw/bifrost/core';
 import { APIRequest, APIResponse, BusStore, StoreStream } from '@vmw/bifrost';
 import { GeneralUtil } from '@vmw/bifrost/util/util';
 import { ClrLoadingState } from '@clr/angular';
+import { BaseBifrostComponent } from '../../../base.bifrost.component';
+import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
 
 @Component({
     selector: 'galactic-request-sample',
     template: `
-        <strong>Make a Galactic Joke Request</strong><br/>
-        <div *ngIf="connected">
-            <button [clrLoading]="requestLoading" class="btn btn-success btn-sm" (click)="makeRequest()">Ask For A Joke</button>
-            <h5 *ngIf="connected">
-                {{item}}
-            </h5>
+        <div class="clr-row" *ngIf="connected">
+            <div class="clr-col-2">
+                <button [clrLoading]="requestLoading" class="btn btn-primary-outline btn-sm" (click)="makeRequest()">Ask For A Joke</button>
+            </div>
+            <div class="clr-col-10" *ngIf="item">
+                <blockquote>{{item}}</blockquote>
+            </div>
         </div>
-        <div *ngIf="!connected">Connect to broker first, see previous demo!</div>`
+        <strong *ngIf="!connected">Not connected to fabric, connect to run this code</strong>`
 })
-export class GalacticRequestComponent extends AbstractBase implements OnInit, OnDestroy {
+export class GalacticRequestComponent extends BaseBifrostComponent implements OnInit, OnDestroy {
 
-    public connected = false;
     public item: string;
-    private store: BusStore<boolean>;
-    private storeChangeListener: StoreStream<boolean, any>;
-
     requestLoading: ClrLoadingState = ClrLoadingState.DEFAULT;
 
     constructor(private cd: ChangeDetectorRef) {
-        super('NoteComponent');
+        super('GalacticRequestComponent');
     }
 
     ngOnInit(): void {
-        this.connected = this.fabric.isConnected();
+        super.ngOnInit();
+
+        // make sure our component picks up connection state on boot.
+        this.connectedStateStream.subscribe(
+            () => {
+                this.cd.detectChanges();
+            }
+        );
     }
 
     makeRequest(): void {
@@ -54,6 +60,6 @@ export class GalacticRequestComponent extends AbstractBase implements OnInit, On
     }
 
     ngOnDestroy() {
-        // this.storeChangeListener.unsubscribe();
+       super.ngOnDestroy();
     }
 }
