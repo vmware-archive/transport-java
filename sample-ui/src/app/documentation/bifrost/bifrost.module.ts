@@ -30,6 +30,8 @@ import { TsGalacticConversationsComponent } from './ts-galactic-conversations/ts
 import { GalacticRequestComponent } from './sample-code/ts/connecting-fabric/conversation.component';
 import { TsLoggingComponent } from './ts-logging/ts-logging.component';
 import { LogComponent } from './sample-code/ts/logging/logging.component';
+import { TsStoreBasicsComponent } from './ts-store-basics/ts-store-basics.component';
+import { TsStoreAdvancedComponent } from './ts-store-advanced/ts-store-advanced.component';
 
 @NgModule({
     declarations: [
@@ -60,6 +62,8 @@ import { LogComponent } from './sample-code/ts/logging/logging.component';
         TsConnectingToFabricComponent,
         TsGalacticConversationsComponent,
         TsLoggingComponent,
+        TsStoreBasicsComponent,
+        TsStoreAdvancedComponent,
     ],
     imports: [
         CommonModule,

@@ -19,6 +19,8 @@ import { TsRestServiceComponent } from './ts-restservice/ts-restservice.componen
 import { TsConnectingToFabricComponent } from './ts-connecting-to-fabric/ts-connecting-to-fabric.component';
 import { TsGalacticConversationsComponent } from './ts-galactic-conversations/ts-galactic-conversations.component';
 import { TsLoggingComponent } from './ts-logging/ts-logging.component';
+import { TsStoreBasicsComponent } from './ts-store-basics/ts-store-basics.component';
+import { TsStoreAdvancedComponent } from './ts-store-advanced/ts-store-advanced.component';
 
 const bifrostRoutes: Routes = [
     {path: '', component: BifrostHomeComponent, pathMatch: 'true'},
@@ -33,6 +35,8 @@ const bifrostRoutes: Routes = [
     {path: 'ts/broadcast-vs-direct', component: TsBroadcastVsDirectComponent, pathMatch: 'true'},
     {path: 'ts/transactions', component: TsTransactionsComponent, pathMatch: 'true'},
     {path: 'ts/logging', component: TsLoggingComponent, pathMatch: 'true'},
+    {path: 'ts/store-basics', component: TsStoreBasicsComponent, pathMatch: 'true'},
+    {path: 'ts/store-advanced', component: TsStoreAdvancedComponent, pathMatch: 'true'},
     {path: 'ts/making-rest-calls', component: TsRestServiceComponent, pathMatch: 'true'},
     {path: 'ts/connecting-to-fabric', component: TsConnectingToFabricComponent, pathMatch: 'true'},
     {path: 'ts/galactic-conversations', component: TsGalacticConversationsComponent, pathMatch: 'true'},

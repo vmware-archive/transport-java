@@ -2,12 +2,10 @@
  * Copyright(c) VMware Inc. 2019
  */
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractBase } from '@vmw/bifrost/core';
-import { APIRequest, APIResponse, BusStore, StoreStream } from '@vmw/bifrost';
+import { APIRequest, APIResponse  } from '@vmw/bifrost';
 import { GeneralUtil } from '@vmw/bifrost/util/util';
 import { ClrLoadingState } from '@clr/angular';
 import { BaseBifrostComponent } from '../../../base.bifrost.component';
-import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
 
 @Component({
     selector: 'galactic-request-sample',
