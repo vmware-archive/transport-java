@@ -10,11 +10,13 @@ export abstract class BaseBifrostComponent extends BaseComponent implements OnIn
     public connectedStateStream: StoreStream<FabricConnectionState>;
 
     public areBifrostTsDocsActive(): boolean {
-        return this.storeManager.getStore<boolean>('docs').get('ts');
+        //return this.storeManager.getStore<boolean>('docs').get('ts');
+        return true;
     }
 
     public areBifrostJavaDocsActive(): boolean {
-        return this.storeManager.getStore<boolean>('docs').get('java');
+        //return this.storeManager.getStore<boolean>('docs').get('java');
+        return true;
     }
 
     public setBifrostTsDocsActive(state: boolean): void {
