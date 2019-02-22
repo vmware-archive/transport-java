@@ -21,6 +21,7 @@ import { TsGalacticConversationsComponent } from './ts-galactic-conversations/ts
 import { TsLoggingComponent } from './ts-logging/ts-logging.component';
 import { TsStoreBasicsComponent } from './ts-store-basics/ts-store-basics.component';
 import { TsStoreAdvancedComponent } from './ts-store-advanced/ts-store-advanced.component';
+import { TsDistributedIframesComponent } from './ts-distributed-iframes/ts-distributed-iframes.component';
 
 const bifrostRoutes: Routes = [
     {path: '', component: BifrostHomeComponent, pathMatch: 'true'},
@@ -40,6 +41,7 @@ const bifrostRoutes: Routes = [
     {path: 'ts/making-rest-calls', component: TsRestServiceComponent, pathMatch: 'true'},
     {path: 'ts/connecting-to-fabric', component: TsConnectingToFabricComponent, pathMatch: 'true'},
     {path: 'ts/galactic-conversations', component: TsGalacticConversationsComponent, pathMatch: 'true'},
+    {path: 'ts/distributed-iframes', component: TsDistributedIframesComponent, pathMatch: 'true'},
     {path: 'java/importing', component: JavaImportingComponent, pathMatch: 'true'},
     {path: 'java/configuring', component: JavaConfiguringComponent, pathMatch: 'true'},
     {path: 'java/initializing', component: JavaInitializingComponent, pathMatch: 'true'},

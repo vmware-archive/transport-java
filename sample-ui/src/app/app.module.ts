@@ -9,12 +9,14 @@ import { DemosComponent } from './demos/demos.component';
 import { DocumentationModule } from './documentation/documentation.module';
 import { WelcomeComponent } from './welcome/welcome.component';
 import { SharedModule } from './shared/shared.module';
+import { ChattyChatComponent } from './documentation/bifrost/sample-code/ts/chatty-chat/chatty-chat.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         DemosComponent,
-        WelcomeComponent
+        WelcomeComponent,
+        ChattyChatComponent
     ],
     imports: [
         BrowserModule,

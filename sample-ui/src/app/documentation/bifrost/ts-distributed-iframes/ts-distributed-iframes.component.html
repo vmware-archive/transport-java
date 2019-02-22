@@ -1,0 +1,40 @@
+<h1>Creating a distributed bus across iFrames</h1>
+
+<p>
+  The bus has the capability to connect up event bus instances running inside child applications. This allows a third party application that is also using the Bifröst, to connect
+  to the parent / master event bus. This allows the child application to talk to services in the parent UI, or even open connections to brokers and tap directly into live streams.
+</p>
+
+<p>
+  You have the ability to control which origins are allowed to join the distributed bus, also which channels are authorized to be exposed across the distributed bus. This ensures that
+  channels can be restricted across applications. You can also configure which iFrames are authorized to allow the bus instances to be connected.
+</p>
+
+<hr/>
+
+<div class="clr-row">
+    <div class="clr-col-4">
+        <section class="sample-container">
+            <h3>iFrame A</h3>
+            <iframe src="/chatty-chat"></iframe>
+        </section>
+    </div>
+    <div class="clr-col-4">
+        <section class="sample-container">
+            <h3>iFrame b</h3>
+            <iframe src="/chatty-chat"></iframe>
+        </section>
+    </div>
+    <div class="clr-col-4">
+        <section class="sample-container">
+            <h3>iFrame C</h3>
+            <iframe src="/chatty-chat"></iframe>
+        </section>
+    </div>
+</div>
+
+
+<p>
+  When you want to enable this feature (it's called the bus proxy). You can enable it with <code class="clr-code">this.bus.enableMessageProxy(config: MessageProxyConfig): ProxyControl;</code> method.
+  The <code class="clr-code">MessageProxyConfig</code> object defines the channels, origins and iframes authorized to use the proxy.
+</p>
