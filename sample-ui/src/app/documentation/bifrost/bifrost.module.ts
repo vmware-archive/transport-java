@@ -32,6 +32,7 @@ import { TsLoggingComponent } from './ts-logging/ts-logging.component';
 import { LogComponent } from './sample-code/ts/logging/logging.component';
 import { TsStoreBasicsComponent } from './ts-store-basics/ts-store-basics.component';
 import { TsStoreAdvancedComponent } from './ts-store-advanced/ts-store-advanced.component';
+import { TsDistributedIframesComponent } from './ts-distributed-iframes/ts-distributed-iframes.component';
 
 @NgModule({
     declarations: [
@@ -64,6 +65,7 @@ import { TsStoreAdvancedComponent } from './ts-store-advanced/ts-store-advanced.
         TsLoggingComponent,
         TsStoreBasicsComponent,
         TsStoreAdvancedComponent,
+        TsDistributedIframesComponent,
     ],
     imports: [
         CommonModule,
