@@ -18,7 +18,7 @@ import java.util.UUID;
 public abstract class AbstractService<RequestType extends Request, ResponseType extends Response>
         extends AbstractBase implements BusServiceEnabled {
 
-    private String serviceChannel;
+    protected String serviceChannel;
     protected BusTransaction serviceChannelStream;
 
     public AbstractService(String serviceChannel) {
