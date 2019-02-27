@@ -12,6 +12,7 @@ const documentationRoutes: Routes = [
             { path: '', component: HomeComponent },
             { path: 'getting-started', component: GettingStartedComponent },
             { path: 'bifrost', loadChildren: './bifrost/bifrost.module#BifrostModule' }
+            // { path: 'sewing-machine', loadChildren: './bifrost/bifrost.module#BifrostModule' }
         ]
     }
 ];
