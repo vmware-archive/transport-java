@@ -50,6 +50,44 @@ export class HelloWorldComponent extends AbstractBase implements OnInit &#123;
   <ts-hello-world></ts-hello-world>
 </appfab-tryitout-component>
 
+<p>And a version using React:</p>
+
+<pre class="code">
+<code class="language-typescript" ngNonBindable>
+import React, &#123; useState, useEffect &#125; from 'react';
+import &#123; useBifrost &#125; from 'react-bifrost';
+
+export default function HelloWorld(props: any) &#123;
+    const [message, setMessage] = useState('');
+    const bifrost = useBifrost();
+
+    // define a channel to talk on.
+    const myChannel = 'some-channel';
+
+    useEffect(() => &#123;
+        // listen for requests on 'myChannel' and return a response.
+        bifrost.bus.respondOnce(myChannel).generate((request: string) => &#123;
+            bifrost.log.info(`Request Received: $&#123;request&#125;, Sending Response...`);
+            return 'world';
+        &#125;);
+
+        bifrost.log.info('Sending Request');
+
+        // send request 'hello' on channel 'myChannel'.
+        bifrost.bus.requestOnce(myChannel, 'hello').handle((response: string) => &#123;
+            setMessage(`hello $&#123;response&#125;`);
+        &#125;);
+    &#125;, []);
+
+    return &#60;div&#62;&#123;message&#125;&#60;/div&#62;;
+&#125;
+</code>
+</pre>
+
+<appfab-tryitout-component>
+    <react-sample [component]="reactComponent"></react-sample>
+</appfab-tryitout-component>
+
 <p>
     In the above example, we set up a simple lambda to handle an inbound message (request). This responder uses the
     <code class="clr-code">respondOnce()</code> method

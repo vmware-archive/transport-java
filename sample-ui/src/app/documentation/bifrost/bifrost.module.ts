@@ -35,6 +35,7 @@ import { TsStoreBasicsComponent } from './ts-store-basics/ts-store-basics.compon
 import { TsStoreAdvancedComponent } from './ts-store-advanced/ts-store-advanced.component';
 import { TsDistributedIframesComponent } from './ts-distributed-iframes/ts-distributed-iframes.component';
 import { JavaAbstractionsComponent } from './java-abstractions/java-abstractions.component';
+import { ReactSampleComponent } from './sample-code/react-sample.component';
 
 @NgModule({
     declarations: [
@@ -69,7 +70,8 @@ import { JavaAbstractionsComponent } from './java-abstractions/java-abstractions
         TsStoreAdvancedComponent,
         TsDistributedIframesComponent,
         JavaAbstractionsComponent,
-        CalendarServiceComponent
+        CalendarServiceComponent,
+        ReactSampleComponent
     ],
     imports: [
         CommonModule,

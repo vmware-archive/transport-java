@@ -83,6 +83,61 @@ export class PingComponent extends AbstractBase &#123;
     <ping-component></ping-component>
 </appfab-tryitout-component>
 
+<p>And a version using React:</p>
+
+<pre class="code">
+<code class="language-typescript" ngNonBindable>
+import React, &#123; useState &#125; from 'react';
+import &#123; useBifrost &#125; from '../../../../react-bifrost';
+import &#123; PongRequestType, PongServiceChannel, PongServiceRequest, PongServiceResponse &#125; from '../ts/ping-component/pong.service.model';
+
+export default function PingComponent() &#123;
+
+    const bifrost = useBifrost();
+    const [ pingResponse, setPingResponse ] = useState&#60;string&#62;('');
+
+    function sendPingBasic() &#123;
+        const request: PongServiceRequest = &#123;
+            command: PongRequestType.Basic,
+            message: 'basic ping'
+        &#125;;
+
+        sendPingRequest(request);
+    &#125;
+
+    function sendPingFull() &#123;
+        const request: PongServiceRequest = &#123;
+            command: PongRequestType.Full,
+            message: 'full ping'
+        &#125;;
+
+        sendPingRequest(request);
+    &#125;
+
+    function sendPingRequest(request: PongServiceRequest) &#123;
+        bifrost.bus.requestOnce(PongServiceChannel, request)
+            .handle(
+                (response: PongServiceResponse) =&#62; &#123;
+                    setPingResponse(response.value);
+                &#125;
+            );
+    &#125;
+
+    return (
+        &#60;div&#62;
+            &#60;button onClick=&#123;() =&#62; sendPingBasic()&#125; className='btn btn-primary'&#62;Ping (Basic)&#60;/button&#62;
+            &#60;button onClick=&#123;() =&#62; sendPingFull()&#125; className='btn btn-primary'&#62;Ping (Full)&#60;/button&#62;
+            &#60;br/&#62;
+            Response: &#123;pingResponse&#125;
+        &#60;/div&#62;
+    );
+&#125;
+</code>
+</pre>
+
+<appfab-tryitout-component>
+    <react-sample [component]="reactComponent"></react-sample>
+</appfab-tryitout-component>
 
 <p>
     The actual code that sends the request to the service, and handles the response sent back is handled by the <code
