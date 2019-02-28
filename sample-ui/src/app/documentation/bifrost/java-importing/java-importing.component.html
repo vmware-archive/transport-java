@@ -1,3 +1,16 @@
+<h1>Importing into your Spring Application</h1>
+
 <p>
-  java-importing works!
+    The Java version of tbe Bifröst is published as a jar, via our internal artifactory. It can be consumed via gradle, or maven.
 </p>
+
+<h3>Configuring Gradle</h3>
+<p>
+    The first step is to ensure you add our internal artifactory repository to the list of repositories.
+</p>
+
+<pre class="code">
+<code class="language-typescript" ngNonBindable>repositories &#123;
+    maven &#123; url "http://build-squid.eng.vmware.com/nexus/content/groups/repo" &#125;
+    maven &#123; url "http://build-artifactory.eng.vmware.com/artifactory/bifrost-maven-local" &#125;
+&#125;</code></pre>
