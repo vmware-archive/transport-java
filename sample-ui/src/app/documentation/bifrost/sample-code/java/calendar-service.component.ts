@@ -20,7 +20,7 @@ import { BaseBifrostComponent } from '../../base.bifrost.component';
                 </button>
             </div>
             <div class="clr-col-6" *ngIf="item">
-                Response: <span class="emphasis">{{item}}</span>
+                Fabric Calendar Service Response: <span class="emphasis">{{item}}</span>
             </div>
         </div>
         <strong *ngIf="!connected">Not connected to fabric, connect to run this code</strong>`
