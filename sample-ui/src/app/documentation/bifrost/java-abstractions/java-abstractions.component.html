@@ -1,18 +1,21 @@
 <h1>Accessing the bus and features via class Abstractions (Java)</h1>
 
 <p>
-  In the Java version of the Bifröst, there are currently only two abstractions available. <code class="clr-code">AbstractBase</code> and
-  <code class="clr-code">AbstractService</code> (which extends from <code class="clr-code">AbstractBase</code>)
+    In the Java version of the Bifröst, there are currently only two abstractions available. <code class="clr-code">AbstractBase</code>
+    and
+    <code class="clr-code">AbstractService</code> (which extends from <code class="clr-code">AbstractBase</code>)
 </p>
 <p>
-  Extending your classes from these abstractions is pretty important if you want a clean, consistent design in your app.
+    Extending your classes from these abstractions is pretty important if you want a clean, consistent design in your
+    app.
 </p>
 <hr/>
 
-<h3 id="abstractcore">Using <code class="clr-code">AbstractBase</code> - <span class="emphasis">Base class for bus enabled classes</span></h3>
+<h3 id="abstractcore">Using <code class="clr-code">AbstractBase</code> - <span class="emphasis">Base class for bus enabled classes</span>
+</h3>
 
 <p>
-  <code class="clr-code">AbstractBase</code> provides access to the event bus and logging.
+    <code class="clr-code">AbstractBase</code> provides access to the event bus and logging.
 </p>
 
 
@@ -24,16 +27,17 @@ public class MyClass extends AbstractBase &#123;
 &#125;</code></pre>
 
 <p>
-  <code class="clr-code">AbstractBase</code> is actually quite basic, You can see the code at:
-  <a href="https://gitlab.eng.vmware.com/bifrost/java/blob/master/java/src/main/com/vmware/bifrost/core/AbstractBase.java"
-     target="_blank">
-    https://gitlab.eng.vmware.com/bifrost/java/blob/master/java/src/main/com/vmware/bifrost/core/AbstractBase.java
-  </a>
+    <code class="clr-code">AbstractBase</code> is actually quite basic, You can see the code at:
+    <a href="https://gitlab.eng.vmware.com/bifrost/java/blob/master/java/src/main/com/vmware/bifrost/core/AbstractBase.java"
+       target="_blank">
+        https://gitlab.eng.vmware.com/bifrost/java/blob/master/java/src/main/com/vmware/bifrost/core/AbstractBase.java
+    </a>
 </p>
 
 <p>
-  There is a single required interface method that you need to implement in order to use <code class="clr-code">AbstractBase</code>. This interface method is
-  <code class="clr-code">initialize()</code>. This is your kick off / boot method, to do what ever you need to.
+    There is a single required interface method that you need to implement in order to use <code class="clr-code">AbstractBase</code>.
+    This interface method is
+    <code class="clr-code">initialize()</code>. This is your kick off / boot method, to do what ever you need to.
 </p>
 
 <pre class="code"><code class="language-java" ngNonBindable>import com.vmware.bifrost.core.AbstractBase;
@@ -47,31 +51,105 @@ public class MyClass extends AbstractBase &#123;
 <hr/>
 
 
-<h3 id="abstractservice">Using <code class="clr-code">AbstractService&lt;ReqT, RespT&gt;</code> - <span class="emphasis">For services</span></h3>
+<h3 id="abstractservice">Using <code class="clr-code">AbstractService&lt;ReqT, RespT&gt;</code> - <span
+        class="emphasis">For services</span></h3>
 
 <p>
-  <code class="clr-code">AbstractService</code> allows you to build services that can respond to requests via the distributed bus via Galactic Channels.
+    <code class="clr-code">AbstractService</code> allows you to build services that can respond to requests via the
+    distributed bus via Galactic Channels.
 </p>
 
 <p>
-  If you want to build custom services that perform any kind of complex business logic, or call APIs.. and you want to make them available to any UI or CLI that is
-  operating over the fabric, then this is the class for you!
+    If you want to build custom services that perform any kind of complex business logic, or call APIs.. and you want to
+    make them available to any UI or CLI that is
+    operating over the fabric, then this is the class for you!
 </p>
 
 <p>
-  The two generic params are the Request type and Response type of what your class is expecting to receive. The request comes from the consumer, the response is
-  what the service returns to the consumer (as the service is the producer).
+    The two generic params are the Request type and Response type of what your class is expecting to receive. The
+    request comes from the consumer, the response is
+    what the service returns to the consumer (as the service is the producer).
 </p>
 
-<h3>SampleService</h3>
-<pre class="code"><code class="language-java" ngNonBindable>import com.vmware.bifrost.core.AbstractBase;
+<p>
+    Let's create a sample service called <strong>CalendarService</strong> that simply returns a date or time. This is a
+    very simple example of a service that uses
+</p>
+
+<h3>CalendarService</h3>
+<pre class="code"><code class="language-java" ngNonBindable>package samples;
+
+import com.vmware.bifrost.bridge.Request;
+import com.vmware.bifrost.bridge.Response;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.core.AbstractService;
+import org.springframework.stereotype.Component;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 @Component
-public class MyClass extends AbstractBase &#123;
-    // .. regular Java stuff goes here.
+public class CalendarService extends AbstractService&lt;Request&lt;String&gt;, Response&lt;String&gt;&gt; &#123;
+
+    // define the channel the service operates on,.
+    public static final String Channel = "calendar-service";
+    private Calendar calendar;
+
+    CalendarService() &#123;
+        super(CalendarService.Channel);
+        this.calendar = GregorianCalendar.getInstance();
+    &#125;
+
+    // handle service request.
+    protected void handleServiceRequest(Request request, Message busMessage) &#123;
+
+        // which command shall we run?
+        switch(request.getCommand()) &#123;
+            case SampleCommand.Date:
+                handleDate(request);
+                break;
+
+            case SampleCommand.Time:
+                handleTime(request);
+                break;
+
+            default:
+                handleUnknown(request);
+        &#125;
+    &#125;
+
+    private String formatCalendar(String format) &#123;
+        SimpleDateFormat fmt = new SimpleDateFormat(format);
+        return fmt.format(calendar.getTime());
+    &#125;
+
+    private void handleTime(Request request) &#123;
+        Response&lt;String&gt; response = new Response&lt;&gt;(request.getId(), formatCalendar("hh:mm:ss a"));
+        this.sendResponse(response, request.getId());
+    &#125;
+
+    private void handleDate(Request request) &#123;
+        Response&lt;String&gt; response = new Response&lt;&gt;(request.getId(), formatCalendar("yyyy-MM-dd"));
+        this.sendResponse(response, request.getId());
+    &#125;
+
+    private void handleUnknown(Request request) &#123;
+        Response&lt;String&gt; response = new Response&lt;&gt;(request.getId(), "Unknown Command");
+        this.sendResponse(response, request.getId());
+    &#125;
+&#125;
+
+abstract class SampleCommand &#123;
+    static final String Time = "time";
+    static final String Date = "date";
 &#125;</code></pre>
 
+<p>
+    We actually built this service as a sample, so you can try it out below.
+</p>
+
 <appfab-tryitout-component>
-  <calendar-service-component></calendar-service-component>
+    <calendar-service-component></calendar-service-component>
 </appfab-tryitout-component>
 
