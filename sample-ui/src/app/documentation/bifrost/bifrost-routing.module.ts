@@ -22,6 +22,7 @@ import { TsLoggingComponent } from './ts-logging/ts-logging.component';
 import { TsStoreBasicsComponent } from './ts-store-basics/ts-store-basics.component';
 import { TsStoreAdvancedComponent } from './ts-store-advanced/ts-store-advanced.component';
 import { TsDistributedIframesComponent } from './ts-distributed-iframes/ts-distributed-iframes.component';
+import { JavaAbstractionsComponent } from './java-abstractions/java-abstractions.component';
 
 const bifrostRoutes: Routes = [
     {path: '', component: BifrostHomeComponent, pathMatch: 'true'},
@@ -46,6 +47,7 @@ const bifrostRoutes: Routes = [
     {path: 'java/configuring', component: JavaConfiguringComponent, pathMatch: 'true'},
     {path: 'java/initializing', component: JavaInitializingComponent, pathMatch: 'true'},
     {path: 'java/helloworld', component: JavaHelloworldComponent, pathMatch: 'true'},
+    {path: 'java/abstractions', component: JavaAbstractionsComponent, pathMatch: 'true'},
 ];
 
 @NgModule({

@@ -1,0 +1,77 @@
+<h1>Accessing the bus and features via class Abstractions (Java)</h1>
+
+<p>
+  In the Java version of the Bifröst, there are currently only two abstractions available. <code class="clr-code">AbstractBase</code> and
+  <code class="clr-code">AbstractService</code> (which extends from <code class="clr-code">AbstractBase</code>)
+</p>
+<p>
+  Extending your classes from these abstractions is pretty important if you want a clean, consistent design in your app.
+</p>
+<hr/>
+
+<h3 id="abstractcore">Using <code class="clr-code">AbstractBase</code> - <span class="emphasis">Base class for bus enabled classes</span></h3>
+
+<p>
+  <code class="clr-code">AbstractBase</code> provides access to the event bus and logging.
+</p>
+
+
+<pre class="code"><code class="language-java" ngNonBindable>import com.vmware.bifrost.core.AbstractBase;
+
+@Component
+public class MyClass extends AbstractBase &#123;
+    // .. regular Java stuff goes here.
+&#125;</code></pre>
+
+<p>
+  <code class="clr-code">AbstractBase</code> is actually quite basic, You can see the code at:
+  <a href="https://gitlab.eng.vmware.com/bifrost/java/blob/master/java/src/main/com/vmware/bifrost/core/AbstractBase.java"
+     target="_blank">
+    https://gitlab.eng.vmware.com/bifrost/java/blob/master/java/src/main/com/vmware/bifrost/core/AbstractBase.java
+  </a>
+</p>
+
+<p>
+  There is a single required interface method that you need to implement in order to use <code class="clr-code">AbstractBase</code>. This interface method is
+  <code class="clr-code">initialize()</code>. This is your kick off / boot method, to do what ever you need to.
+</p>
+
+<pre class="code"><code class="language-java" ngNonBindable>import com.vmware.bifrost.core.AbstractBase;
+
+@Component
+public class MyClass extends AbstractBase &#123;
+    public void initialize() &#123;
+        // .. kick off your stuff here.
+    &#125;
+&#125;</code></pre>
+<hr/>
+
+
+<h3 id="abstractservice">Using <code class="clr-code">AbstractService&lt;ReqT, RespT&gt;</code> - <span class="emphasis">For services</span></h3>
+
+<p>
+  <code class="clr-code">AbstractService</code> allows you to build services that can respond to requests via the distributed bus via Galactic Channels.
+</p>
+
+<p>
+  If you want to build custom services that perform any kind of complex business logic, or call APIs.. and you want to make them available to any UI or CLI that is
+  operating over the fabric, then this is the class for you!
+</p>
+
+<p>
+  The two generic params are the Request type and Response type of what your class is expecting to receive. The request comes from the consumer, the response is
+  what the service returns to the consumer (as the service is the producer).
+</p>
+
+<h3>SampleService</h3>
+<pre class="code"><code class="language-java" ngNonBindable>import com.vmware.bifrost.core.AbstractBase;
+
+@Component
+public class MyClass extends AbstractBase &#123;
+    // .. regular Java stuff goes here.
+&#125;</code></pre>
+
+<appfab-tryitout-component>
+  <calendar-service-component></calendar-service-component>
+</appfab-tryitout-component>
+
