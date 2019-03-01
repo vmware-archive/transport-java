@@ -26,24 +26,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-@BifrostService
 @SuppressWarnings("unchecked")
 public abstract class AbstractService<RequestType extends Request, ResponseType extends Response>
-        extends Loggable implements BifrostEnabled {
-
-    @Autowired
-    protected EventBus bus;
-
-    @Autowired
-    protected ApplicationContext context;
-
-    @Autowired
-    protected ResourceLoader resourceLoader;
-
-    private ObjectMapper mapper = new ObjectMapper();
-
-    @Autowired
-    protected ServiceMethodLookupUtil methodLookupUtil;
+        extends AbstractBase {
 
     private String serviceChannel;
 
@@ -61,7 +46,7 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
      * Initialize Service to start listening for request messages on the service channel.
      * Errors will be ignored, as they would be
      */
-    public void initializeSubscriptions() {
+    public void initialize() {
 
         this.bus.listenRequestStream(this.serviceChannel,
                 (Message message) -> {

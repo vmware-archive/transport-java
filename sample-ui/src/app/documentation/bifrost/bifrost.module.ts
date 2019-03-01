@@ -23,6 +23,7 @@ import { TsTransactionsComponent } from './ts-transactions/ts-transactions.compo
 import { PingTransactionComponent } from './sample-code/ts/ping-component/ping-transaction.component';
 import { TsRestServiceComponent } from './ts-restservice/ts-restservice.component';
 import { MyAPIComponent } from './sample-code/ts/restservice/myapi.component';
+import { CalendarServiceComponent } from './sample-code/java/calendar-service.component';
 import { ClarityModule } from '@clr/angular';
 import { TsConnectingToFabricComponent } from './ts-connecting-to-fabric/ts-connecting-to-fabric.component';
 import { FabricConnectionComponent } from './sample-code/ts/connecting-fabric/connection.component';
@@ -33,6 +34,7 @@ import { LogComponent } from './sample-code/ts/logging/logging.component';
 import { TsStoreBasicsComponent } from './ts-store-basics/ts-store-basics.component';
 import { TsStoreAdvancedComponent } from './ts-store-advanced/ts-store-advanced.component';
 import { TsDistributedIframesComponent } from './ts-distributed-iframes/ts-distributed-iframes.component';
+import { JavaAbstractionsComponent } from './java-abstractions/java-abstractions.component';
 
 @NgModule({
     declarations: [
@@ -66,6 +68,8 @@ import { TsDistributedIframesComponent } from './ts-distributed-iframes/ts-distr
         TsStoreBasicsComponent,
         TsStoreAdvancedComponent,
         TsDistributedIframesComponent,
+        JavaAbstractionsComponent,
+        CalendarServiceComponent
     ],
     imports: [
         CommonModule,

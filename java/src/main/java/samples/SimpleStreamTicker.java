@@ -33,7 +33,7 @@ public class SimpleStreamTicker extends Loggable implements BifrostEnabled {
     }
 
     @Override
-    public void initializeSubscriptions() {
+    public void initialize() {
         // create reference to simple stream
         simpleStreamChannel = bus.getApi().getChannelObject("simple-stream", this.getName());
 

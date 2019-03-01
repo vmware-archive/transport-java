@@ -3,14 +3,14 @@ import { BaseBifrostComponent } from '../base.bifrost.component';
 import { HighlightService } from '../../../local-services/highlight.service';
 
 @Component({
-    selector: 'myprefix-java-importing',
-    templateUrl: './java-importing.component.html',
-    styleUrls: ['./java-importing.component.scss']
+    selector: 'appfab-java-abstractions',
+    templateUrl: './java-abstractions.component.html',
+    styleUrls: ['./java-abstractions.component.scss']
 })
-export class JavaImportingComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
+export class JavaAbstractionsComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
 
     constructor(private highlightService: HighlightService) {
-        super('BaseBifrostComponent');
+        super('JavaAbstractionsComponent');
     }
 
     ngOnInit() {

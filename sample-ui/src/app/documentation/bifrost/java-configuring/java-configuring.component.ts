@@ -1,15 +1,26 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, OnInit } from '@angular/core';
+import { BaseBifrostComponent } from '../base.bifrost.component';
+import { HighlightService } from '../../../local-services/highlight.service';
 
 @Component({
-  selector: 'myprefix-java-configuring',
-  templateUrl: './java-configuring.component.html',
-  styleUrls: ['./java-configuring.component.scss']
+    selector: 'appfab-java-configuring',
+    templateUrl: './java-configuring.component.html',
+    styleUrls: ['./java-configuring.component.scss']
 })
-export class JavaConfiguringComponent implements OnInit {
+export class JavaConfiguringComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
 
-  constructor() { }
+    constructor(private highlightService: HighlightService) {
+        super('JavaConfiguringComponent');
+    }
 
-  ngOnInit() {
-  }
+    ngOnInit() {
+        this.setBifrostJavaDocsActive(true);
+    }
 
+    ngAfterViewChecked() {
+        if (!this.highlighted) {
+            this.highlightService.highlightAll();
+            this.highlighted = true;
+        }
+    }
 }

@@ -16,7 +16,7 @@ package oldsamples;
 //    }
 //
 //    @Override
-//    public void initializeSubscriptions() {
+//    public void initialize() {
 //        logger.info("Initializing Metrics-B Service");
 //        Metrics metric = new Metrics(bus, 1500, "metrics-b");
 //        executorService.submit(metric);
