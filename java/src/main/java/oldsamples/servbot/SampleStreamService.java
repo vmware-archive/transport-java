@@ -37,7 +37,7 @@
 //    }
 //
 //    @Override
-//    public void initializeSubscriptions() {
+//    public void initialize() {
 //        logger.info("Initializing SampleStream Service");
 //
 //        scheduledExecutor.scheduleAtFixedRate(

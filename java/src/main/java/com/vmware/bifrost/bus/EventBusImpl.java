@@ -560,7 +560,7 @@ public class EventBusImpl extends Loggable implements EventBus {
             Object value = entry.getValue();
             if (value instanceof BifrostEnabled) {
                 this.logDebugMessage("Initializing Bifröst Service: " + value.getClass().getSimpleName());
-                ((BifrostEnabled) value).initializeSubscriptions();
+                ((BifrostEnabled) value).initialize();
             }
         }
     }
