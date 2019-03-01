@@ -4,13 +4,27 @@
     The Java version of the Bifröst is published as a jar, via our internal artifactory. It can be consumed via gradle, or maven.
 </p>
 
+<h3>Using SS-Base or SS-backend?</h3>
+
+<p>
+    If your application is built ontop of ss-base or ss-backend (VMC & Atlas foundation), <strong class="emphasis">Then there is nothing to import</strong>, you're
+    already set up and ready to go. The Bifröst is already baked in.
+</p>
+
+<h3>What does the Bifröst depend on?</h3>
+
+<p>
+    Magic doesn't come for free, so the Bifröst heavily depends on RxJava, Spring, Jackson, Apache Commons and a few others.
+</p>
+
+<hr/>
+
 <h3>Configuring Gradle</h3>
 <p>
     The first step is to ensure you add our internal artifactory repository to the list of repositories.
 </p>
 
-<pre class="code">
-<code class="language-typescript" ngNonBindable>repositories &#123;
+<pre class="code"><code class="language-typescript" ngNonBindable>repositories &#123;
     maven &#123; url "http://build-squid.eng.vmware.com/nexus/content/groups/repo" &#125;
     maven &#123; url "http://build-artifactory.eng.vmware.com/artifactory/bifrost-maven-local" &#125;
 &#125;</code></pre>
@@ -19,8 +33,7 @@
     Then add a dependency to the desired Bifröst jar version and its dependencies.
 </p>
 
-<pre class="code">
-<code class="language-typescript" ngNonBindable>dependencies &#123;
+<pre class="code"><code class="language-typescript" ngNonBindable>dependencies &#123;
     compile "com.vmware.bifrost:vmw-bifrost:0.0.10"
     compile "org.springframework.boot:spring-boot-starter-web:1.5.18.RELEASE"
     compile "org.springframework.boot:spring-boot-starter-websocket:1.5.18.RELEASE"
@@ -43,8 +56,7 @@
     Similar to the gradle configuration, first you should add our internal artifactory repository to the list of repositories.
 </p>
 
-<pre class="code">
-<code class="language-xml" ngNonBindable>
+<pre class="code"><code class="language-markup" ngNonBindable>
 &lt;repositories&gt;
     &lt;repository&gt;
         &lt;id&gt;Build-Squid-Repo&lt;/id&gt;
@@ -61,7 +73,7 @@
 </p>
 
 <pre class="code">
-<code class="language-xml" ngNonBindable>
+<code class="language-markup" ngNonBindable>
 &lt;dependencies&gt;
     &lt;dependency&gt;
         &lt;groupId&gt;com.vmware.bifrost&lt;/groupId&gt;
