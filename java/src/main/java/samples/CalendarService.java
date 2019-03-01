@@ -6,6 +6,7 @@ import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -39,23 +40,20 @@ public class CalendarService extends AbstractService<Request<String>, Response<S
         }
     }
 
+    private String formatCalendar(String format) {
+        SimpleDateFormat fmt = new SimpleDateFormat(format);
+        return fmt.format(calendar.getTime());
+    }
+
     private void handleTime(Request request) {
 
-//        String time = calendar.get(GregorianCalendar.HOUR)
-//                + ":" + calendar.get(GregorianCalendar.MINUTE)
-//                + " " + calendar.get(GregorianCalendar.AM_PM);
-
-        Response<String> response = new Response<>(request.getId(), "TIME");
+        Response<String> response = new Response<>(request.getId(), formatCalendar("hh:mm:ss a"));
         this.sendResponse(response, request.getId());
     }
 
     private void handleDate(Request request) {
 
-//        String date = calendar.get(GregorianCalendar.HOUR)
-//                + ":" + calendar.get(GregorianCalendar.MINUTE)
-//                + " " + calendar.get(GregorianCalendar.AM_PM);
-
-        Response<String> response = new Response<>(request.getId(), "DATE");
+        Response<String> response = new Response<>(request.getId(), formatCalendar("yyyy-MM-dd"));
         this.sendResponse(response, request.getId());
     }
 
