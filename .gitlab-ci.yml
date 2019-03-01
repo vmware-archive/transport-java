@@ -88,7 +88,7 @@ publish:appfabric:
   # since UI artifacts are already passed from the previous job we're not building UI here
   - ./scripts/build-server.sh
   - ./scripts/build-image.sh -p appfabric -t ${TARGET_TAG}
-  - docker login ${REGISTRY_PREFIX}
+  - ./scripts/configure-artifactory.sh
   # publish images to the registry
   - docker push ${REGISTRY_PREFIX}/appfabric-ui:${TARGET_TAG}
   - docker push ${REGISTRY_PREFIX}/appfabric-service:${TARGET_TAG}
