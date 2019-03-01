@@ -27,15 +27,15 @@ public class HelloWorld extends AbstractBase {
     // send a response to a request.
     private void createResponder() {
         this.bus.respondOnce(myChannel,
-                (Message msg) -> "ping received! here is a pong!"
+                (Message msg) -> msg.getPayload().toString() + " world"
         );
     }
 
     // send a request
     private void sendRequest() {
-        this.bus.requestOnce(myChannel, "ping",
+        this.bus.requestOnce(myChannel, "hello",
                 (Message msg) -> {
-                    this.logInfoMessage("HelloWorld:", "Got a response!", msg.getPayload().toString());
+                    this.logInfoMessage("HelloWorld:", "Got a response! ", msg.getPayload().toString());
                 }
         );
     }
