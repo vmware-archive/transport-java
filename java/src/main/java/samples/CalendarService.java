@@ -18,11 +18,9 @@ public class CalendarService extends AbstractService<Request<String>, Response<S
 
     // define the channel the service operates on,.
     public static final String Channel = "calendar-service";
-    private Calendar calendar;
 
     CalendarService() {
         super(CalendarService.Channel);
-        this.calendar = GregorianCalendar.getInstance();
     }
     protected void handleServiceRequest(Request request, Message busMessage) {
         // which command shall we run?
@@ -41,6 +39,7 @@ public class CalendarService extends AbstractService<Request<String>, Response<S
     }
 
     private String formatCalendar(String format) {
+        Calendar calendar = GregorianCalendar.getInstance();
         SimpleDateFormat fmt = new SimpleDateFormat(format);
         return fmt.format(calendar.getTime());
     }
