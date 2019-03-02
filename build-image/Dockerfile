@@ -12,6 +12,11 @@ RUN apt-get install -yq wget \
                         default-jdk \
                         openjfx
 
+# fix non-ascii characters.
+RUN apt-get install -y locales
+RUN locale-gen en_US.UTF-8
+ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
+
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
 
 # install nodejs 8
