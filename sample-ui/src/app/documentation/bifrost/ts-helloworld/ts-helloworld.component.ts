@@ -1,6 +1,8 @@
 import { AfterViewChecked, Component, OnInit } from '@angular/core';
 import { BaseBifrostComponent } from '../base.bifrost.component';
 import { HighlightService } from '../../../local-services/highlight.service';
+import HelloWorld from '../sample-code/react/HelloWorld';
+import React from 'react';
 
 @Component({
   selector: 'appfab-ts-helloworld',
@@ -8,6 +10,8 @@ import { HighlightService } from '../../../local-services/highlight.service';
   styleUrls: ['./ts-helloworld.component.scss']
 })
 export class TsHelloworldComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
+
+    reactComponent: React.FC = HelloWorld;
 
     constructor(private highlightService: HighlightService) {
         super('TsHelloWorldComponent');
