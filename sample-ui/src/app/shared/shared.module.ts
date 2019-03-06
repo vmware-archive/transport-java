@@ -7,7 +7,6 @@ import { ClarityModule } from '@clr/angular';
 import { RouterModule } from '@angular/router';
 import { HighlightService } from '../local-services/highlight.service';
 import { FabricConnectionStateComponent } from '../fabric-connection-state/fabric-connection-state.component';
-import { BadgesComponent } from './badges/badges.component';
 import { JavaBadgesComponent } from './java-badges/java-badges.component';
 import { TypescriptBadgesComponent } from './typescript-badges/typescript-badges.component';
 
@@ -17,7 +16,6 @@ import { TypescriptBadgesComponent } from './typescript-badges/typescript-badges
         FooterComponent,
         HeaderComponent,
         FabricConnectionStateComponent,
-        BadgesComponent,
         JavaBadgesComponent,
         TypescriptBadgesComponent
     ],
@@ -31,8 +29,8 @@ import { TypescriptBadgesComponent } from './typescript-badges/typescript-badges
         FooterComponent,
         HeaderComponent,
         FabricConnectionStateComponent,
-        BadgesComponent,
-        JavaBadgesComponent
+        JavaBadgesComponent,
+        TypescriptBadgesComponent
     ],
     providers: [
         HighlightService
