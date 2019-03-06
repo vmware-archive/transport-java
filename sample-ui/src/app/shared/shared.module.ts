@@ -7,13 +7,17 @@ import { ClarityModule } from '@clr/angular';
 import { RouterModule } from '@angular/router';
 import { HighlightService } from '../local-services/highlight.service';
 import { FabricConnectionStateComponent } from '../fabric-connection-state/fabric-connection-state.component';
+import { JavaBadgesComponent } from './java-badges/java-badges.component';
+import { TypescriptBadgesComponent } from './typescript-badges/typescript-badges.component';
 
 @NgModule({
     declarations: [
         ParticleHeaderComponent,
         FooterComponent,
         HeaderComponent,
-        FabricConnectionStateComponent
+        FabricConnectionStateComponent,
+        JavaBadgesComponent,
+        TypescriptBadgesComponent
     ],
     imports: [
         CommonModule,
@@ -24,7 +28,9 @@ import { FabricConnectionStateComponent } from '../fabric-connection-state/fabri
         ParticleHeaderComponent,
         FooterComponent,
         HeaderComponent,
-        FabricConnectionStateComponent
+        FabricConnectionStateComponent,
+        JavaBadgesComponent,
+        TypescriptBadgesComponent
     ],
     providers: [
         HighlightService
