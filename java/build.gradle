@@ -62,6 +62,7 @@ jar {
                         'org.springframework.messaging.simp.config,' +
                         'org.springframework.messaging.simp.stomp,' +
                         'org.springframework.messaging.support,' +
+                        'org.springframework.messaging.handler.annotation,' +
                         'org.springframework.context,' +
                         'org.springframework.context.annotation,' +
                         'org.springframework.context.event,' +
@@ -97,6 +98,7 @@ jar {
                         "com.vmware.bifrost.bridge.spring;version=$version," +
                         "com.vmware.bifrost.bridge.spring.controllers;version=$version," +
                         "com.vmware.bifrost.bridge.spring.config.annotation;version=$version," +
+                        "com.vmware.bifrost.bridge.spring.config.interceptors;version=$version," +
                         "com.vmware.bifrost.bridge.spring.config;version=$version," +
                         "com.vmware.bifrost.bridge.spring.handlers;version=$version," +
                         "com.vmware.bifrost.bridge.spring.services;version=$version"
@@ -226,7 +228,7 @@ jacocoTestReport {
     }
 
     afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
+        classDirectories.from = files(classDirectories.files.collect {
             fileTree(dir: it,
                     exclude: ['oldsamples/**',
                               'samples/**'])
