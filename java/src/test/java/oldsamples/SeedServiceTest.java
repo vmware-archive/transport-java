@@ -40,7 +40,7 @@
 //    @Before
 //    public void createSeed() {
 //        seed = new Seed();
-//        seed.setCommand(Seed.TypeEnum.FLOWER);
+//        seed.setRequest(Seed.TypeEnum.FLOWER);
 //        seedServiceSpy = spy(seedService);
 //    }
 //

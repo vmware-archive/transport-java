@@ -24,7 +24,7 @@ public class CalendarService extends AbstractService<Request<String>, Response<S
     }
     protected void handleServiceRequest(Request request, Message busMessage) {
         // which command shall we run?
-        switch(request.getCommand()) {
+        switch(request.getRequest()) {
             case SampleCommand.Date:
                 handleDate(request);
                 break;

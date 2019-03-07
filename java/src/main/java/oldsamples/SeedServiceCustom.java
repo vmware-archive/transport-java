@@ -31,7 +31,7 @@ package oldsamples;
 //        super();
 //        seedColor = color;
 //        this.setId(seed.getId());
-//        this.setCommand(seed.getCommand());
+//        this.setRequest(seed.getRequest());
 //    }
 //
 //    public String getSeedColor() {

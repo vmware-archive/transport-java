@@ -17,8 +17,10 @@ if (environment.production) {
 platformBrowserDynamic().bootstrapModule(AppModule)
   .catch(err => console.error(err));
 
+
 // boot event bus.
-const bus = BusUtil.bootBusWithOptions(LogLevel.Info, false, true);
+const bus = BusUtil.bootBusWithOptions(LogLevel.Debug, false, true);
+bus.api.enableMonitorDump(true);
 
 let docsStore: BusStore<boolean>;
 

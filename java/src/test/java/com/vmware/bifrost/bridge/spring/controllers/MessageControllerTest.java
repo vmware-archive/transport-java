@@ -55,7 +55,7 @@ public class MessageControllerTest {
         ex = null;
         try {
             Request request = new Request();
-            request.setCommand("command");
+            request.setRequest("command");
             request.setId(UUID.randomUUID());
             this.controller.bridgeMessage(request, "channel1");
         } catch (Exception e) {

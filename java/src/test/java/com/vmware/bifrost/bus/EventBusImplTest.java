@@ -1471,7 +1471,7 @@ public class EventBusImplTest {
                                 mo.getData().toString());
                     }
 
-//                    if (mo.getCommand().equals(MonitorType.MonitorDestroyChannel)) {
+//                    if (mo.getRequest().equals(MonitorType.MonitorDestroyChannel)) {
 //                        Assert.assertEquals("destroyed [#scooby-do]",
 //                                mo.getData().toString());
 //                    }
