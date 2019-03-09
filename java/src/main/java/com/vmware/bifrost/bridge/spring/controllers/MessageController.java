@@ -54,7 +54,7 @@ public class MessageController extends Loggable {
         if(request.getId() == null) {
             throw new RequestException("Request 'id' is missing");
         } else if(request.getRequest() == null) {
-            throw new RequestException("Request 'command' is missing");
+            throw new RequestException("Request 'request' is missing");
         } else if(request.getVersion() == null) {
             throw new RequestException("Request 'version' is missing");
         }
