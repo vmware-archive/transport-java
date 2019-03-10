@@ -36,6 +36,8 @@ import { TsStoreAdvancedComponent } from './ts-store-advanced/ts-store-advanced.
 import { TsDistributedIframesComponent } from './ts-distributed-iframes/ts-distributed-iframes.component';
 import { JavaAbstractionsComponent } from './java-abstractions/java-abstractions.component';
 import { ReactSampleComponent } from './sample-code/react-sample.component';
+import { JavaServicesComponent } from './java-services/java-services.component';
+import { PingFabricComponent } from './sample-code/ts/ping-component/ping-fabric.component';
 
 @NgModule({
     declarations: [
@@ -55,6 +57,7 @@ import { ReactSampleComponent } from './sample-code/react-sample.component';
         MyAPIComponent,
         FabricConnectionComponent,
         GalacticRequestComponent,
+        PingFabricComponent,
         LogComponent,
         TryItOutComponent,
         TsAbstractionsComponent,
@@ -71,7 +74,8 @@ import { ReactSampleComponent } from './sample-code/react-sample.component';
         TsDistributedIframesComponent,
         JavaAbstractionsComponent,
         CalendarServiceComponent,
-        ReactSampleComponent
+        ReactSampleComponent,
+        JavaServicesComponent
     ],
     imports: [
         CommonModule,

@@ -2,8 +2,6 @@
  * Copyright(c) VMware Inc. 2019
  */
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { APIRequest, APIResponse } from '@vmw/bifrost';
-import { GeneralUtil } from '@vmw/bifrost/util/util';
 import { ClrLoadingState } from '@clr/angular';
 import { BaseBifrostComponent } from '../../../base.bifrost.component';
 
@@ -50,7 +48,7 @@ export class GalacticRequestComponent extends BaseBifrostComponent implements On
         // make galactic joke request!
         this.bus.requestOnce(
             'servbot',
-            this.bus.fabric.generateFabricRequest('Joke', null))
+            this.fabric.generateFabricRequest('Joke', null))
             .handle(
                 (response: any) => {
                     this.item = response.payload;

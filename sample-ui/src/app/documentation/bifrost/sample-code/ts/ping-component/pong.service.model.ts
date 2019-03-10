@@ -7,8 +7,8 @@ import { ChannelName } from '@vmw/bifrost';
 export const PongServiceChannel: ChannelName = 'services::PongService';
 
 export enum PongRequestType {
-    Basic,
-    Full
+    Basic = 'Basic',
+    Full = 'Full'
 }
 
 export interface PongServiceRequest {
