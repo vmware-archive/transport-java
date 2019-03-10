@@ -93,7 +93,7 @@ public class TestServiceTest {
                 request,
                 (Message msg) -> {
                     TestResponse resp = (TestResponse) msg.getPayload();
-                    TestServiceObjectResponse respPayload = resp.getPayload();
+                    TestServiceObjectResponse respPayload = (TestServiceObjectResponse) resp.getPayload();
                     Assert.assertEquals(id, resp.getId());
                     Assert.assertEquals("CommandA-My Little Melody", respPayload.getResponseValue());
                 }
@@ -119,7 +119,7 @@ public class TestServiceTest {
                 request,
                 (Message msg) -> {
                     TestResponse resp = (TestResponse) msg.getPayload();
-                    TestServiceObjectResponse respPayload = resp.getPayload();
+                    TestServiceObjectResponse respPayload = (TestServiceObjectResponse) resp.getPayload();
                     Assert.assertEquals(id, resp.getId());
                     Assert.assertEquals("CommandB-My Little Song", respPayload.getResponseValue());
                 }
@@ -175,7 +175,7 @@ public class TestServiceTest {
                 request,
                 (Message msg) -> {
                     TestResponse resp = (TestResponse) msg.getPayload();
-                    TestServiceObjectResponse respPayload = resp.getPayload();
+                    TestServiceObjectResponse respPayload = (TestServiceObjectResponse) resp.getPayload();
                     Assert.assertEquals(id, resp.getId());
                     Assert.assertEquals("pretty-baby", respPayload.getResponseValue());
                 }
@@ -209,7 +209,7 @@ public class TestServiceTest {
                 serviceChannel,
                 request,
                 (Message msg) -> {
-                   Assert.fail();
+                    Assert.fail();
                 },
                 (Message msg) -> {
                     RestError error = (RestError) msg.getPayload();
