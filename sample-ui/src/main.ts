@@ -8,7 +8,7 @@ import { LogLevel } from '@vmw/bifrost/log';
 import { BusStore } from '@vmw/bifrost';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { RestService } from '@vmw/bifrost/core/services/rest/rest.service';
-import { AppStores, FabricConnectionState, FabricConnectionStoreKey } from './constants';
+import { AppStores, FabricVersionState } from './constants';
 
 if (environment.production) {
   enableProdMode();
@@ -23,6 +23,7 @@ const bus = BusUtil.bootBusWithOptions(LogLevel.Debug, false, true);
 bus.api.enableMonitorDump(true);
 
 let docsStore: BusStore<boolean>;
+let versionStore: BusStore<string>;
 
 // configure stores.
 configureStores();
@@ -33,11 +34,13 @@ connectFabric();
 
 function configureStores() {
     docsStore = bus.stores.createStore(AppStores.Docs);
+    versionStore = bus.stores.createStore<string>(AppStores.Versions);
 }
 
 function populateStores() {
     docsStore.put('ts', false, null);
     docsStore.put('java', false, null);
+
 }
 function loadServices() {
     ServiceLoader.addService(RestService);
@@ -48,6 +51,12 @@ function connectFabric() {
     // function called when connected to fabric
     const connectedHandler = (sessionId: string) => {
         bus.logger.info(`Connected to Application Fabric with sessionId ${sessionId}`, 'main.ts');
+
+        bus.fabric.getFabricVersion().subscribe(
+            (version: string) => {
+                versionStore.put('java', version, FabricVersionState.JavaSet);
+            }
+        );
     };
 
     // function called when disconnected.

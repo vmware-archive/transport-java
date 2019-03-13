@@ -34,7 +34,7 @@ public class CalendarService extends AbstractService<Request<String>, Response<S
                 break;
 
             default:
-                handleUnknown(request);
+                this.handleUnknownRequest(request);
         }
     }
 
@@ -45,20 +45,12 @@ public class CalendarService extends AbstractService<Request<String>, Response<S
     }
 
     private void handleTime(Request request) {
-
         Response<String> response = new Response<>(request.getId(), formatCalendar("hh:mm:ss a"));
         this.sendResponse(response, request.getId());
     }
 
     private void handleDate(Request request) {
-
         Response<String> response = new Response<>(request.getId(), formatCalendar("yyyy-MM-dd"));
-        this.sendResponse(response, request.getId());
-    }
-
-    private void handleUnknown(Request request) {
-
-        Response<String> response = new Response<>(request.getId(), "Unknown Command");
         this.sendResponse(response, request.getId());
     }
 }

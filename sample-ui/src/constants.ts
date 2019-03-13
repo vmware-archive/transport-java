@@ -1,6 +1,8 @@
 export enum AppStores {
     Docs = 'docs',
-    FabricConnection = 'stores::fabric-connection'
+    FabricConnection = 'stores::fabric-connection',
+    Versions = 'stores::versions'
+
 }
 
 export enum FabricConnectionStoreKey {
@@ -10,4 +12,8 @@ export enum FabricConnectionStoreKey {
 export enum FabricConnectionState {
     Connected = 'connected',
     Disconnected = 'disconnected'
+}
+
+export enum FabricVersionState {
+    JavaSet = 'java-set'
 }
