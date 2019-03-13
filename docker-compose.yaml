@@ -1,4 +1,4 @@
-version: '2'
+version: '3.2'
 
 services:
 
@@ -10,6 +10,7 @@ services:
       - "8090:8090"
     networks:
       - fabric
+    restart: always
 
   appfabric-ui:
     image: appfabric-service.artifactory.eng.vmware.com/appfabric-ui
@@ -19,7 +20,8 @@ services:
     networks:
       - fabric
     depends_on:
-      - appfabric-service 
+      - appfabric-service
+    restart: always
 
 networks:
   fabric:
