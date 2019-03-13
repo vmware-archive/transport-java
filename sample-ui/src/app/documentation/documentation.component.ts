@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { BaseBifrostComponent } from './bifrost/base.bifrost.component';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
-import { PongService } from './bifrost/sample-code/ts/ping-component/pong.service';
 import { MyAPIService } from './bifrost/sample-code/ts/restservice/myapi.service';
 
 @Component({

@@ -48,7 +48,6 @@ export class PingFabricComponent extends AbstractBase implements OnInit, OnDestr
             this.fabric.generateFabricRequest(type, null))
             .handle(
                 (response: any) => {
-                    console.log('pizza', response);
                     this.response = response.payload;
                     this.cd.detectChanges();
                 }

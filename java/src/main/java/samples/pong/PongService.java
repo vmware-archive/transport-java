@@ -15,6 +15,7 @@ public class PongService extends AbstractService<Request<String>, Response<Strin
     PongService() {
         super(PongService.Channel);
     }
+
     protected void handleServiceRequest(Request request, Message busMessage) {
         // which command shall we run?
         switch(request.getRequest()) {
