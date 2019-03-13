@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractBase } from '@vmw/bifrost/core';
-import { BusStore } from '@vmw/bifrost';
+import { BusStore, StoreStream } from '@vmw/bifrost';
 import { AppStores, FabricVersionState } from '../../../constants';
 
 @Component({
@@ -11,7 +11,8 @@ import { AppStores, FabricVersionState } from '../../../constants';
 export class JavaBadgesComponent extends AbstractBase implements OnInit, OnDestroy {
 
     public version: string;
-    public versionStore: BusStore<string>;
+    private versionStore: BusStore<string>;
+    private versionStoreStream: StoreStream<string>;
 
     constructor(private cd: ChangeDetectorRef) {
         super('JavaBadgesComponent');
@@ -24,7 +25,8 @@ export class JavaBadgesComponent extends AbstractBase implements OnInit, OnDestr
         if (storeVersion) {
             this.version = storeVersion;
         } else {
-            this.versionStore.onChange('java', FabricVersionState.JavaSet).subscribe(
+            this.versionStoreStream = this.versionStore.onChange('java', FabricVersionState.JavaSet);
+            this.versionStoreStream.subscribe(
                 (version: string) => {
                     this.version = version;
                     this.cd.detectChanges();
@@ -34,6 +36,8 @@ export class JavaBadgesComponent extends AbstractBase implements OnInit, OnDestr
     }
 
     ngOnDestroy(): void {
-        this.cd.detach();
+        if (this.versionStoreStream) {
+            this.versionStoreStream.unsubscribe();
+        }
     }
 }

@@ -25,7 +25,8 @@ export class PingComponent extends AbstractBase implements OnInit, OnDestroy {
 
     constructor() {
         super('PingComponent');
-        this.pongService = ServiceLoader.addService(PongService);
+        this.pongService = ServiceLoader.getService(PongService);
+        console.log('PONG JOB', this.pongService);
     }
 
     switchToGalactic(): void {
@@ -71,7 +72,7 @@ export class PingComponent extends AbstractBase implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-      this.pongService.online();
+      //this.pongService.online();
     }
 
 }

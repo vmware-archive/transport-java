@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BaseBifrostComponent } from './bifrost/base.bifrost.component';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { MyAPIService } from './bifrost/sample-code/ts/restservice/myapi.service';
+import { PongService } from './bifrost/sample-code/ts/ping-component/pong.service';
 
 @Component({
     selector: 'appfab-documentation',
@@ -14,7 +15,7 @@ export class DocumentationComponent extends BaseBifrostComponent implements OnIn
     }
 
     ngOnInit() {
-        // ServiceLoader.addService(PongService);
+        ServiceLoader.addService(PongService);
         ServiceLoader.addService(MyAPIService);
         // this.tsDocsActive = String(this.areBifrostTsDocsActive());
         // this.javaDocsActive = String(this.areBifrostJavaDocsActive());
