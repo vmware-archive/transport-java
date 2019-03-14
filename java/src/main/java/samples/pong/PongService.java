@@ -6,7 +6,6 @@ import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
 import org.springframework.stereotype.Component;
 
-
 @Component
 public class PongService extends AbstractService<Request<String>, Response<String>> {
     // define the channel the service operates on,.
@@ -17,6 +16,7 @@ public class PongService extends AbstractService<Request<String>, Response<Strin
     }
 
     protected void handleServiceRequest(Request request, Message busMessage) {
+
         // which command shall we run?
         switch(request.getRequest()) {
             case PongRequestType.Basic:

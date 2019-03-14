@@ -27,12 +27,12 @@ public class VersionService extends AbstractService<Request<String>, Response<St
         }
     }
 
-    // TODO: Engineer a way to bring the current version into AbstrtactService
+    // TODO: Engineer a way to bring the current version into AbstractService
     // ideally this is read from spring application properties or similar - that was
     // patched with the version from version.txt
     // right now, this is returning a hard coded value, to get us rolling.
     private void handleVersionRequest(Request request) {
-        Response<String> response = new Response<>(request.getId(), "0.0.11");
+        Response<String> response = new Response<>(request.getId(), "0.0.12");
         this.sendResponse(response, request.getId());
     }
 }
