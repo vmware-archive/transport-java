@@ -15,7 +15,9 @@ export class DocumentationComponent extends BaseBifrostComponent implements OnIn
     }
 
     ngOnInit() {
-        ServiceLoader.addService(PongService);
+        const pongService: PongService = ServiceLoader.addService(PongService);
+        pongService.offline();
+
         ServiceLoader.addService(MyAPIService);
         // this.tsDocsActive = String(this.areBifrostTsDocsActive());
         // this.javaDocsActive = String(this.areBifrostJavaDocsActive());

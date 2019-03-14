@@ -3,7 +3,7 @@
  */
 import { AbstractBase } from '@vmw/bifrost/core';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { PongRequestType, PongServiceChannel, PongServiceResponse } from './pong.service.model';
+import { PongRequestType, PongServiceChannel } from './pong.service.model';
 
 @Component({
     selector: 'ping-fabric-component',

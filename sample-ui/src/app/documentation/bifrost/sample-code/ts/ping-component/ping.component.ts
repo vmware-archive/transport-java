@@ -2,8 +2,8 @@
  * Copyright(c) VMware Inc. 2019
  */
 import { AbstractBase } from '@vmw/bifrost/core';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { PongRequestType, PongServiceChannel, PongServiceRequest, PongServiceResponse } from './pong.service.model';
+import { Component, OnInit } from '@angular/core';
+import { PongRequestType, PongServiceChannel, PongServiceResponse } from './pong.service.model';
 import { PongService } from './pong.service';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { APIRequest } from '@vmw/bifrost';
@@ -17,7 +17,7 @@ import { APIRequest } from '@vmw/bifrost';
         <!--<button (click)="switchToLocal()" class="btn btn-primary">Switch Local</button><br/>-->
         Response: {{response}}`
 })
-export class PingComponent extends AbstractBase implements OnInit, OnDestroy {
+export class PingComponent extends AbstractBase implements OnInit {
 
     public response = 'nothing yet, request something!';
     private pongService: PongService;
@@ -25,8 +25,6 @@ export class PingComponent extends AbstractBase implements OnInit, OnDestroy {
 
     constructor() {
         super('PingComponent');
-        this.pongService = ServiceLoader.getService(PongService);
-        console.log('PONG JOB', this.pongService);
     }
 
     switchToGalactic(): void {
@@ -67,12 +65,7 @@ export class PingComponent extends AbstractBase implements OnInit, OnDestroy {
             );
     }
 
-    ngOnDestroy(): void {
-        this.pongService.offline();
-    }
-
     ngOnInit(): void {
-      //this.pongService.online();
+        this.pongService = ServiceLoader.getService(PongService);
     }
-
 }

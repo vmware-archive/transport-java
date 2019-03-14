@@ -22,18 +22,57 @@
 </p>
 
 <h3>PongService</h3>
-<pre class="code"><code class="language-java" ngNonBindable>@Component
-public class HelloWorld extends AbstractBase &#123;
-    public initialize() &#123;
-        // ...
+<pre class="code"><code class="language-java" ngNonBindable>import com.vmware.bifrost.bridge.Request;
+import com.vmware.bifrost.bridge.Response;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.core.AbstractService;
+import org.springframework.stereotype.Component;
+
+@Component
+public class PongService extends AbstractService&lt;Request&lt;String&gt;, Response&lt;String&gt;&gt; &#123;
+    // define the channel the service operates on,.
+    public static final String Channel = "services-PongService";
+
+    PongService() &#123;
+        super(PongService.Channel);
     &#125;
+
+    protected void handleServiceRequest(Request request, Message busMessage) &#123;
+
+    // which command shall we run?
+    switch(request.getRequest()) &#123;
+    case PongRequestType.Basic:
+        this.handleBasicPongRequest(request);
+    break;
+
+    case PongRequestType.Full:
+        this.handleFullPongRequest(request);
+    break;
+&#125;
+&#125;
+
+private void handleBasicPongRequest(Request request) &#123;
+    Response response = new Response(request.getId(), "Pong (basic)");
+    this.sendResponse(response, request.getId());
+&#125;
+
+private void handleFullPongRequest(Request request) &#123;
+    Response response = new Response(request.getId(), "Pong (full)");
+    this.sendResponse(response, request.getId());
+&#125;
+&#125;
+
+abstract class PongRequestType &#123;
+    public static final String Basic = "Basic";
+    public static final String Full = "Full";
 &#125;
 </code></pre>
-
 
 <appfab-tryitout-component>
     <ping-fabric-component></ping-fabric-component>
 </appfab-tryitout-component>
+
+
 
 <!--<h3>Create Service Request/Response Models.</h3>-->
 <!--<pre class="code"><code class="language-typescript" ngNonBindable>import &#123; ChannelName &#125; from '@vmw/bifrost';-->
