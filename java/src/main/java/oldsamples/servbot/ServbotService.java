@@ -58,7 +58,7 @@ public class ServbotService extends AbstractService {
      */
     @Override
     public void handleServiceRequest(Request request, Message message) {
-        switch (request.getCommand()) {
+        switch (request.getRequest()) {
         case ChatCommand.PostMessage:
             this.postMessage(request);
             break;
@@ -107,7 +107,7 @@ public class ServbotService extends AbstractService {
     }
 
     private void error(Request request) {
-        Response response = new Response(request.getId(), Arrays.asList("No such command as " + request.getCommand()));
+        Response response = new Response(request.getId(), Arrays.asList("No such command as " + request.getRequest()));
         this.sendResponse(response, request.getId());
     }
 

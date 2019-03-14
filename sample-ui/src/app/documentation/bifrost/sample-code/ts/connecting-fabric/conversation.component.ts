@@ -2,8 +2,6 @@
  * Copyright(c) VMware Inc. 2019
  */
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { APIRequest, APIResponse  } from '@vmw/bifrost';
-import { GeneralUtil } from '@vmw/bifrost/util/util';
 import { ClrLoadingState } from '@clr/angular';
 import { BaseBifrostComponent } from '../../../base.bifrost.component';
 
@@ -12,7 +10,9 @@ import { BaseBifrostComponent } from '../../../base.bifrost.component';
     template: `
         <div class="clr-row" *ngIf="connected">
             <div class="clr-col-2">
-                <button [clrLoading]="requestLoading" class="btn btn-primary-outline btn-sm" (click)="makeRequest()">Ask For A Joke</button>
+                <button [clrLoading]="requestLoading" class="btn btn-primary-outline btn-sm"
+                        (click)="makeRequest()">Ask For A Joke
+                </button>
             </div>
             <div class="clr-col-10" *ngIf="item">
                 <blockquote>{{item}}</blockquote>
@@ -31,7 +31,7 @@ export class GalacticRequestComponent extends BaseBifrostComponent implements On
 
     ngOnInit(): void {
         super.ngOnInit();
-
+        this.bus.markChannelAsGalactic('servbot');
         // make sure our component picks up connection state on boot.
         this.connectedStateStream.subscribe(
             () => {
@@ -46,18 +46,20 @@ export class GalacticRequestComponent extends BaseBifrostComponent implements On
         this.requestLoading = ClrLoadingState.LOADING;
 
         // make galactic joke request!
-        this.bus.requestGalactic(
+        this.bus.requestOnce(
             'servbot',
-            new APIRequest('Joke', null, GeneralUtil.genUUID(), 1),
-            (response: APIResponse<any>) => {
-                this.item = response.payload;
-                this.requestLoading = ClrLoadingState.DEFAULT;
-                this.cd.detectChanges();
-            }
-        );
+            this.fabric.generateFabricRequest('Joke', null))
+            .handle(
+                (response: any) => {
+                    this.item = response.payload;
+                    this.requestLoading = ClrLoadingState.DEFAULT;
+                    this.cd.detectChanges();
+                }
+            );
     }
 
     ngOnDestroy() {
-       super.ngOnDestroy();
+        super.ngOnDestroy();
+        this.bus.markChannelAsLocal('servbot');
     }
 }

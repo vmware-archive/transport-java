@@ -21,15 +21,15 @@ export class PongService extends AbstractService<PongServiceRequest, PongService
      * @param request the request object
      * @param args automatically passed by superclass, important details within.
      */
-    protected handleServiceRequest(request: PongServiceRequest, args?: MessageArgs): void {
+    protected handleServiceRequest(requestObject: PongServiceRequest, args?: MessageArgs): void {
 
-        switch (request.command) {
+        switch (requestObject.request) {
             case PongRequestType.Basic:
-                this.handleBasicRequest(request.message, args);
+                this.handleBasicRequest(requestObject.payload, args);
                 break;
 
             case PongRequestType.Full:
-                this.handleFullRequest(request.message, args);
+                this.handleFullRequest(requestObject.payload, args);
         }
     }
 
@@ -41,7 +41,7 @@ export class PongService extends AbstractService<PongServiceRequest, PongService
     private handleBasicRequest(message: string, args: MessageArgs): void {
 
         const basicResponse = {
-            value: `pong '${message}'`
+            payload: `pong '${message}'`
         };
 
         // send a response to whomever requested it.
@@ -61,7 +61,7 @@ export class PongService extends AbstractService<PongServiceRequest, PongService
         const perf = performance.now();
 
         const basicResponse = {
-            value: `pong '${message}' (on ${dateString} by event bus with id ${EventBus.id}) time: ${perf}`
+            payload: `pong '${message}' (on ${dateString} by event bus with id ${EventBus.id}) time: ${perf}`
         };
 
         // send a response to whomever requested it.

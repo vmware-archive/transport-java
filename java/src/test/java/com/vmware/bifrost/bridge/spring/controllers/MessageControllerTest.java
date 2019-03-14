@@ -50,12 +50,12 @@ public class MessageControllerTest {
         } catch (Exception e) {
             ex = e;
         }
-        assertRequestException(ex, "Request 'command' is missing");
+        assertRequestException(ex, "Request 'request' is missing");
 
         ex = null;
         try {
             Request request = new Request();
-            request.setCommand("command");
+            request.setRequest("request");
             request.setId(UUID.randomUUID());
             this.controller.bridgeMessage(request, "channel1");
         } catch (Exception e) {
@@ -71,7 +71,7 @@ public class MessageControllerTest {
             this.count++;
         });
 
-        Request bridgeRequest = new Request(UUID.randomUUID(), "command", "request-payload");
+        Request bridgeRequest = new Request(UUID.randomUUID(), "test", "request-payload");
 
         this.controller.bridgeMessage(bridgeRequest, "channel");
         Assert.assertEquals(this.count, 1);

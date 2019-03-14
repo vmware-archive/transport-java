@@ -8,28 +8,18 @@ export default function PingComponent() {
     const [ pingResponse, setPingResponse ] = useState<string>('');
 
     function sendPingBasic() {
-        const request: PongServiceRequest = {
-            command: PongRequestType.Basic,
-            message: 'basic ping'
-        };
-
-        sendPingRequest(request);
+        sendPingRequest(bifrost.fabric.generateFabricRequest(PongRequestType.Basic, 'basic ping'));
     }
 
     function sendPingFull() {
-        const request: PongServiceRequest = {
-            command: PongRequestType.Full,
-            message: 'full ping'
-        };
-
-        sendPingRequest(request);
+        sendPingRequest(bifrost.fabric.generateFabricRequest(PongRequestType.Full, 'full ping'));
     }
 
     function sendPingRequest(request: PongServiceRequest) {
         bifrost.bus.requestOnce(PongServiceChannel, request)
             .handle(
                 (response: PongServiceResponse) => {
-                    setPingResponse(response.value);
+                    setPingResponse(response.payload);
                 }
             );
     }

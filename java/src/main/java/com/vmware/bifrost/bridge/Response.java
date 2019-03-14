@@ -7,12 +7,9 @@ public class Response<RespP> extends AbstractFrame {
     protected boolean error = false;
     protected int errorCode;
     protected String errorMessage;
-    protected RespP payload;
-
 
     public Response(Integer version, UUID uuid, RespP payload) {
-        super(version, uuid);
-        this.payload = payload;
+        super(version, uuid, payload);
     }
 
     public Response(UUID uuid, RespP payload) {
@@ -27,14 +24,6 @@ public class Response<RespP> extends AbstractFrame {
     public Response(UUID uuid, boolean error) {
         this(1, uuid, null);
         this.error = error;
-    }
-
-    public void setPayload(RespP payload) {
-        this.payload = payload;
-    }
-
-    public RespP getPayload() {
-        return this.payload;
     }
 
     public boolean isError() {

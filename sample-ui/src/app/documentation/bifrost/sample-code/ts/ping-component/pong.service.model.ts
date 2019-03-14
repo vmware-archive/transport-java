@@ -3,19 +3,20 @@
  */
 
 import { ChannelName } from '@vmw/bifrost';
+import { AbstractMessageObject } from '@vmw/bifrost/core';
 
 export const PongServiceChannel: ChannelName = 'services::PongService';
 
 export enum PongRequestType {
-    Basic,
-    Full
+    Basic = 'Basic',
+    Full = 'Full'
 }
 
-export interface PongServiceRequest {
-    command: PongRequestType;
-    message: string;
+export interface PongServiceRequest extends AbstractMessageObject<PongRequestType, string> {
+    request: PongRequestType;
+    payload: string;
 }
 
-export interface PongServiceResponse {
-    value: string;
+export interface PongServiceResponse extends AbstractMessageObject<PongRequestType, string> {
+    payload: string;
 }

@@ -22,7 +22,7 @@ public class TestService extends AbstractService<TestRequest, TestResponse>{
 
     @Override
     protected void handleServiceRequest(TestRequest request, Message message) {
-        switch (request.getCommand()){
+        switch (request.getRequest()){
             case TestCommand.COMMAND_A:
                 this.handleCommandA(request, message.getId());
                 break;

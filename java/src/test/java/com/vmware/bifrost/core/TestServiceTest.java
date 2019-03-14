@@ -5,7 +5,6 @@
 package com.vmware.bifrost.core;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
@@ -24,7 +23,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
@@ -87,7 +85,7 @@ public class TestServiceTest {
         TestRequest request = new TestRequest();
         UUID id = UUID.randomUUID();
         request.setId(id);
-        request.setCommand(TestCommand.COMMAND_A);
+        request.setRequest(TestCommand.COMMAND_A);
         request.setPayload(requestPayload);
 
         bus.requestOnce(
@@ -95,7 +93,7 @@ public class TestServiceTest {
                 request,
                 (Message msg) -> {
                     TestResponse resp = (TestResponse) msg.getPayload();
-                    TestServiceObjectResponse respPayload = resp.getPayload();
+                    TestServiceObjectResponse respPayload = (TestServiceObjectResponse) resp.getPayload();
                     Assert.assertEquals(id, resp.getId());
                     Assert.assertEquals("CommandA-My Little Melody", respPayload.getResponseValue());
                 }
@@ -113,7 +111,7 @@ public class TestServiceTest {
         TestRequest request = new TestRequest();
         UUID id = UUID.randomUUID();
         request.setId(id);
-        request.setCommand(TestCommand.COMMAND_B);
+        request.setRequest(TestCommand.COMMAND_B);
         request.setPayload(requestPayload);
 
         bus.requestOnce(
@@ -121,7 +119,7 @@ public class TestServiceTest {
                 request,
                 (Message msg) -> {
                     TestResponse resp = (TestResponse) msg.getPayload();
-                    TestServiceObjectResponse respPayload = resp.getPayload();
+                    TestServiceObjectResponse respPayload = (TestServiceObjectResponse) resp.getPayload();
                     Assert.assertEquals(id, resp.getId());
                     Assert.assertEquals("CommandB-My Little Song", respPayload.getResponseValue());
                 }
@@ -167,7 +165,7 @@ public class TestServiceTest {
         TestRequest request = new TestRequest();
         UUID id = UUID.randomUUID();
         request.setId(id);
-        request.setCommand(TestCommand.COMMAND_C);
+        request.setRequest(TestCommand.COMMAND_C);
         request.setPayload(requestPayload);
         request.uri = new URI("http://localhost:9999/bus-test-service");
         request.method = HttpMethod.GET;
@@ -177,7 +175,7 @@ public class TestServiceTest {
                 request,
                 (Message msg) -> {
                     TestResponse resp = (TestResponse) msg.getPayload();
-                    TestServiceObjectResponse respPayload = resp.getPayload();
+                    TestServiceObjectResponse respPayload = (TestServiceObjectResponse) resp.getPayload();
                     Assert.assertEquals(id, resp.getId());
                     Assert.assertEquals("pretty-baby", respPayload.getResponseValue());
                 }
@@ -202,7 +200,7 @@ public class TestServiceTest {
         TestRequest request = new TestRequest();
         UUID id = UUID.randomUUID();
         request.setId(id);
-        request.setCommand(TestCommand.COMMAND_C);
+        request.setRequest(TestCommand.COMMAND_C);
         request.setPayload(requestPayload);
         request.uri = new URI("http://localhost:9999/bus-test-service-error");
         request.method = HttpMethod.GET;
@@ -211,7 +209,7 @@ public class TestServiceTest {
                 serviceChannel,
                 request,
                 (Message msg) -> {
-                   Assert.fail();
+                    Assert.fail();
                 },
                 (Message msg) -> {
                     RestError error = (RestError) msg.getPayload();

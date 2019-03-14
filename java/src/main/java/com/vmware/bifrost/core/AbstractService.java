@@ -10,13 +10,7 @@ import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestServiceRequest;
-import com.vmware.bifrost.core.util.Loggable;
-import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
-import com.vmware.bifrost.core.util.ServiceMethodLookupUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.ResourceLoader;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
 import org.springframework.http.HttpMethod;
@@ -127,6 +121,16 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
                 (Message message) -> successHandler.accept((Resp) message.getPayload()),
                 (Message message) -> errorHandler.accept((RestError) message.getPayload())
         );
+    }
+
+    protected void handleUnknownRequest(Request request) {
+        String unknownRequest = this.getName() + ": Unknown Request/Command '" + request.getRequest() + "'";
+        Response<String> response = new Response<>(request.getId(), unknownRequest);
+        this.logInfoMessage(
+                "\uD83D\uDCE4",
+                "Sending Service Response (Unknown Request)",
+                response.toString());
+        this.bus.sendResponseMessageWithId(this.serviceChannel, response, request.getId());
     }
 }
 
