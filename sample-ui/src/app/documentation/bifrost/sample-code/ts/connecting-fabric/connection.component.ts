@@ -69,6 +69,7 @@ export class FabricConnectionComponent extends AbstractBase implements OnInit, O
                 } catch (e) {
                     // ignore.
                 }
+                this.cd.detectChanges();
             }
         );
     }

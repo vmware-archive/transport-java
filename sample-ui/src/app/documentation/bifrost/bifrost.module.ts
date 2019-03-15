@@ -38,6 +38,7 @@ import { JavaAbstractionsComponent } from './java-abstractions/java-abstractions
 import { ReactSampleComponent } from './sample-code/react-sample.component';
 import { JavaServicesComponent } from './java-services/java-services.component';
 import { PingFabricComponent } from './sample-code/ts/ping-component/ping-fabric.component';
+import { JavaTransactionsComponent } from './java-transactions/java-transactions.component';
 
 @NgModule({
     declarations: [
@@ -75,7 +76,8 @@ import { PingFabricComponent } from './sample-code/ts/ping-component/ping-fabric
         JavaAbstractionsComponent,
         CalendarServiceComponent,
         ReactSampleComponent,
-        JavaServicesComponent
+        JavaServicesComponent,
+        JavaTransactionsComponent
     ],
     imports: [
         CommonModule,

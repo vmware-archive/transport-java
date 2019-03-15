@@ -24,6 +24,7 @@ import { TsStoreAdvancedComponent } from './ts-store-advanced/ts-store-advanced.
 import { TsDistributedIframesComponent } from './ts-distributed-iframes/ts-distributed-iframes.component';
 import { JavaAbstractionsComponent } from './java-abstractions/java-abstractions.component';
 import { JavaServicesComponent } from './java-services/java-services.component';
+import { JavaTransactionsComponent } from './java-transactions/java-transactions.component';
 
 const bifrostRoutes: Routes = [
     {path: '', component: BifrostHomeComponent, pathMatch: 'true'},
@@ -50,6 +51,7 @@ const bifrostRoutes: Routes = [
     {path: 'java/helloworld', component: JavaHelloworldComponent, pathMatch: 'true'},
     {path: 'java/abstractions', component: JavaAbstractionsComponent, pathMatch: 'true'},
     {path: 'java/services', component: JavaServicesComponent, pathMatch: 'true'},
+    {path: 'java/transactions', component: JavaTransactionsComponent, pathMatch: 'true'},
 ];
 
 @NgModule({
