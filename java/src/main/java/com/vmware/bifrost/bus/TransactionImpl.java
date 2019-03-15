@@ -20,7 +20,8 @@ public class TransactionImpl extends Loggable implements Transaction {
     private final EventBus bus;
     private final TransactionType transactionType;
     private final String transactionName;
-    private final String id;
+    private final UUID id;
+    private boolean useRandomIdForRequests;
 
     private TransactionState state;
 
@@ -33,18 +34,23 @@ public class TransactionImpl extends Loggable implements Transaction {
     private TransactionReceiptImpl transactionReceipt;
 
     public TransactionImpl(EventBus bus, TransactionType type, String name) {
+        this(bus, type, name, UUID.randomUUID());
+        this.useRandomIdForRequests = true;
+    }
 
+    public TransactionImpl(EventBus bus, TransactionType type, String name, UUID id) {
         this.bus = bus;
         this.transactionType = type;
-        this.id = UUID.randomUUID().toString();
-        this.transactionName = name != null ? name : "transaction-" + this.id;
+        this.id = id;
+        this.useRandomIdForRequests = false;
+        this.transactionName = name != null ? name : "transaction-" + this.id.toString();
         this.state = TransactionState.uncommitted;
     }
 
     @Override
     public void sendRequest(String channel, Object payload) {
         assertUncommittedState("cannot queue a new request via sendRequest()");
-        this.requests.add(new TransactionRequest(this.requests.size(), channel, payload));
+        this.requests.add(new TransactionRequest(this.requests.size(), channel, payload, this.id));
     }
 
     @Override
@@ -107,7 +113,13 @@ public class TransactionImpl extends Loggable implements Transaction {
         this.logDebugMessage(String.format("➡️ Transaction: Sending '%s' Request to channel: %s",
               this.transactionType.toString(), request.channel), this.transactionName);
         this.transactionReceipt.requestsSent++;
-        UUID requestId = UUID.randomUUID();
+        UUID requestId;
+        if (useRandomIdForRequests) {
+            requestId = UUID.randomUUID();
+        } else {
+            requestId = request.id;
+        }
+
         this.bus.requestOnceWithId(requestId,
               request.channel,
               request.payload,
@@ -195,11 +207,17 @@ public class TransactionImpl extends Loggable implements Transaction {
         final int requestIndex;
         final String channel;
         final Object payload;
+        final UUID id;
 
         TransactionRequest(int index, String channel, Object payload) {
+            this(index, channel, payload, UUID.randomUUID());
+        }
+
+        TransactionRequest(int index, String channel, Object payload, UUID id) {
             this.requestIndex = index;
             this.payload = payload;
             this.channel = channel;
+            this.id = id;
         }
     }
 

@@ -1,8 +1,9 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { APIRequest, APIResponse } from '@vmw/bifrost';
 import { ClrLoadingState } from '@clr/angular';
-import { GeneralUtil } from '@vmw/bifrost/util/util';
 import { BaseBifrostComponent } from '../../base.bifrost.component';
+import { APIResponse } from '@vmw/bifrost';
+import { GeneralUtil } from '@vmw/bifrost/util/util';
+import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
 
 @Component({
     selector: 'calendar-service-component',
@@ -34,12 +35,24 @@ export class CalendarServiceComponent extends BaseBifrostComponent implements On
         super('CalendarServiceComponent');
     }
 
+    ngOnDestroy() {
+        // stop channel from being extended to fabric.
+        this.bus.markChannelAsLocal('calendar-service');
+    }
+
     ngOnInit(): void {
-        super.ngOnInit();
+
+        this.connected = this.fabric.isConnected();
+
+        // extend channel to fabric.
+        this.bus.markChannelAsGalactic('calendar-service');
 
         // make sure our component picks up connection state on boot.
-        this.connectedStateStream.subscribe(
-            () => {
+        this.fabric.whenConnectionStateChanges().subscribe(
+            (state: FabricConnectionState) => {
+                if (state === FabricConnectionState.Connected) {
+                    this.connected = true;
+                }
                 this.cd.detectChanges();
             }
         );
@@ -48,17 +61,14 @@ export class CalendarServiceComponent extends BaseBifrostComponent implements On
     private makeRequest(command: string) {
         // show state on the button
         this.requestLoading = ClrLoadingState.LOADING;
+        const request = this.fabric.generateFabricRequest(command);
 
-        // make galactic joke request!
-        this.bus.requestGalactic(
-            'calendar-service',
-            new APIRequest(command, null, GeneralUtil.genUUID(), 1),
-            (response: APIResponse<any>) => {
+        this.bus.requestOnceWithId(GeneralUtil.genUUIDShort(), 'calendar-service', request)
+            .handle((response: APIResponse<string>) => {
                 this.item = response.payload;
                 this.requestLoading = ClrLoadingState.DEFAULT;
                 this.cd.detectChanges();
-            }
-        );
+            });
     }
 
     requestTime(): void {
@@ -73,7 +83,5 @@ export class CalendarServiceComponent extends BaseBifrostComponent implements On
         this.makeRequest('invalid');
     }
 
-    ngOnDestroy() {
-        super.ngOnDestroy();
-    }
+
 }

@@ -553,6 +553,11 @@ public class EventBusImpl extends Loggable implements EventBus {
         return new TransactionImpl(this, type, name);
     }
 
+    @Override
+    public Transaction createTransaction(Transaction.TransactionType type, String name, UUID id) {
+        return new TransactionImpl(this, type, name, id);
+    }
+
     private  void init() {
         this.logBannerMessage("\uD83C\uDF08","Starting Bifröst");
         Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostService.class);

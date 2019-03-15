@@ -17,10 +17,11 @@
 
 <p>Lets create a simple component called <code class="clr-code">PingComponent</code></p>
 
-<h3>PingComponent</h3>
+<h3>Angular PingComponent</h3>
 <pre class="code"><code class="language-typescript" ngNonBindable>import &#123; AbstractBase &#125; from '@vmw/bifrost/core';
 import &#123; Component &#125; from '@angular/core';
 import &#123; PongRequestType, PongServiceChannel, PongServiceRequest, PongServiceResponse &#125; from './pong.service.model';
+import &#123; GeneralUtil &#125; from '@vmw/bifrost/util/util';
 
 @Component(&#123;
     selector: 'ping-component',
@@ -42,11 +43,7 @@ export class PingComponent extends AbstractBase &#123;
      */
     public sendPingBasic(): void &#123;
 
-        const request: PongServiceRequest = &#123;
-            command: PongRequestType.Basic,
-            message: 'basic ping'
-        &#125;;
-
+        const request = this.fabric.generateFabricRequest(PongRequestType.Basic, 'basic ping');
         this.sendPingRequest(request);
 
     &#125;
@@ -56,20 +53,16 @@ export class PingComponent extends AbstractBase &#123;
      */
     public sendPingFull(): void &#123;
 
-        const request: PongServiceRequest = &#123;
-            command: PongRequestType.Full,
-            message: 'full ping'
-        &#125;;
-
+        const request = this.fabric.generateFabricRequest(PongRequestType.Full, 'full ping');
         this.sendPingRequest(request);
 
     &#125;
 
     private sendPingRequest(request: PongServiceRequest): void &#123;
-        this.bus.requestOnce(PongServiceChannel, request)
+         this.bus.requestOnceWithId(GeneralUtil.genUUIDShort(), , request)
             .handle(
                 (response: PongServiceResponse) => &#123;
-                    this.response = response.value;
+                    this.response = response.payload;
                 &#125;
             );
     &#125;
@@ -86,40 +79,32 @@ export class PingComponent extends AbstractBase &#123;
 
 <p>And a version using React:</p>
 
+<h3>React PingComponent</h3>
 <pre class="code">
 <code class="language-typescript" ngNonBindable>
 import React, &#123; useState &#125; from 'react';
 import &#123; useBifrost &#125; from '../../../../react-bifrost';
 import &#123; PongRequestType, PongServiceChannel, PongServiceRequest, PongServiceResponse &#125; from '../ts/ping-component/pong.service.model';
+import &#123; GeneralUtil &#125; from '@vmw/bifrost/util/util';
 
 export default function PingComponent() &#123;
 
     const bifrost = useBifrost();
-    const [ pingResponse, setPingResponse ] = useState&#60;string&#62;('');
+    const [ pingResponse, setPingResponse ] = useState&#60;string&#62;('nothing yet, hit a button');
 
-    function sendPingBasic() &#123;
-        const request: PongServiceRequest = &#123;
-            command: PongRequestType.Basic,
-            message: 'basic ping'
-        &#125;;
+    function sendPingBasic()  &#123;
+        sendPingRequest(bifrost.fabric.generateFabricRequest(PongRequestType.Basic, 'basic ping'));
+     &#125;
 
-        sendPingRequest(request);
-    &#125;
-
-    function sendPingFull() &#123;
-        const request: PongServiceRequest = &#123;
-            command: PongRequestType.Full,
-            message: 'full ping'
-        &#125;;
-
-        sendPingRequest(request);
+    function sendPingFull()  &#123;
+        sendPingRequest(bifrost.fabric.generateFabricRequest(PongRequestType.Full, 'full ping'));
     &#125;
 
     function sendPingRequest(request: PongServiceRequest) &#123;
-        bifrost.bus.requestOnce(PongServiceChannel, request)
+        bifrost.bus.requestOnceWithId(GeneralUtil.genUUIDShort(), PongServiceChannel, request)
             .handle(
                 (response: PongServiceResponse) =&#62; &#123;
-                    setPingResponse(response.value);
+                    setPingResponse(response.payload);
                 &#125;
             );
     &#125;
@@ -145,11 +130,15 @@ export default function PingComponent() &#123;
     class="clr-code">sendPingRequest()</code> method on the component.
 </p>
 <p>
-    The method used in here <code class="clr-code">this.bus.requestOnce()</code> essentially takes in the channel you
+    The method used in here <code class="clr-code">this.bus.requestOnceWithId()</code> essentially takes in the channel you
     want to send your payload on, and the actual payload. This method
     returns what is known as a <code class="clr-code">MessageHandler</code> interface. In this example we use the <code
     class="clr-code">handle()</code> method to pass in
     a lambda that is executed once the response is provided by the service.
+</p>
+<p>
+    The ID is used to ensure this the response we get back, is a response to my request only. Channels are public
+    so in order to have 1-1 communication, you need to use the bus methods with ID's.
 </p>
 <p>
     The <code class="clr-code">handle()</code>

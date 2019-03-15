@@ -21,12 +21,18 @@
     to know what to send to our service, and what to expect in response.
 </p>
 
-<h3>PongService</h3>
-<pre class="code"><code class="language-java" ngNonBindable>import com.vmware.bifrost.bridge.Request;
+<h3>Java PongService</h3>
+<pre class="code"><code class="language-java" ngNonBindable>
+import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
+import com.vmware.bifrost.bus.Transaction;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
+import com.vmware.bifrost.core.util.ClassMapper;
 import org.springframework.stereotype.Component;
+import samples.CalendarService;
+
+import java.util.UUID;
 
 @Component
 public class PongService extends AbstractService&lt;Request&lt;String&gt;, Response&lt;String&gt;&gt; &#123;
@@ -39,32 +45,71 @@ public class PongService extends AbstractService&lt;Request&lt;String&gt;, Respo
 
     protected void handleServiceRequest(Request request, Message busMessage) &#123;
 
-    // which command shall we run?
-    switch(request.getRequest()) &#123;
-    case PongRequestType.Basic:
-        this.handleBasicPongRequest(request);
-    break;
+        // which command shall we run?
+        switch(request.getRequest()) &#123;
+            case PongRequestType.Basic:
+                this.handleBasicPongRequest(request);
+                break;
 
-    case PongRequestType.Full:
-        this.handleFullPongRequest(request);
-    break;
-&#125;
-&#125;
+            case PongRequestType.Full:
+                this.handleFullPongRequest(request);
+                break;
+        &#125;
+    &#125;
 
-private void handleBasicPongRequest(Request request) &#123;
-    Response response = new Response(request.getId(), "Pong (basic)");
-    this.sendResponse(response, request.getId());
-&#125;
+    /**
+     * Handle requests for basic pong needs
+     * @param request The request being sent over the bus.
+     */
+    private void handleBasicPongRequest(Request request) &#123;
 
-private void handleFullPongRequest(Request request) &#123;
-    Response response = new Response(request.getId(), "Pong (full)");
-    this.sendResponse(response, request.getId());
-&#125;
+        // prepare and send a basic response.
+        Response&lt;String&gt; response = new Response&lt;&gt;(request.getId(), "Fabric Pong (Basic): Pong");
+        this.sendResponse(response, request.getId());
+    &#125;
+
+    /**
+     * Handle requests for full pong needs.
+     * @param request the request being sent over the bus.
+     */
+    private void handleFullPongRequest(Request request) &#123;
+
+        UUID transactionId = request.getId();
+
+        // call our calendar service and get a date and time, in two separate synchronous calls via transaction, pass
+        // in our request ID as the transaction ID, so it can be tracked correctly across service calls.
+        Transaction transaction = bus.createTransaction(Transaction.TransactionType.SYNC, "calendar-transaction", transactionId);
+
+        // queue up requests for time and date via Calendar Service.
+        transaction.sendRequest(CalendarService.Channel, new Request&lt;String&gt;(transactionId, "date")); // request date
+        transaction.sendRequest(CalendarService.Channel, new Request&lt;String&gt;(transactionId, "time")); // request time
+
+        // register complete handler for transaction.
+        transaction.onComplete(
+                (Message[] responses) -&gt; &#123;
+
+                    // concatenate service responses into a string.
+                    StringBuilder dateAndTime = new StringBuilder();
+                    for(Message msg: responses) &#123;
+                        String calendarResponse = ClassMapper.CastPayload(String.class, (Response)msg.getPayload());
+                        dateAndTime.append(calendarResponse + " "); // add each response together.
+                    &#125;
+
+                    // prepare a response, with our date and time requests stuck together as a more elaborate response.
+                    Response&lt;String&gt; response = new Response&lt;&gt;(request.getId(),
+                            "Fabric Pong (Full): Pong++ " + dateAndTime.toString());
+                    this.sendResponse(response, request.getId());
+                &#125;
+        );
+
+        // commit transaction.
+        transaction.commit();
+    &#125;
 &#125;
 
 abstract class PongRequestType &#123;
-    public static final String Basic = "Basic";
-    public static final String Full = "Full";
+    static final String Basic = "Basic";
+    static final String Full = "Full";
 &#125;
 </code></pre>
 
