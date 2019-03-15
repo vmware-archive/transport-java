@@ -95,7 +95,7 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
         return (T) this.mapper.convertValue(request.getPayload(), clazz);
     }
 
-    <Req, Resp> void restServiceRequest(
+    protected <Req, Resp> void restServiceRequest(
             URI uri,
             HttpMethod method,
             Req payload,
