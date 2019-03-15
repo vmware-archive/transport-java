@@ -4,9 +4,6 @@
 package com.vmware.bifrost.core;
 
 import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vmware.bifrost.bridge.spring.BifrostEnabled;
-import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestServiceRequest;
@@ -77,7 +74,7 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
         // this.methodLookupUtil.loadCustomHandlers();
     }
 
-    protected abstract void handleServiceRequest(RequestType request, Message busMessage);
+    protected abstract void handleServiceRequest(RequestType request, Message busMessage) throws Exception;
 
     protected void sendResponse(ResponseType response, UUID id) {
         this.logInfoMessage(
