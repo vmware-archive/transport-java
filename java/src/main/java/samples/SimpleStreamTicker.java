@@ -6,7 +6,7 @@ package samples;
 
 import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bridge.spring.BifrostService;
-\import com.vmware.bifrost.core.AbstractBase;
+import com.vmware.bifrost.core.AbstractBase;
 import org.springframework.stereotype.Component;
 
 import java.util.GregorianCalendar;
@@ -33,9 +33,10 @@ public class SimpleStreamTicker extends AbstractBase {
         // create a runnable task that sends a message every 300ms with random values.
         Runnable runnableTask = () -> {
 
-            // this is what we want to send.
-            String responseString = "ping-" + GregorianCalendar.getInstance().get(GregorianCalendar.MILLISECOND)
-                    + GregorianCalendar.getInstance().get(GregorianCalendar.SECOND);
+            // this is what we want to send, a simple string, with somewhat random data.
+            String responseString = "ping-" +
+                    GregorianCalendar.getInstance().get(GregorianCalendar.MILLISECOND) +
+                    GregorianCalendar.getInstance().get(GregorianCalendar.SECOND);
 
             // create our response.
             Response<String> response = new Response<>(UUID.randomUUID(), responseString);
