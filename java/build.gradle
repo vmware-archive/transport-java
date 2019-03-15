@@ -42,12 +42,30 @@ sourceCompatibility = 1.8
 
 initProperties()
 
+ext.generatedResourcesOutputDir = file("$buildDir/generated-resources")
+
+task generateBifrostPropertiesFile {
+    ext.outputFile = file("$generatedResourcesOutputDir/bifrost.properties")
+    outputs.file(outputFile)
+    doLast {
+        outputFile.text = "bifrost.version=$version"
+    }
+}
+
+sourceSets {
+    main {
+        // Register the generated-resources dir on the main sourceSet.
+        output.dir generatedResourcesOutputDir, builtBy: generateBifrostPropertiesFile
+    }
+}
+
 jar {
     enabled = true
 
     // Exclude application, samples and oldsamples resources and classes
     from sourceSets.main.output
     include 'com/vmware/bifrost/**/*'
+    include 'bifrost.properties'
 
     manifest {
         attributes (
