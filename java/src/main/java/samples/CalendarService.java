@@ -45,12 +45,12 @@ public class CalendarService extends AbstractService<Request<String>, Response<S
     }
 
     private void handleTime(Request request) {
-        Response<String> response = new Response<>(request.getId(), formatCalendar("hh:mm:ss a"));
+        Response<String> response = new Response<>(request.getId(), formatCalendar("hh:mm:ss.SSS a (Z)"));
         this.sendResponse(response, request.getId());
     }
 
     private void handleDate(Request request) {
-        Response<String> response = new Response<>(request.getId(), formatCalendar("yyyy-MM-dd"));
+        Response<String> response = new Response<>(request.getId(), formatCalendar("EEE, d MMM yyyy"));
         this.sendResponse(response, request.getId());
     }
 }

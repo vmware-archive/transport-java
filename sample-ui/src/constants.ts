@@ -9,11 +9,6 @@ export enum FabricConnectionStoreKey {
     State = 'state',
 }
 
-export enum FabricConnectionState {
-    Connected = 'connected',
-    Disconnected = 'disconnected'
-}
-
 export enum FabricVersionState {
     JavaSet = 'java-set'
 }

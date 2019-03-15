@@ -45,7 +45,7 @@ export class PingFabricComponent extends AbstractBase implements OnInit, OnDestr
     private sendPingRequest(type: PongRequestType): void {
         this.bus.requestOnce(
             PongServiceChannel,
-            this.fabric.generateFabricRequest(type, null))
+            this.fabric.generateFabricRequest(type))
             .handle(
                 (response: any) => {
                     this.response = response.payload;

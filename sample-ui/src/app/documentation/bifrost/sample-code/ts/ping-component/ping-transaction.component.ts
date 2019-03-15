@@ -34,9 +34,9 @@ export class PingTransactionComponent extends AbstractBase {
 
         // send the same request, three times.
         this.pingTransaction([
-            createRequest(PongRequestType.Full, null),
-            createRequest(PongRequestType.Full, null),
-            createRequest(PongRequestType.Full, null)
+            createRequest(PongRequestType.Full, 'request 1'),
+            createRequest(PongRequestType.Full, 'request 2'),
+            createRequest(PongRequestType.Full, 'request 3')
         ]);
     }
 

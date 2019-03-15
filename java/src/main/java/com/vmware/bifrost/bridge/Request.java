@@ -26,6 +26,10 @@ public class Request<ReqP> extends AbstractFrame {
         this(1, UUID.randomUUID(), request, null);
     }
 
+    public Request(UUID id, String request) {
+        this(1, id, request, null);
+    }
+
     public String getRequest() {
         return this.request;
     }

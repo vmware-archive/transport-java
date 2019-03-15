@@ -30,21 +30,22 @@
 
 <h3>Create Service Request/Response Models.</h3>
 <pre class="code"><code class="language-typescript" ngNonBindable>import &#123; ChannelName &#125; from '@vmw/bifrost';
+import &#123; AbstractMessageObject &#125; from '@vmw/bifrost/core';
 
 export const PongServiceChannel: ChannelName = 'services-PongService';
 
 export enum PongRequestType &#123;
-    Basic,
-    Full
+    Basic = 'Basic',
+    Full = 'Full'
 &#125;
 
-export interface PongServiceRequest &#123;
-    command: PongRequestType;
-    message: string;
+export interface PongServiceRequest extends AbstractMessageObject&lt;PongRequestType, string&gt; &#123;
+    request: PongRequestType;
+    payload: string;
 &#125;
 
-export interface PongServiceResponse &#123;
-    value: string;
+export interface PongServiceResponse extends AbstractMessageObject&lt;PongRequestType, string&gt; &#123;
+    payload: string;
 &#125;</code></pre>
 
 <p>
@@ -53,6 +54,11 @@ export interface PongServiceResponse &#123;
     You're not restricted to interfaces here, you can also use classes. The important thing to remember here is that
     this is <strong>*ALL*</strong> that is required in order to
     talk to our new <code class="clr-code">PongService</code>.
+</p>
+
+<p>
+    The reason why we extend from <code class="clr-code">AbstractMessageObject</code> is because is provides some important properties
+    that we will need when making Fabric calls across the distributed bus.
 </p>
 
 <p>
@@ -84,18 +90,19 @@ export class PongService extends AbstractService&lt;PongServiceRequest, PongServ
 
     /**
      * Handle a request send on the service channel.
-     * @param request the request object
+     * @param serviceRequest the request object
      * @param args automatically passed by superclass, important details within.
      */
-    protected handleServiceRequest(request: PongServiceRequest, args?: MessageArgs): void &#123;
+    protected handleServiceRequest(serviceRequest: PongServiceRequest, args?: MessageArgs): void &#123;
 
-        switch (request.command) &#123;
+        switch (serviceRequest.request) &#123;
             case PongRequestType.Basic:
-                this.handleBasicRequest(request.message, args);
+                this.handleBasicRequest(request.payload, args);
                 break;
 
             case PongRequestType.Full:
-                this.handleFullRequest(request.message, args);
+                this.handleFullRequest(request.payload, args);
+                break;
         &#125;
     &#125;
 

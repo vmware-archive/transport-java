@@ -5,7 +5,7 @@
 import { ChannelName } from '@vmw/bifrost';
 import { AbstractMessageObject } from '@vmw/bifrost/core';
 
-export const PongServiceChannel: ChannelName = 'services::PongService';
+export const PongServiceChannel: ChannelName = 'services-PongService';
 
 export enum PongRequestType {
     Basic = 'Basic',
