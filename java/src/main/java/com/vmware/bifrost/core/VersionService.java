@@ -6,6 +6,8 @@ package com.vmware.bifrost.core;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.model.Message;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,11 +15,18 @@ import org.springframework.stereotype.Component;
  * the version of the fabric we're running.
  */
 @Component
+@PropertySource(value="classpath:bifrost.properties", ignoreResourceNotFound=true)
 public class VersionService extends AbstractService<Request<String>, Response<String>> {
 
     VersionService() {
         super(CoreChannels.VersionService);
     }
+
+    // Return "local.dev" if the bifrost.properties file is missing from the classpath.
+    // This can happen if the sample Application was started from the IDE as the
+    // bifrost.properties file is generated during the gradle build.
+    @Value("${bifrost.version:local.dev}")
+    private String bifrostVersion;
 
     protected void handleServiceRequest(Request request, Message busMessage) {
         switch (request.getRequest()) {
@@ -30,12 +39,8 @@ public class VersionService extends AbstractService<Request<String>, Response<St
         }
     }
 
-    // TODO: Engineer a way to bring the current version into AbstractService
-    // ideally this is read from spring application properties or similar - that was
-    // patched with the version from version.txt
-    // right now, this is returning a hard coded value, to get us rolling.
     private void handleVersionRequest(Request request) {
-        Response<String> response = new Response<>(request.getId(), "0.0.13");
+        Response<String> response = new Response<>(request.getId(), bifrostVersion);
         this.sendResponse(response, request.getId());
     }
 }
