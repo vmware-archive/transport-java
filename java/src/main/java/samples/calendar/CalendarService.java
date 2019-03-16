@@ -1,4 +1,4 @@
-package samples;
+package samples.calendar;
 
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;

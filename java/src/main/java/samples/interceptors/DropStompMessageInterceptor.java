@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 VMware, Inc. All rights reserved. -- VMware Confidential
  */
-package samples;
+package samples.interceptors;
 
 import com.vmware.bifrost.bridge.spring.config.interceptors.BifrostStompInterceptor;
 import com.vmware.bifrost.core.util.Loggable;

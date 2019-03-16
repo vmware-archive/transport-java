@@ -1,15 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, OnInit } from '@angular/core';
+import { BaseBifrostComponent } from '../base.bifrost.component';
+import { HighlightService } from '../../../local-services/highlight.service';
 
 @Component({
-  selector: 'appfab-java-transactions',
-  templateUrl: './java-transactions.component.html',
-  styleUrls: ['./java-transactions.component.scss']
+    selector: 'appfab-java-transactions',
+    templateUrl: './java-transactions.component.html',
+    styleUrls: ['./java-transactions.component.scss']
 })
-export class JavaTransactionsComponent implements OnInit {
+export class JavaTransactionsComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
 
-  constructor() { }
+    constructor(private highlightService: HighlightService) {
+        super('ConfiguringAngularComponent');
+    }
 
-  ngOnInit() {
-  }
+    ngOnInit() {
+        this.setBifrostTsDocsActive(true);
+    }
+
+    ngAfterViewChecked() {
+        if (!this.highlighted) {
+            this.highlightService.highlightAll();
+            this.highlighted = true;
+        }
+    }
 
 }

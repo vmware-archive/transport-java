@@ -7,7 +7,7 @@ import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
 import com.vmware.bifrost.core.util.ClassMapper;
 import org.springframework.stereotype.Component;
-import samples.CalendarService;
+import samples.calendar.CalendarService;
 
 import java.util.UUID;
 
