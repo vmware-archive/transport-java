@@ -40,6 +40,7 @@ import { JavaServicesComponent } from './java-services/java-services.component';
 import { PingFabricComponent } from './sample-code/ts/ping-component/ping-fabric.component';
 import { JavaTransactionsComponent } from './java-transactions/java-transactions.component';
 import { JavaMessagingComponent } from './java-messaging/java-messaging.component';
+import { JavaLoggingComponent } from './java-logging/java-logging.component';
 
 @NgModule({
     declarations: [
@@ -79,7 +80,8 @@ import { JavaMessagingComponent } from './java-messaging/java-messaging.componen
         ReactSampleComponent,
         JavaServicesComponent,
         JavaTransactionsComponent,
-        JavaMessagingComponent
+        JavaMessagingComponent,
+        JavaLoggingComponent
     ],
     imports: [
         CommonModule,
