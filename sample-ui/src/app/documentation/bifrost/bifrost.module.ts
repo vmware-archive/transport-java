@@ -41,6 +41,7 @@ import { PingFabricComponent } from './sample-code/ts/ping-component/ping-fabric
 import { JavaTransactionsComponent } from './java-transactions/java-transactions.component';
 import { JavaMessagingComponent } from './java-messaging/java-messaging.component';
 import { JavaLoggingComponent } from './java-logging/java-logging.component';
+import { JavaRestComponent } from './java-rest/java-rest.component';
 
 @NgModule({
     declarations: [
@@ -81,7 +82,8 @@ import { JavaLoggingComponent } from './java-logging/java-logging.component';
         JavaServicesComponent,
         JavaTransactionsComponent,
         JavaMessagingComponent,
-        JavaLoggingComponent
+        JavaLoggingComponent,
+        JavaRestComponent
     ],
     imports: [
         CommonModule,

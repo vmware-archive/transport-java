@@ -26,6 +26,8 @@ import { JavaAbstractionsComponent } from './java-abstractions/java-abstractions
 import { JavaServicesComponent } from './java-services/java-services.component';
 import { JavaTransactionsComponent } from './java-transactions/java-transactions.component';
 import { JavaMessagingComponent } from './java-messaging/java-messaging.component';
+import { JavaLoggingComponent } from './java-logging/java-logging.component';
+import { JavaRestComponent } from './java-rest/java-rest.component';
 
 const bifrostRoutes: Routes = [
     {path: '', component: BifrostHomeComponent, pathMatch: 'true'},
@@ -50,7 +52,9 @@ const bifrostRoutes: Routes = [
     {path: 'java/configuring', component: JavaConfiguringComponent, pathMatch: 'true'},
     {path: 'java/initializing', component: JavaInitializingComponent, pathMatch: 'true'},
     {path: 'java/helloworld', component: JavaHelloworldComponent, pathMatch: 'true'},
+    {path: 'java/logging', component: JavaLoggingComponent, pathMatch: 'true'},
     {path: 'java/messaging', component: JavaMessagingComponent, pathMatch: 'true'},
+    {path: 'java/making-rest-calls', component: JavaRestComponent, pathMatch: 'true'},
     {path: 'java/abstractions', component: JavaAbstractionsComponent, pathMatch: 'true'},
     {path: 'java/services', component: JavaServicesComponent, pathMatch: 'true'},
     {path: 'java/transactions', component: JavaTransactionsComponent, pathMatch: 'true'},
