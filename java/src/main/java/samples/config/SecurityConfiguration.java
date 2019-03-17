@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 VMware, Inc. All rights reserved. -- VMware Confidential
  */
-package samples;
+package samples.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;

@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 VMware, Inc. All rights reserved. -- VMware Confidential
  */
-package samples;
+package samples.config;
 
 import com.vmware.bifrost.bridge.spring.config.BifrostBridgeConfiguration;
 import com.vmware.bifrost.bridge.spring.config.BifrostBridgeConfigurer;
@@ -13,6 +13,8 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import samples.interceptors.DropStompMessageInterceptor;
+import samples.interceptors.MessageLoggerInterceptor;
 
 import java.util.EnumSet;
 

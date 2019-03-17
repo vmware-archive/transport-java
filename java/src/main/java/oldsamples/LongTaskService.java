@@ -23,7 +23,7 @@
 //
 //    private int taskCount = 0;
 //
-//    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+//    private final Logger log = LoggerFactory.getLogger(this.getClass());
 //
 //    LongTaskService() {
 //        executorService = Executors.newFixedThreadPool(10);
@@ -32,7 +32,7 @@
 //    @Override
 //    public void initialize() {
 //
-//        logger.info("Initializing LongTaskService");
+//        log.info("Initializing LongTaskService");
 //
 //        bus.respondStream("task-a",
 //                (Message message) -> {

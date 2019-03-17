@@ -21,7 +21,7 @@ public class TestService extends AbstractService<TestRequest, TestResponse>{
     }
 
     @Override
-    protected void handleServiceRequest(TestRequest request, Message message) {
+    protected void handleServiceRequest(TestRequest request, Message message)  {
         switch (request.getRequest()){
             case TestCommand.COMMAND_A:
                 this.handleCommandA(request, message.getId());
@@ -62,26 +62,31 @@ public class TestService extends AbstractService<TestRequest, TestResponse>{
 
     }
 
-    private void handleCommandC(TestRequest request, UUID id) {
+    private void handleCommandC(TestRequest request, UUID id)  {
 
         TestServiceObjectResponse responsePayload = new TestServiceObjectResponse();
 
-        this.restServiceRequest(
-                request.uri,
-                request.method,
-                request.getPayload(),
-                null,
-                String.class.getName(),
-                (RestServiceResponse response) -> {
-                    responsePayload.setResponseValue((String)response.getPayload());
-                    this.sendResponse(
-                            new TestResponse(request.getId(), responsePayload),
-                            id
-                    );
-                },
-                (RestError error) -> {
-                    this.sendError(error, id);
-                }
-        );
+        try {
+
+            this.restServiceRequest(
+                    request.uri,
+                    request.method,
+                    request.getPayload(),
+                    null,
+                    String.class.getName(),
+                    (RestServiceResponse response) -> {
+                        responsePayload.setResponseValue((String) response.getPayload());
+                        this.sendResponse(
+                                new TestResponse(request.getId(), responsePayload),
+                                id
+                        );
+                    },
+                    (RestError error) -> {
+                        this.sendError(error, id);
+                    }
+            );
+        } catch (Exception exp) {
+            this.sendError(new RestError("something went wrong making rest request", 500), id);
+        }
     }
 }

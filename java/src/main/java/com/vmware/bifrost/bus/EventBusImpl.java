@@ -545,7 +545,7 @@ public class EventBusImpl extends Loggable implements EventBus {
 
     @Override
     public Transaction createTransaction(Transaction.TransactionType type) {
-        return this.createTransaction(type, null);
+        return this.createTransaction(type, UUID.randomUUID());
     }
 
     @Override
@@ -556,6 +556,11 @@ public class EventBusImpl extends Loggable implements EventBus {
     @Override
     public Transaction createTransaction(Transaction.TransactionType type, String name, UUID id) {
         return new TransactionImpl(this, type, name, id);
+    }
+
+    @Override
+    public Transaction createTransaction(Transaction.TransactionType type, UUID id) {
+        return new TransactionImpl(this, type, null, id);
     }
 
     private  void init() {

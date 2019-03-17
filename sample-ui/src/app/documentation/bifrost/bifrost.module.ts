@@ -38,6 +38,11 @@ import { JavaAbstractionsComponent } from './java-abstractions/java-abstractions
 import { ReactSampleComponent } from './sample-code/react-sample.component';
 import { JavaServicesComponent } from './java-services/java-services.component';
 import { PingFabricComponent } from './sample-code/ts/ping-component/ping-fabric.component';
+import { JavaTransactionsComponent } from './java-transactions/java-transactions.component';
+import { JavaMessagingComponent } from './java-messaging/java-messaging.component';
+import { JavaLoggingComponent } from './java-logging/java-logging.component';
+import { JavaRestComponent } from './java-rest/java-rest.component';
+import { CloudServicesApiComponent } from './sample-code/java/cloud-services-api.component';
 
 @NgModule({
     declarations: [
@@ -75,7 +80,12 @@ import { PingFabricComponent } from './sample-code/ts/ping-component/ping-fabric
         JavaAbstractionsComponent,
         CalendarServiceComponent,
         ReactSampleComponent,
-        JavaServicesComponent
+        CloudServicesApiComponent,
+        JavaServicesComponent,
+        JavaTransactionsComponent,
+        JavaMessagingComponent,
+        JavaLoggingComponent,
+        JavaRestComponent
     ],
     imports: [
         CommonModule,

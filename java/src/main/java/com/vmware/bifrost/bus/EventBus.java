@@ -612,4 +612,15 @@ public interface EventBus {
      * @return
      */
     Transaction createTransaction(Transaction.TransactionType type, String name, UUID id);
+
+    /**
+     * Create a new synchronous or asynchronous transaction that can be composed of bus requests. Asynchronous
+     * transactions will all fire at once and return once all requests return. Synchronous transactions will
+     * fire in sequence and only proceed to the next transaction event once the preceding response has returned.
+     *
+     * @param type type of transaction you want, synchronous or asynchronous.
+     * @param id provide an overriding UUID for your transaction requests
+     * @return
+     */
+    Transaction createTransaction(Transaction.TransactionType type, UUID id);
 }

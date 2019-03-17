@@ -111,14 +111,24 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
      * @param <Req>     request body type
      * @param <Resp>    return body type
      */
-    <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) throws Exception {
+    @Override
+    protected <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) {
 
         // check if the URI is local to the system
-        URIMethodResult methodResult = locateRestControllerForURIAndMethod(operation);
-        if (methodResult != null && methodResult.getMethod() != null) {
-            invokeRestController(methodResult, operation);
-            return;
+        try {
+            URIMethodResult methodResult = locateRestControllerForURIAndMethod(operation);
+            if (methodResult != null && methodResult.getMethod() != null) {
+                invokeRestController(methodResult, operation);
+                return;
+            }
+        } catch (Exception e) {
+            this.logErrorMessage("Exception when Locating & Invoking RestController ", e.toString());
+            operation.getErrorHandler().accept(
+                    new RestError("Exception thrown for: "
+                            + operation.getUri().toString(), 500)
+            );
         }
+
 
         HttpEntity<Req> entity;
         HttpHeaders headers = new HttpHeaders();
@@ -214,6 +224,12 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
             operation.getErrorHandler().accept(
                     new RestError("Runtime exception thrown for: "
                                   + operation.getUri().toString(), 500)
+            );
+        } catch (ClassNotFoundException cnfexp) {
+            this.logErrorMessage("Class Not Found Exception when making REST Call", cnfexp.toString());
+            operation.getErrorHandler().accept(
+                    new RestError("Class Not Found Exception thrown for: "
+                            + operation.getUri().toString(), 500)
             );
         }
 
