@@ -1,11 +1,52 @@
 <h1>Application Fabric Documentation</h1>
-<h3>Bear with us.</h3>
-<div class="alert alert-info" role="alert">
-    <div class="alert-items">
-        <div class="alert-item static">
-            <span class="alert-text">
-                We're busy populating out these docs, please check back daily for updates.
-            </span>
-        </div>
-    </div>
-</div>
+
+<h2>Quick Start</h2>
+
+<p>
+    If you want to get up and running really, really fast - you can check out this UI and demo fabric instance and have this entire
+    UI and fabric instance running locally on your developer machine in couple of minutes.
+</p>
+
+<hr/>
+<h3>
+    1. First, check out the source.
+</h3>
+<p>
+    Everything is in gitlab, no Perforce here. All you need to do is check it out.
+</p>
+<pre class="code"><code class="language-shell" ngNonBindable>&gt; git clone git@gitlab.eng.vmware.com:bifrost/java.git appfabric</code></pre>
+<hr/>
+
+<h3>
+    2. Build Fabric & UI
+</h3>
+<p>
+    Once you have the source, cd into <code class="clr-code">appfabric</code> and run the <code class="clr-code">build.sh</code> script.
+</p>
+<pre class="code"><code class="language-shell" ngNonBindable>&gt; cd appfabric && ./build.sh</code></pre>
+
+<hr/>
+
+<h3>
+    3. Boot!
+</h3>
+<p>
+    Once everything has finished building, you have two choices with booting, first option is you can run the
+    UI and fabric container manually, or you can use Docker to boot ready to go containers instead.
+</p>
+
+<h4>Booting fabric manually</h4>
+<pre class="code"><code class="language-shell" ngNonBindable>&gt; cd java && ./runme.sh</code></pre>
+
+<h4>Booting UI manually</h4>
+<pre class="code"><code class="language-shell" ngNonBindable>&gt; cd sample-ui && npm start</code></pre>
+
+<p>Now you should be able hit <strong class="emphasis">http://localhost:4200</strong> and you will see this site.</p>
+<hr/>
+
+<h4>Running everything via Docker</h4>
+<pre class="code"><code class="language-shell" ngNonBindable>&gt; docker-compose up</code></pre>
+<p>
+    Once docker has booted, hit <strong class="emphasis">http://localhost</strong> (UI container comes up on port 80)
+</p>
+<hr/>
