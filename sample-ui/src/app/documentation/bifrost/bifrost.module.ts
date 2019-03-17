@@ -42,6 +42,7 @@ import { JavaTransactionsComponent } from './java-transactions/java-transactions
 import { JavaMessagingComponent } from './java-messaging/java-messaging.component';
 import { JavaLoggingComponent } from './java-logging/java-logging.component';
 import { JavaRestComponent } from './java-rest/java-rest.component';
+import { CloudServicesApiComponent } from './sample-code/java/cloud-services-api.component';
 
 @NgModule({
     declarations: [
@@ -79,6 +80,7 @@ import { JavaRestComponent } from './java-rest/java-rest.component';
         JavaAbstractionsComponent,
         CalendarServiceComponent,
         ReactSampleComponent,
+        CloudServicesApiComponent,
         JavaServicesComponent,
         JavaTransactionsComponent,
         JavaMessagingComponent,
