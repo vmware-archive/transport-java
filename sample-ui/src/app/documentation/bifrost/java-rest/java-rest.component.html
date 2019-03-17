@@ -38,164 +38,55 @@
 
 <p>
   When your service extends from <code class="clr-code">AbstractBase</code> or  <code class="clr-code">AbstractService</code>, a method named <code class="clr-code">restServiceRequest()</code>
-  is provided. The method is a little different to the TypeScript implementation however. It currently uses the same values
-</p>
-<p>
-  This interface defines essential properties required in order to make the Remote HTTP call, like the URI, the HTTP Method,
-  any body or headers to be set. The interface is defined as:
+  is provided. There are a couple of overloaded versions of the method, however we will focus on the main one.
 </p>
 
-<pre class="code"><code class="language-typescript" ngNonBindable>export interface RestOperation &#123;
-    id?: UUID;
-    uri: string;
-    method: HttpRequest;
-    body?: any;
-    pathParams?: any;
-    queryParams?: any;
-    headers?: any;
-    successHandler: MessageFunction&lt;any&gt;
-    errorHandler?: MessageFunction&lt;any&gt;
-&#125;</code></pre>
+<pre class="code"><code class="language-java" ngNonBindable>/**
+ * Used By RestService to convert an incoming request into a RestOperation.
+ * @param &lt;Payld&gt; The Request Payload Type (what is being sent)
+ * @param &lt;Resp&gt; The Response Payload Type (what we're expecting back)
+ */
+public class RestOperation&lt;Payld, Resp&gt; &#123;
+    @Getter @Setter
+    private UUID id;
 
-<p>
-  The only *required* properties are <code class="clr-code">uri, method, successHandler</code>. Everything else is optional.
-  the success and error handlers, are lambda's you want called with the successful/failed response
-  sent back by the API you just called.
-</p>
+    @Getter @Setter
+    private URI uri;
 
-<p>
-  An example of what a GET request for a sample URI would look like from your component or service.
-</p>
+    @Getter @Setter
+    private HttpMethod method;
 
-<pre class="code"><code class="language-typescript" ngNonBindable>this.restServiceRequest(
-    &#123;
-        uri: 'http://somehost/some-api',
-        method: HttpRequest.Get,
-        successHandler: (myresult: Array&lt;SomeObject&gt; => &#123;
-            // do something interesting with the result
-        &#125;
-    &#125;
-);
-</code></pre>
+    @Getter @Setter
+    private Payld body;
+
+    @Getter @Setter
+    private String apiClass;
+
+    @Getter @Setter
+    private Map&lt;String,String&gt; headers;
+
+    @Getter @Setter
+    private String sentFrom;
+
+    @Getter @Setter
+    private Consumer&lt;Resp&gt; successHandler;
+
+    @Getter @Setter
+    private Consumer&lt;RestError&gt; errorHandler;
+&#123;
+
+/**
+ * Make a new RestService call.
+ *
+ * @param operation RestOperation for call Encapsulates individual argument calls.
+ * @param &lt;Req&gt;     Type of the payload being sent.
+ * @param &lt;Resp&gt;    Type of the response being returned.
+ */
+protected &lt;Req, Resp> void restServiceRequest(RestOperation&lt;Req, Resp&gt; operation);</code></pre>
 
 <hr/>
 
 <p>
-  Let's create a simple service called <code class="clr-code">MyAPIService</code> that calls a remote API via the
-  <code class="clr-code">RestService</code>
+  Let's create a simple service called <code class="clr-code">CloudServicesStatus</code> that calls a remote API via the
+  <code class="clr-code">RestService</code> to check the status of VMware Cloud Services as an example.
 </p>
-
-
-
-<h3>MyAPIService</h3>
-<pre class="code"><code class="language-typescript" ngNonBindable>import &#123; AbstractService &#125; from '@vmw/bifrost/core';
-import &#123; MessageArgs &#125; from '@vmw/bifrost';
-import &#123; MyAPIServiceChannel, MyAPIServiceRequest, MyAPIServiceResponse &#125; from './myapi.service.model';
-import &#123; HttpRequest, RestError &#125; from '@vmw/bifrost/core/services/rest/rest.model';
-import &#123; ChannelName &#125; from '@vmw/bifrost';
-
-export const MyAPIServiceChannel: ChannelName = 'services::MyAPIService';
-
-export interface MyAPIServiceRequest &#123;
-    id: number;
-&#125;
-
-export interface MyAPIServiceResponse &#123;
-    message: string;
-&#125;
-
-export class MyAPIService extends AbstractService&lt;MyAPIServiceRequest, MyAPIServiceResponse&gt; &#123;
-
-    constructor() &#123;
-
-        // identify the name of this service, and the channel it operates on.
-        super('MyAPIService', MyAPIServiceChannel);
-
-        // log that the service is online (if logging enabled)
-        this.log.info('MyAPIService Loaded');
-    &#125;
-
-    /**
-     * Handle a request send on the service channel.
-     * @param request the request object
-     * @param args automatically passed by superclass, important details within, must include!
-     */
-    protected handleServiceRequest(request: MyAPIServiceRequest , args?: MessageArgs): void &#123;
-
-        // call an API out there on the internets.
-        this.restServiceRequest(
-            &#123;
-                uri: `https://jsonplaceholder.typicode.com/todos/$&#123;request.id&#125;`,
-                method: HttpRequest.Get,
-                successHandler: (response: any) =&gt; &#123;
-                    this.postResponse(MyAPIServiceChannel, &#123; message: response.title &#125;, args);
-                &#125;,
-                errorHandler: (error: RestError) =&gt; &#123;
-                    this.postError(MyAPIServiceChannel, error, args);
-                &#125;
-            &#125;,
-            this.getName()
-        );
-    &#125;
-&#125;
-</code>
-</pre>
-
-<p>
-  <code class="clr-code">MyAPIService</code> makes a very simple API request to a simple public API (no CORS
-  restrictions). If there is a successful response (200), then the
-  <code class="clr-code">successHandler()</code> is called and the service posts a response to the requester.
-</p>
-<p>
-  To call <code class="clr-code">MyAPIService</code>, let's create a new component called <code class="clr-code">MyAPIComponent</code>
-  that will call our new service.
-</p>
-
-<h3>MyAPIComponent</h3>
-<pre class="code"><code class="language-typescript" ngNonBindable>import &#123; AbstractBase &#125; from '@vmw/bifrost/core';
-import &#123; Component &#125; from '@angular/core';
-import &#123; MyAPIServiceChannel, MyAPIServiceRequest, MyAPIServiceResponse &#125; from './myapi.service.model';
-import &#123; ClrLoadingState &#125; from '@clr/angular';
-
-@Component(&#123;
-    selector: 'myapi-component',
-    template: `
-        &lt;button (click)="requestAPI()"  [clrLoading]="iconState"&gt;Request API&lt;/button&gt;&lt;br/&gt;
-        Response: &#123;&#123;response&#125;&#125;`
-&#125;)
-export class MyAPIComponent extends AbstractBase &#123;
-
-    public response = 'nothing yet, request something!';
-    public iconState: ClrLoadingState = ClrLoadingState.DEFAULT;
-
-    constructor() &#123;
-        super('MyAPIComponent');
-    &#125;
-
-    /**
-     * Send a request to MyAPI Service
-     */
-    public requestAPI(): void &#123;
-        this.iconState = ClrLoadingState.LOADING;
-
-        // generate an ID between 1 and 10.
-        const request: MyAPIServiceRequest = &#123;
-            id:  Math.floor(Math.random() * (10 - 1 + 1)) + 1
-        &#125;;
-
-        this.bus.requestOnce(MyAPIServiceChannel, request)
-            .handle(
-                (response: MyAPIServiceResponse) =&gt; &#123;
-                    this.response = response.message;
-                    this.iconState = ClrLoadingState.DEFAULT;
-                &#125;
-            );
-    &#125;
-&#125;</code></pre>
-
-<p>
-  You can try it out below!
-</p>
-<appfab-tryitout-component>
-  <myapi-component></myapi-component>
-</appfab-tryitout-component>
