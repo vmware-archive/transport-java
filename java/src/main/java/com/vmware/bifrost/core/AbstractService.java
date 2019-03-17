@@ -91,43 +91,5 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
     <T> T castPayload(Class clazz, Request request) throws ClassCastException {
         return (T) this.mapper.convertValue(request.getPayload(), clazz);
     }
-
-    protected <Req, Resp> void restServiceRequest(
-            URI uri,
-            HttpMethod method,
-            Req payload,
-            Map<String, String> headers,
-            String responseApiClass,
-            Consumer<Resp> successHandler,
-            Consumer<RestError> errorHandler
-    ) {
-
-        // set defaults
-        RestServiceRequest req = new RestServiceRequest();
-        req.setApiClass(responseApiClass);
-        req.setMethod(method);
-        req.setUri(uri);
-        req.setBody(payload);
-        req.setSentFrom(this.getName());
-        req.setHeaders(headers);
-
-        this.bus.requestOnceWithId(
-                UUID.randomUUID(),
-                CoreChannels.RestService,
-                req,
-                (Message message) -> successHandler.accept((Resp) message.getPayload()),
-                (Message message) -> errorHandler.accept((RestError) message.getPayload())
-        );
-    }
-
-    protected void handleUnknownRequest(Request request) {
-        String unknownRequest = this.getName() + ": Unknown Request/Command '" + request.getRequest() + "'";
-        Response<String> response = new Response<>(request.getId(), unknownRequest);
-        this.logInfoMessage(
-                "\uD83D\uDCE4",
-                "Sending Service Response (Unknown Request)",
-                response.toString());
-        this.bus.sendResponseMessageWithId(this.serviceChannel, response, request.getId());
-    }
 }
 
