@@ -16,6 +16,7 @@ import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-sass';
 import 'prismjs/components/prism-scss';
+import 'prismjs/components/prism-bash';
 
 declare var Prism: any;
 
