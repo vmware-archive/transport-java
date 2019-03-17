@@ -9,7 +9,7 @@ package oldsamples;
 //
 //    ExecutorService executorService;
 //
-//    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+//    private final Logger log = LoggerFactory.getLogger(this.getClass());
 //
 //    MetricServiceA() {
 //        executorService = Executors.newFixedThreadPool(10);
@@ -17,7 +17,7 @@ package oldsamples;
 //
 //    @Override
 //    public void initialize() {
-//        logger.info("Initializing Metrics-A Service");
+//        log.info("Initializing Metrics-A Service");
 //        Metrics metric = new Metrics(bus, 100, "metrics-a");
 //        executorService.submit(metric);
 //    }

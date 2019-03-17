@@ -27,7 +27,7 @@
 //
 //    ScheduledExecutorService scheduledExecutor;
 //
-//    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+//    private final Logger log = LoggerFactory.getLogger(this.getClass());
 //
 //    public static String Channel = "sample-stream";
 //
@@ -38,7 +38,7 @@
 //
 //    @Override
 //    public void initialize() {
-//        logger.info("Initializing SampleStream Service");
+//        log.info("Initializing SampleStream Service");
 //
 //        scheduledExecutor.scheduleAtFixedRate(
 //                new Metrics(bus, SampleStreamService.Channel),
