@@ -106,7 +106,7 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
             String responseApiClass,
             Consumer<Resp> successHandler,
             Consumer<RestError> errorHandler
-    ) {
+    )  throws Exception {
         this.restServiceRequest(UUID.randomUUID(), uri, method, payload, headers, responseApiClass, successHandler, errorHandler);
     }
 
