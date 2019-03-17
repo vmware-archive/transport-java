@@ -67,5 +67,6 @@ public class PongCalendarServiceConsumer extends AbstractBase {
 
         // commit transaction.
         transaction.commit();
+
     }
 }
