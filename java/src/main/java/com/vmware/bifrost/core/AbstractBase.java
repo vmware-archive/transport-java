@@ -6,6 +6,7 @@ import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.error.RestError;
+import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.model.RestServiceRequest;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.core.util.ServiceMethodLookupUtil;
@@ -42,16 +43,17 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
 
     /**
      * Make a new RestService call.
-     * @param id the UUID you'd like to use for this call.
-     * @param uri URI you would like to call
-     * @param method HTTP Method to use (of type HttpMethod), GET, POST, PATCH etc.
-     * @param payload Payload to send as body of request.
-     * @param headers HTTP headers to send.
+     *
+     * @param id               the UUID you'd like to use for this call.
+     * @param uri              URI you would like to call
+     * @param method           HTTP Method to use (of type HttpMethod), GET, POST, PATCH etc.
+     * @param payload          Payload to send as body of request.
+     * @param headers          HTTP headers to send.
      * @param responseApiClass the class type of the response object you're expecting back from the API
-     * @param successHandler success handler lambda to handle API response.
-     * @param errorHandler error handler lambda to handle response (RestError)
-     * @param <Req> Type of the payload being sent.
-     * @param <Resp> Type of the response being returned.
+     * @param successHandler   success handler lambda to handle API response.
+     * @param errorHandler     error handler lambda to handle response (RestError)
+     * @param <Req>            Type of the payload being sent.
+     * @param <Resp>           Type of the response being returned.
      */
     protected <Req, Resp> void restServiceRequest(
             UUID id,
@@ -84,15 +86,17 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
 
     /**
      * Make a new RestService call.
-     * @param uri URI you would like to call
-     * @param method HTTP Method to use (of type HttpMethod), GET, POST, PATCH etc.
-     * @param payload Payload to send as body of request.
-     * @param headers HTTP headers to send.
+     *
+     * @param uri              URI you would like to call
+     * @param method           HTTP Method to use (of type HttpMethod), GET, POST, PATCH etc.
+     * @param payload          Payload to send as body of request.
+     * @param headers          HTTP headers to send.
      * @param responseApiClass the class type of the response object you're expecting back from the API
-     * @param successHandler success handler lambda to handle API response.
-     * @param errorHandler error handler lambda to handle response (RestError)
-     * @param <Req> Type of the payload being sent.
-     * @param <Resp> Type of the response being returned.
+     * @param successHandler   success handler lambda to handle API response.
+     * @param errorHandler     error handler lambda to handle response (RestError)
+     * @param <Req>            Type of the payload being sent.
+     * @param <Resp>           Type of the response being returned.
+     * @deprecated use method with RestOperation.
      */
     protected <Req, Resp> void restServiceRequest(
             URI uri,
@@ -104,5 +108,26 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
             Consumer<RestError> errorHandler
     ) {
         this.restServiceRequest(UUID.randomUUID(), uri, method, payload, headers, responseApiClass, successHandler, errorHandler);
+    }
+
+    /**
+     * Make a new RestService call.
+     *
+     * @param operation RestOperation for call Encapsulates individual argument calls.
+     * @param <Req>     Type of the payload being sent.
+     * @param <Resp>    Type of the response being returned.
+     */
+    protected <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) {
+
+        this.restServiceRequest(
+                operation.getId(),
+                operation.getUri(),
+                operation.getMethod(),
+                operation.getBody(),
+                operation.getHeaders(),
+                operation.getApiClass(),
+                operation.getSuccessHandler(),
+                operation.getErrorHandler()
+        );
     }
 }

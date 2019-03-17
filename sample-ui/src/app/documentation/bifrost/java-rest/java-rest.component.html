@@ -10,8 +10,9 @@
 </p>
 <p>
   The Java version of <code class="clr-code">RestService</code> knows how to make remote calls to external URIs, as well as knowing how to make calls to local
-  Rest Controllers in your existing application. If the URI is local to your Java application, the RestService will <strong>Look up your Rest Controller</strong>
-  and ensure it's a match, and then <strong class="emphasis"></strong>
+  Rest Controllers in your existing application. If the URI is local to your Java application, the RestService will <strong>Look up your Rest Controller using reflection</strong>
+  and ensure it's a match. Once the local controller has been found, the RestService will <strong class="emphasis">call your controller locally</strong>. This means
+  all existing security is also honoured and evaluated, there is also no additional network hop.
 </p>
 <p>
   The <code class="clr-code">RestService</code> provides operations for <code class="clr-code">GET, PUT, POST,
@@ -21,48 +22,23 @@
   <code class="clr-code">AbstractBase</code>.
 </p>
 
-<h4 class="emphasis">
-  The <code class="clr-code">RestService</code> uses <strong>Fetch</strong> to make HTTP calls, not XHR.
-</h4>
-<p>
-  If you see XHR requests being made by your application in your developer console network activity - it's not being made by the fabric.
-</p>
-
 <hr/>
 
 <h3>Loading the RestService</h3>
 
 <p>
-  Ideally, you want your <code class="clr-code">RestService</code> to boot when your application boots. This allows your application to start making
-  remote calls and setting up state, before your UI framework has even loaded. This means it would be most suited
-  very close to where you actually boot the event bus.
+  The RestService is automatically loaded when the Bifröst boots. There is no need to instantiate it manually
 </p>
 <p>
   In Angular applications, this would be in your <code class="clr-code">main.ts</code> file. Like with Services you build yourself, you would use the
   <code class="clr-code">ServiceLoader</code> to instantiate and boot the <code class="clr-code">RestService</code> and start it listening for requests.
 </p>
 
-
-<h3>Loading RestService</h3>
-<pre class="code"><code class="language-typescript" ngNonBindable>import &#123; ServiceLoader &#125; from '@vmw/bifrost/util/service.loader';
-import &#123; RestService &#125; from '@vmw/bifrost/core/services/rest/rest.service';
-
-ServiceLoader.addService(RestService);</code></pre>
+<h3>Calling RestService from a Java Class</h3>
 
 <p>
-  Now the <code class="clr-code">RestService</code> is loaded and ready for any actor in your application that wants
-  to make API calls. You should see the following in your developer console (if you have logging enabled)<br/>
-</p>
-
-<pre>▫️️ <span class="console-purple">[Inf]:</span> <span class="console-pink">RESTService Online</span></pre>
-
-<hr/>
-
-<h3>Calling RestService from your Service</h3>
-
-<p>
-  When your service extends from <code class="clr-code">AbstractService</code>, a method named <code class="clr-code">restServiceRequest()</code>
-  is provided to your service. This method takes a single argument, a <code class="clr-code">RestOperation</code>
+  When your service extends from <code class="clr-code">AbstractBase</code> or  <code class="clr-code">AbstractService</code>, a method named <code class="clr-code">restServiceRequest()</code>
+  is provided. The method is a little different to the TypeScript implementation however. It currently uses the same values
 </p>
 <p>
   This interface defines essential properties required in order to make the Remote HTTP call, like the URI, the HTTP Method,
