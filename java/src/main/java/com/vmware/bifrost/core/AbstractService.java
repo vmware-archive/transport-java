@@ -91,5 +91,15 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
     <T> T castPayload(Class clazz, Request request) throws ClassCastException {
         return (T) this.mapper.convertValue(request.getPayload(), clazz);
     }
+
+    protected void handleUnknownRequest(Request request) {
+        String unknownRequest = this.getName() + ": Unknown Request/Command '" + request.getRequest() + "'";
+        Response<String> response = new Response<>(request.getId(), unknownRequest);
+        this.logInfoMessage(
+                "\uD83D\uDCE4",
+                "Sending Service Response (Unknown Request)",
+                response.toString());
+        this.bus.sendResponseMessageWithId(this.serviceChannel, response, request.getId());
+    }
 }
 

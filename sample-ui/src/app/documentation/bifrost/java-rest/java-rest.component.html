@@ -10,7 +10,8 @@
 </p>
 <p>
   The Java version of <code class="clr-code">RestService</code> knows how to make remote calls to external URIs, as well as knowing how to make calls to local
-  Rest Controllers in your existing application.
+  Rest Controllers in your existing application. If the URI is local to your Java application, the RestService will <strong>Look up your Rest Controller</strong>
+  and ensure it's a match, and then <strong class="emphasis"></strong>
 </p>
 <p>
   The <code class="clr-code">RestService</code> provides operations for <code class="clr-code">GET, PUT, POST,
