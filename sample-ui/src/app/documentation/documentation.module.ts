@@ -6,12 +6,16 @@ import { HomeComponent } from './home/home.component';
 import { DocumentationComponent } from './documentation.component';
 import { SharedModule } from '../shared/shared.module';
 import { ClarityModule } from '@clr/angular';
+import { ContributorsComponent } from './contributors/contributors.component';
+import { DevelopersComponent } from './developers/developers.component';
 
 @NgModule({
     declarations: [
         GettingStartedComponent,
         HomeComponent,
-        DocumentationComponent
+        DocumentationComponent,
+        ContributorsComponent,
+        DevelopersComponent
     ],
     imports: [
         CommonModule,
