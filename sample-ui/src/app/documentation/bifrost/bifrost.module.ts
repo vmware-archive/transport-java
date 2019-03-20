@@ -43,7 +43,7 @@ import { JavaMessagingComponent } from './java-messaging/java-messaging.componen
 import { JavaLoggingComponent } from './java-logging/java-logging.component';
 import { JavaRestComponent } from './java-rest/java-rest.component';
 import { CloudServicesApiComponent } from './sample-code/java/cloud-services-api.component';
-import { FabricRestServiceComponent } from './sample-code/ts/restservice/fabric.rest-service.component';
+//import { FabricRestServiceComponent } from './sample-code/ts/restservice/fabric.rest-service.component';
 
 @NgModule({
     declarations: [
@@ -87,7 +87,7 @@ import { FabricRestServiceComponent } from './sample-code/ts/restservice/fabric.
         JavaMessagingComponent,
         JavaLoggingComponent,
         JavaRestComponent,
-        FabricRestServiceComponent
+        //FabricRestServiceComponent
     ],
     imports: [
         CommonModule,
