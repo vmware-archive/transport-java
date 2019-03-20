@@ -257,3 +257,19 @@ blockquote:after {
 blockquote p {
   display: inline;
 }
+
+/* datagrid */
+.datagrid .datagrid-column {
+  color: #f9fcff;
+  background-color: #1c1429;
+}
+
+.datagrid {
+  background-color: transparent;
+  color: #e0f4ff;
+}
+
+.datagrid-footer {
+  background-color: #1d132a;
+  border: 1px solid #485764;
+}

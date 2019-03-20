@@ -15,7 +15,7 @@ import { DevelopersComponent } from './developers/developers.component';
         HomeComponent,
         DocumentationComponent,
         ContributorsComponent,
-        DevelopersComponent
+        DevelopersComponent,
     ],
     imports: [
         CommonModule,
