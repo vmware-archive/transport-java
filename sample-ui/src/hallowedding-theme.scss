@@ -264,9 +264,22 @@ blockquote p {
   background-color: #1c1429;
 }
 
+.datagrid-header .datagrid-row {
+  border-bottom: 2px solid #403456;
+}
+
+.datagrid-row {
+  border-top: 1px solid #433258;
+}
+
+.datagrid-row:hover {
+  background-color: #3b2e52;
+}
+
 .datagrid {
   background-color: transparent;
-  color: #e0f4ff;
+  color: #ffffff;
+  border: 1px solid #403456;
 }
 
 .datagrid-footer {
