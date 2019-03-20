@@ -29,7 +29,7 @@
         "@clr/angular": "^1.0.5",
         "@clr/icons": "^1.0.5",
         "@clr/ui": "^1.0.5",
-        "@vmw/bifrost": "^0.13.3",
+        "@vmw/bifrost": "^0.14.2",
         "@webcomponents/custom-elements": "^1.0.0",
         "core-js": "^2.5.4",
         "md5-typescript": "^1.0.5",
