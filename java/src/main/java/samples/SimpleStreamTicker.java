@@ -4,9 +4,12 @@
 
 package samples;
 
+import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bridge.spring.BifrostService;
+import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractBase;
+import com.vmware.bifrost.core.interfaces.BusServiceEnabled;
 import org.springframework.stereotype.Component;
 
 import java.util.GregorianCalendar;
@@ -17,9 +20,11 @@ import java.util.concurrent.TimeUnit;
 
 @BifrostService
 @Component
-public class SimpleStreamTicker extends AbstractBase {
+public class SimpleStreamTicker extends AbstractBase implements BusServiceEnabled {
 
     private ScheduledExecutorService executorService;
+    private String channelName = "simple-stream";
+    private boolean online = false;
 
     SimpleStreamTicker() {
         this.executorService = Executors.newScheduledThreadPool(5);
@@ -27,8 +32,28 @@ public class SimpleStreamTicker extends AbstractBase {
 
     @Override
     public void initialize() {
-        // ensure we open up the channel locally.
-        bus.getApi().getChannelObject("simple-stream", this.getName());
+        // ensure we open up the channel locally and keep it open, even it we're offline.
+        bus.getApi().getChannelObject(channelName, "sample-stream-demo");
+
+        this.online();
+
+        // listen for any messages coming in and decide what to do with them.
+        bus.listenRequestStream(channelName,
+                (Message msg) -> {
+
+                    // if the msg is 'offline or online' then switch this service online or offline.
+                    String command = ((Request) msg.getPayload()).getRequest();
+                    switch (command) {
+                        case "online":
+                            online();
+                            break;
+                        case "offline":
+                            offline();
+                            break;
+                    }
+                }
+        );
+
 
         // create a runnable task that sends a message every 300ms with random values.
         Runnable runnableTask = () -> {
@@ -42,9 +67,22 @@ public class SimpleStreamTicker extends AbstractBase {
             Response<String> response = new Response<>(UUID.randomUUID(), responseString);
 
             // send response.
-            bus.sendResponseMessage("simple-stream", response);
+            if (this.online) {
+                bus.sendResponseMessage(channelName, response);
+            }
         };
+
         // loop every 300ms, sending the same message over and over,
         executorService.scheduleAtFixedRate(runnableTask, 1000, 300, TimeUnit.MILLISECONDS);
+    }
+
+    // listen for requests.
+    public void online() {
+        this.online = true;
+    }
+
+    // stop listening for requests.
+    public void offline() {
+        this.online = false;
     }
 }
