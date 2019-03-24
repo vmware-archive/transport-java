@@ -17,8 +17,11 @@ export interface SimpleStreamObject {
 
 @Component({
     selector: 'fabric-connect-sample',
-    template: `<button class='btn btn-primary btn-sm' (click)='connect()' *ngIf="!connected">Connect To Fabric</button>
+    template: `
+        <button class='btn btn-primary btn-sm' (click)='connect()' *ngIf="!connected">Connect To Fabric</button>
         <button class='btn btn-danger btn-sm' (click)='disconnect()' *ngIf="connected">Disconnect From Fabric</button>
+        <button class='btn btn-danger btn-sm' (click)='switchOffService()' *ngIf="connected">Switch Off Java Service</button>
+        <button class='btn btn-danger btn-sm' (click)='switchOnService()' *ngIf="connected">Switch On Java Service</button>
         <span class="label label-danger" *ngIf="error">{{error}}</span>
         <span class="label label-purple" *ngIf="connected">{{item}}</span>`
 })
@@ -29,6 +32,7 @@ export class FabricConnectionComponent extends AbstractBase implements OnInit, O
     public item: string;
     public connectedStateStream: StoreStream<FabricConnectionState>;
     public simpleStream: MessageHandler<SimpleStreamObject>;
+    public channelName = 'simple-stream';
 
     constructor(private cd: ChangeDetectorRef) {
         super('FabricConnectionComponent');
@@ -55,12 +59,20 @@ export class FabricConnectionComponent extends AbstractBase implements OnInit, O
         this.simpleStream.close();
 
         // mark this channel as local, this will stop streams.
-        this.bus.markChannelAsLocal('simple-stream');
+        this.bus.markChannelAsLocal(this.channelName);
+    }
+
+    private switchOnService(): void {
+        this.bus.sendRequestMessage(this.channelName, this.fabric.generateFabricRequest('online'));
+    }
+
+    private switchOffService(): void {
+        this.bus.sendRequestMessage(this.channelName, this.fabric.generateFabricRequest('offline'));
     }
 
     private listenToSimpleStream() {
         // listen to channel on bus.
-        this.simpleStream = this.bus.listenStream('simple-stream');
+        this.simpleStream = this.bus.listenStream(this.channelName);
         this.simpleStream.handle(
             (response: SimpleStreamObject) => {
                 this.item = `Stream: ${response.payload}`;
@@ -86,9 +98,9 @@ export class FabricConnectionComponent extends AbstractBase implements OnInit, O
 
         // function called when disconnected.
         const disconnectedHandler = () => {
-           this.log.info('Disconnected from Application Fabric.', this.getName());
-           this.connected = false;
-           this.simpleStream.close();
+            this.log.info('Disconnected from Application Fabric.', this.getName());
+            this.connected = false;
+            this.simpleStream.close();
         };
 
         // connect to the fabric.

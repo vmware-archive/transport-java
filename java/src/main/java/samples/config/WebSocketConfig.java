@@ -25,7 +25,9 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
+        //config.enableSimpleBroker("/topic");
+
+        config.enableStompBrokerRelay("/topic");
         config.setApplicationDestinationPrefixes("/pub");
     }
 
