@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ClrLoadingState } from '@clr/angular';
-import { BaseBifrostComponent } from '../../base.bifrost.component';
+import { BaseDocsComponent } from '../../../base.docs.component';
 import { APIResponse } from '@vmw/bifrost';
 import { GeneralUtil } from '@vmw/bifrost/util/util';
 import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
@@ -52,7 +52,7 @@ import { CloudServicesStatusResponse } from './cloud-services.models';
         </div>
         <strong *ngIf="!connected">Not connected to fabric, connect to run this code</strong>`
 })
-export class CloudServicesApiComponent extends BaseBifrostComponent implements OnInit, OnDestroy {
+export class CloudServicesApiComponent extends BaseDocsComponent implements OnInit, OnDestroy {
 
     public response: CloudServicesStatusResponse;
     requestLoading: ClrLoadingState = ClrLoadingState.DEFAULT;

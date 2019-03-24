@@ -25,9 +25,8 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        //config.enableSimpleBroker("/topic");
-
-        config.enableStompBrokerRelay("/topic");
+        config.enableSimpleBroker("/topic");
+        //config.enableStompBrokerRelay("/topic"); // enable rabbit as source of truth instead of local broker.
         config.setApplicationDestinationPrefixes("/pub");
     }
 

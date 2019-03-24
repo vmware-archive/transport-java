@@ -217,14 +217,14 @@ dependencies {
     runtime group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
     
     // adding dependencies for rabbit relay broker,
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '2.0.8.RELEASE'
-    runtime group: 'io.projectreactor', name: 'reactor-core', version: '2.0.8.RELEASE'
-
-    implementation group: 'io.projectreactor', name: 'reactor-net', version: '2.0.8.RELEASE'
-    runtime group: 'io.projectreactor', name: 'reactor-net', version: '2.0.8.RELEASE'
-
-    implementation group: 'io.netty', name: 'netty-all', version: '4.0.33.Final'
-    runtime group: 'io.netty', name: 'netty-all', version: '4.0.33.Final'
+//    implementation group: 'io.projectreactor', name: 'reactor-core', version: '2.0.8.RELEASE'
+//    runtime group: 'io.projectreactor', name: 'reactor-core', version: '2.0.8.RELEASE'
+//
+//    implementation group: 'io.projectreactor', name: 'reactor-net', version: '2.0.8.RELEASE'
+//    runtime group: 'io.projectreactor', name: 'reactor-net', version: '2.0.8.RELEASE'
+//
+//    implementation group: 'io.netty', name: 'netty-all', version: '4.0.33.Final'
+//    runtime group: 'io.netty', name: 'netty-all', version: '4.0.33.Final'
 
     testImplementation group: 'org.springframework', name: 'spring-web', version: "4.3.21.RELEASE"
     testImplementation 'org.mockito:mockito-core:2.+'

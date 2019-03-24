@@ -4,10 +4,12 @@ import { HomeComponent } from './home/home.component';
 import { SharedModule } from '../../shared/shared.module';
 import { ClarityModule } from '@clr/angular';
 import { SewingMachineRoutingModule } from './sewing-machine-routing.module';
+import { QuickstartComponent } from './quickstart/quickstart.component';
 
 @NgModule({
     declarations: [
-        HomeComponent
+        HomeComponent,
+        QuickstartComponent
     ],
     imports: [
         CommonModule,

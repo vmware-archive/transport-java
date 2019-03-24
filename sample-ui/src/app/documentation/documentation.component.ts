@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { BaseBifrostComponent } from './bifrost/base.bifrost.component';
+import { BaseDocsComponent } from './base.docs.component';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { MyAPIService } from './bifrost/sample-code/ts/restservice/myapi.service';
 import { PongService } from './bifrost/sample-code/ts/ping-component/pong.service';
@@ -9,7 +9,7 @@ import { PongService } from './bifrost/sample-code/ts/ping-component/pong.servic
     templateUrl: './documentation.component.html',
     styleUrls: ['./documentation.component.scss']
 })
-export class DocumentationComponent extends BaseBifrostComponent implements OnInit {
+export class DocumentationComponent extends BaseDocsComponent implements OnInit {
     constructor() {
         super('DocumentationComponent');
     }

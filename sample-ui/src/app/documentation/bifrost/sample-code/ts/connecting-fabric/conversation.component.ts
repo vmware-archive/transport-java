@@ -3,7 +3,7 @@
  */
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ClrLoadingState } from '@clr/angular';
-import { BaseBifrostComponent } from '../../../base.bifrost.component';
+import { BaseDocsComponent } from '../../../../base.docs.component';
 
 @Component({
     selector: 'galactic-request-sample',
@@ -20,7 +20,7 @@ import { BaseBifrostComponent } from '../../../base.bifrost.component';
         </div>
         <strong *ngIf="!connected">Not connected to fabric, connect to run this code</strong>`
 })
-export class GalacticRequestComponent extends BaseBifrostComponent implements OnInit, OnDestroy {
+export class GalacticRequestComponent extends BaseDocsComponent implements OnInit, OnDestroy {
 
     public item: string;
     requestLoading: ClrLoadingState = ClrLoadingState.DEFAULT;
