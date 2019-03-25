@@ -1,5 +1,5 @@
 import { AfterViewChecked, Component, OnInit } from '@angular/core';
-import { BaseBifrostComponent } from '../base.bifrost.component';
+import { BaseDocsComponent } from '../../base.docs.component';
 import { HighlightService } from '../../../local-services/highlight.service';
 
 @Component({
@@ -7,7 +7,7 @@ import { HighlightService } from '../../../local-services/highlight.service';
   templateUrl: './ts-galactic-conversations.component.html',
   styleUrls: ['./ts-galactic-conversations.component.scss']
 })
-export class TsGalacticConversationsComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
+export class TsGalacticConversationsComponent extends BaseDocsComponent implements OnInit, AfterViewChecked {
 
     constructor(private highlightService: HighlightService) {
         super('TsAbstractionsComponent');

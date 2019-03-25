@@ -1,27 +1,25 @@
 /*
- * Copyright(c) VMware Inc. 2018
+ * Copyright(c) VMware Inc. 2018 - 2019
  */
 package com.vmware.bifrost.core;
 
 import com.fasterxml.jackson.databind.MapperFeature;
+import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.core.error.GeneralError;
-import com.vmware.bifrost.core.error.RestError;
-import com.vmware.bifrost.core.model.RestServiceRequest;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
-import org.springframework.http.HttpMethod;
+import com.vmware.bifrost.core.interfaces.BusServiceEnabled;
 
-import java.net.URI;
-import java.util.Map;
+
 import java.util.UUID;
-import java.util.function.Consumer;
 
 @SuppressWarnings("unchecked")
 public abstract class AbstractService<RequestType extends Request, ResponseType extends Response>
-        extends AbstractBase {
+        extends AbstractBase implements BusServiceEnabled {
 
     private String serviceChannel;
+    protected BusTransaction serviceChannelStream;
 
     public AbstractService(String serviceChannel) {
         super();
@@ -38,8 +36,40 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
      * Errors will be ignored, as they would be
      */
     public void initialize() {
+        this.online();
+    }
 
-        this.bus.listenRequestStream(this.serviceChannel,
+    protected abstract void handleServiceRequest(RequestType request, Message busMessage) throws Exception;
+
+    protected void sendResponse(ResponseType response, UUID id) {
+        this.logInfoMessage(
+                "\uD83D\uDCE4",
+                "Sending Service Response",
+                response.toString());
+        this.bus.sendResponseMessageWithId(this.serviceChannel, response, id);
+    }
+
+    protected <E extends GeneralError> void sendError(E error, UUID id) {
+        this.bus.sendErrorMessageWithId(this.serviceChannel, error, id);
+    }
+
+    <T> T castPayload(Class clazz, Request request) throws ClassCastException {
+        return (T) this.mapper.convertValue(request.getPayload(), clazz);
+    }
+
+    protected void handleUnknownRequest(Request request) {
+        String unknownRequest = this.getName() + ": Unknown Request/Command '" + request.getRequest() + "'";
+        Response<String> response = new Response<>(request.getId(), unknownRequest);
+        this.logInfoMessage(
+                "\uD83D\uDCE4",
+                "Sending Service Response (Unknown Request)",
+                response.toString());
+        this.bus.sendResponseMessageWithId(this.serviceChannel, response, request.getId());
+    }
+
+    public void online() {
+
+        this.serviceChannelStream = this.bus.listenRequestStream(this.serviceChannel,
                 (Message message) -> {
                     try {
 
@@ -74,32 +104,9 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
         // this.methodLookupUtil.loadCustomHandlers();
     }
 
-    protected abstract void handleServiceRequest(RequestType request, Message busMessage) throws Exception;
-
-    protected void sendResponse(ResponseType response, UUID id) {
-        this.logInfoMessage(
-                "\uD83D\uDCE4",
-                "Sending Service Response",
-                response.toString());
-        this.bus.sendResponseMessageWithId(this.serviceChannel, response, id);
+    public void offline() {
+        this.serviceChannelStream.unsubscribe();
     }
 
-    protected <E extends GeneralError> void sendError(E error, UUID id) {
-        this.bus.sendErrorMessageWithId(this.serviceChannel, error, id);
-    }
-
-    <T> T castPayload(Class clazz, Request request) throws ClassCastException {
-        return (T) this.mapper.convertValue(request.getPayload(), clazz);
-    }
-
-    protected void handleUnknownRequest(Request request) {
-        String unknownRequest = this.getName() + ": Unknown Request/Command '" + request.getRequest() + "'";
-        Response<String> response = new Response<>(request.getId(), unknownRequest);
-        this.logInfoMessage(
-                "\uD83D\uDCE4",
-                "Sending Service Response (Unknown Request)",
-                response.toString());
-        this.bus.sendResponseMessageWithId(this.serviceChannel, response, request.getId());
-    }
 }
 

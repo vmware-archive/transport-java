@@ -9,6 +9,7 @@ import { HighlightService } from '../local-services/highlight.service';
 import { FabricConnectionStateComponent } from '../fabric-connection-state/fabric-connection-state.component';
 import { JavaBadgesComponent } from './java-badges/java-badges.component';
 import { TypescriptBadgesComponent } from './typescript-badges/typescript-badges.component';
+import { ChangelogComponent } from './changelog/changelog.component';
 
 @NgModule({
     declarations: [
@@ -17,7 +18,8 @@ import { TypescriptBadgesComponent } from './typescript-badges/typescript-badges
         HeaderComponent,
         FabricConnectionStateComponent,
         JavaBadgesComponent,
-        TypescriptBadgesComponent
+        TypescriptBadgesComponent,
+        ChangelogComponent
     ],
     imports: [
         CommonModule,
@@ -30,7 +32,8 @@ import { TypescriptBadgesComponent } from './typescript-badges/typescript-badges
         HeaderComponent,
         FabricConnectionStateComponent,
         JavaBadgesComponent,
-        TypescriptBadgesComponent
+        TypescriptBadgesComponent,
+        ChangelogComponent
     ],
     providers: [
         HighlightService

@@ -1,6 +1,6 @@
 import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
 import { HighlightService } from '../../../local-services/highlight.service';
-import { BaseBifrostComponent } from '../base.bifrost.component';
+import { BaseDocsComponent } from '../../base.docs.component';
 import PingComponent from '../sample-code/react/PingComponent';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { PongService } from '../sample-code/ts/ping-component/pong.service';
@@ -10,7 +10,7 @@ import { PongService } from '../sample-code/ts/ping-component/pong.service';
     templateUrl: './ts-calling-services.component.html',
     styleUrls: ['./ts-calling-services.component.scss']
 })
-export class TsCallingServicesComponent extends BaseBifrostComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class TsCallingServicesComponent extends BaseDocsComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     reactComponent = PingComponent;
     private pongService: PongService;

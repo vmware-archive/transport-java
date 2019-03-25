@@ -1,5 +1,5 @@
 import { AfterViewChecked, Component, OnInit } from '@angular/core';
-import { BaseBifrostComponent } from '../base.bifrost.component';
+import { BaseDocsComponent } from '../../base.docs.component';
 import { HighlightService } from '../../../local-services/highlight.service';
 import HelloWorld from '../sample-code/react/HelloWorld';
 import React from 'react';
@@ -9,7 +9,7 @@ import React from 'react';
   templateUrl: './ts-helloworld.component.html',
   styleUrls: ['./ts-helloworld.component.scss']
 })
-export class TsHelloworldComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
+export class TsHelloworldComponent extends BaseDocsComponent implements OnInit, AfterViewChecked {
 
     reactComponent: React.FC = HelloWorld;
 

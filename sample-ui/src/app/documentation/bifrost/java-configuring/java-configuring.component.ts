@@ -1,5 +1,5 @@
 import { AfterViewChecked, Component, OnInit } from '@angular/core';
-import { BaseBifrostComponent } from '../base.bifrost.component';
+import { BaseDocsComponent } from '../../base.docs.component';
 import { HighlightService } from '../../../local-services/highlight.service';
 
 @Component({
@@ -7,7 +7,7 @@ import { HighlightService } from '../../../local-services/highlight.service';
     templateUrl: './java-configuring.component.html',
     styleUrls: ['./java-configuring.component.scss']
 })
-export class JavaConfiguringComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked {
+export class JavaConfiguringComponent extends BaseDocsComponent implements OnInit, AfterViewChecked {
 
     constructor(private highlightService: HighlightService) {
         super('JavaConfiguringComponent');

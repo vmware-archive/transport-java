@@ -1,5 +1,5 @@
 import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
-import { BaseBifrostComponent } from '../base.bifrost.component';
+import { BaseDocsComponent } from '../../base.docs.component';
 import { HighlightService } from '../../../local-services/highlight.service';
 import { PongService } from '../sample-code/ts/ping-component/pong.service';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
@@ -9,7 +9,7 @@ import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
     templateUrl: './ts-transactions.component.html',
     styleUrls: ['./ts-transactions.component.scss']
 })
-export class TsTransactionsComponent extends BaseBifrostComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class TsTransactionsComponent extends BaseDocsComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     private pongService: PongService;
 

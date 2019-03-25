@@ -2,14 +2,14 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { VERSION } from '@appfab/environments/version';
 import { StoreStream } from '@vmw/bifrost';
 import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
-import { BaseBifrostComponent } from '../documentation/bifrost/base.bifrost.component';
+import { BaseDocsComponent } from '../documentation/base.docs.component';
 
 @Component({
     selector: 'footer-component',
     templateUrl: './footer.component.html',
     styleUrls: ['./footer.component.scss']
 })
-export class FooterComponent extends BaseBifrostComponent implements OnInit, OnDestroy {
+export class FooterComponent extends BaseDocsComponent implements OnInit, OnDestroy {
 
     date = new Date().getFullYear();
     version = VERSION;

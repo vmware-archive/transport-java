@@ -1,9 +1,9 @@
-import { BaseComponent } from '../../models/abstractions/base.component';
+import { BaseComponent } from '../models/abstractions/base.component';
 import { OnDestroy, OnInit } from '@angular/core';
 import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
 import { StoreStream } from '@vmw/bifrost';
 
-export abstract class BaseBifrostComponent extends BaseComponent implements OnInit, OnDestroy {
+export abstract class BaseDocsComponent extends BaseComponent implements OnInit, OnDestroy {
 
     public highlighted = false;
     public connected = false;
@@ -19,12 +19,21 @@ export abstract class BaseBifrostComponent extends BaseComponent implements OnIn
         return true;
     }
 
+    public areSewingMachineDocsActive(): boolean {
+        //return this.storeManager.getStore<boolean>('docs').get('sm');
+        return true;
+    }
+
     public setBifrostTsDocsActive(state: boolean): void {
         this.storeManager.getStore<boolean>('docs').put('ts', state, null);
     }
 
     public setBifrostJavaDocsActive(state: boolean): void {
         this.storeManager.getStore<boolean>('docs').put('java', state, null);
+    }
+
+    public setSewingMachineDocsActive(state: boolean): void {
+        this.storeManager.getStore<boolean>('docs').put('sm', state, null);
     }
 
     public ngOnInit() {

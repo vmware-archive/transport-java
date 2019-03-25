@@ -41,7 +41,7 @@ public class PongService extends AbstractService<Request<String>, Response<Strin
     private void handleBasicPongRequest(Request request) {
 
         // prepare and send a basic response.
-        Response<String> response = new Response<>(request.getId(), "Fabric Pong (Basic): Pong");
+        Response<String> response = new Response<>(request.getId(), "Fabric Pong (Basic): Pong: " + request.getPayload());
         this.sendResponse(response, request.getId());
     }
 
@@ -74,7 +74,7 @@ public class PongService extends AbstractService<Request<String>, Response<Strin
 
                     // prepare a response, with our date and time requests stuck together as a more elaborate response.
                     Response<String> response = new Response<>(request.getId(),
-                            "Fabric Pong (Full): Pong++ " + dateAndTime.toString());
+                            "Fabric Pong (Full): Calendar: " + dateAndTime.toString() + " / Pong: " + request.getPayload());
                     this.sendResponse(response, request.getId());
                 }
         );
@@ -85,6 +85,6 @@ public class PongService extends AbstractService<Request<String>, Response<Strin
 }
 
 abstract class PongRequestType {
-    static final String Basic = "Basic";
-    static final String Full = "Full";
+    static final String Basic = "basic";
+    static final String Full = "full";
 }

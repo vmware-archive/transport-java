@@ -257,3 +257,36 @@ blockquote:after {
 blockquote p {
   display: inline;
 }
+
+/* datagrid */
+.datagrid .datagrid-column {
+  color: #f9fcff;
+  background-color: #1c1429;
+}
+
+.datagrid-header .datagrid-row {
+  border-bottom: 2px solid #403456;
+}
+
+.datagrid-row {
+  border-top: 1px solid #433258;
+}
+
+.datagrid-row:hover {
+  background-color: #3b2e52;
+}
+
+.datagrid {
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid #403456;
+}
+
+.datagrid-footer {
+  background-color: #1d132a;
+  border: 1px solid #485764;
+}
+
+.datagrid-table .datagrid-column .datagrid-column-title {
+    color: #c2abff;
+}

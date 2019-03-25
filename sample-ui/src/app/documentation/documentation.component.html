@@ -2,189 +2,204 @@
     <appfab-header></appfab-header>
     <particle-header></particle-header>
     <div class="content-container">
-        <nav class="sidenav">
-            <section class="nav-group">
-                <label class="docs-home">
-                    <a routerLink="/documentation/bifrost">
-                        Bifröst
-                    </a>
+        <nav class="sidenav" [clr-nav-level]="2">
+            <section class="sidenav-content">
+                <section class="nav-group">
+                    <label class="docs-home">
+                        <a routerLink="/documentation/bifrost">
+                            Bifröst
+                        </a>
 
-                </label>
-            </section>
-            <section class="nav-group">
-                <label class="docs-home">
-                    <a routerLink="/documentation/sewing-machine">
-                       Sewing Machine
-                    </a>
-                </label>
-            </section>
-            <section class="nav-group">
-                <label class="docs-home">
-                    <a routerLink="/documentation/contributors">
-                        Contributors
-                    </a>
-                </label>
-            </section>
-            <!--<section class="nav-group">-->
+                    </label>
+                </section>
+                <section class="nav-group">
+                    <label class="docs-home">
+                        <a routerLink="/documentation/sewing-machine">
+                            Sewing Machine
+                        </a>
+                    </label>
+                </section>
+                <section class="nav-group">
+                    <label class="docs-home">
+                        <a routerLink="/documentation/contributors">
+                            Contributors
+                        </a>
+                    </label>
+                </section>
+                <!--<section class="nav-group">-->
                 <!--<label class="docs-home">-->
-                    <!--<a routerLink="/documentation/developers">-->
-                       <!--Developers-->
-                    <!--</a>-->
+                <!--<a routerLink="/documentation/developers">-->
+                <!--Developers-->
+                <!--</a>-->
                 <!--</label>-->
-            <!--</section>-->
-            <section class="nav-group collapsible">
-                <input id="typescript" type="checkbox" [checked]="!this.areBifrostTsDocsActive()">
-                <label for="typescript">Bifröst - TypeScript (JavaScript)</label>
-                <ul class="nav-list">
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/importing">
-                            Importing
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/configuring-angular">
-                            Configuring Angular
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/initializing">
-                            Initializing the Event Bus
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/helloworld">
-                            Hello World
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/abstractions">
-                            Using Abstractions
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/services">
-                            Building Services
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/calling-services">
-                            Calling Services
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/broadcast-vs-direct">
-                            Messaging Types
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/transactions">
-                            Transactions
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/logging">
-                            Logging
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/store-basics">
-                            Stores: Basics
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/store-advanced">
-                            Stores: Advanced
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/making-rest-calls">
-                           Calling RESTful APIs
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/connecting-to-fabric">
-                            Connecting to the Fabric
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/galactic-conversations">
-                            Talking via the Fabric
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/ts/distributed-iframes">
-                            Talking between iFrames
-                        </a>
-                    </li>
-                </ul>
-            </section>
-            <section class="nav-group collapsible">
-                <input id="tab2" type="checkbox" [checked]="!this.areBifrostJavaDocsActive()">
-                <label for="tab2">Bifröst - Java</label>
-                <ul class="nav-list">
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/java/importing">
-                            Importing
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/java/configuring">
-                            Configuring Spring
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/java/initializing">
-                            Initializing the Event Bus
-                        </a>
-                    </li>
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/java/helloworld">
-                            Hello World
-                        </a>
-                    </li>
+                <!--</section>-->
+                <section class="nav-group collapsible">
+                    <input id="typescript" type="checkbox" [checked]="!this.areBifrostTsDocsActive()">
+                    <label for="typescript">Bifröst - TypeScript (JavaScript)</label>
+                    <ul class="nav-list">
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/importing">
+                                Importing
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/configuring-angular">
+                                Configuring Angular
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/initializing">
+                                Initializing the Event Bus
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/helloworld">
+                                Hello World
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/abstractions">
+                                Using Abstractions
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/services">
+                                Building Services
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/calling-services">
+                                Calling Services
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/broadcast-vs-direct">
+                                Messaging Types
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/transactions">
+                                Transactions
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/logging">
+                                Logging
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/store-basics">
+                                Stores: Basics
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/store-advanced">
+                                Stores: Advanced
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/making-rest-calls">
+                                Calling RESTful APIs
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/connecting-to-fabric">
+                                Connecting to the Fabric
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/galactic-conversations">
+                                Talking via the Fabric
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/ts/distributed-iframes">
+                                Talking between iFrames
+                            </a>
+                        </li>
+                    </ul>
+                </section>
+                <section class="nav-group collapsible">
+                    <input id="tab2" type="checkbox" [checked]="!this.areBifrostJavaDocsActive()">
+                    <label for="tab2">Bifröst - Java</label>
+                    <ul class="nav-list">
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/java/importing">
+                                Importing
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/java/configuring">
+                                Configuring Spring
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/java/initializing">
+                                Initializing the Event Bus
+                            </a>
+                        </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/java/helloworld">
+                                Hello World
+                            </a>
+                        </li>
 
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/java/messaging">
-                            Messaging Types
-                        </a>
-                    </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/java/messaging">
+                                Messaging Types
+                            </a>
+                        </li>
 
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/java/logging">
-                            Logging
-                        </a>
-                    </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/java/logging">
+                                Logging
+                            </a>
+                        </li>
 
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/java/transactions">
-                            Transactions
-                        </a>
-                    </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/java/transactions">
+                                Transactions
+                            </a>
+                        </li>
 
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/java/abstractions">
-                            Using Abstractions
-                        </a>
-                    </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/java/abstractions">
+                                Using Abstractions
+                            </a>
+                        </li>
 
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/java/services">
-                           Building Services
-                        </a>
-                    </li>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/java/services">
+                                Building Services
+                            </a>
+                        </li>
 
-                    <li class="nav-link" routerLinkActive="active">
-                        <a routerLink="/documentation/bifrost/java/making-rest-calls">
-                            Calling RESTful APIs
-                        </a>
-                    </li>
-                </ul>
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/bifrost/java/making-rest-calls">
+                                Calling RESTful APIs
+                            </a>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="nav-group collapsible">
+                    <input id="sm" type="checkbox" [checked]="!this.areSewingMachineDocsActive()">
+                    <label for="sm">Sewing Machine</label>
+                    <ul class="nav-list">
+
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/sewing-machine/quickstart">
+                                Quick Start
+                            </a>
+                        </li>
+                    </ul>
+                </section>
             </section>
 
         </nav>
-        <div class="content-area">
+        <main class="content-area">
             <router-outlet></router-outlet>
-        </div>
+        </main>
     </div>
     <footer-component></footer-component>
 </clr-main-container>

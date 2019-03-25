@@ -1,5 +1,5 @@
 import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
-import { BaseBifrostComponent } from '../base.bifrost.component';
+import { BaseDocsComponent } from '../../base.docs.component';
 import { HighlightService } from '../../../local-services/highlight.service';
 import { MessageHandler, ProxyControl, ProxyType } from '@vmw/bifrost';
 
@@ -8,7 +8,7 @@ import { MessageHandler, ProxyControl, ProxyType } from '@vmw/bifrost';
     templateUrl: './ts-distributed-iframes.component.html',
     styleUrls: ['./ts-distributed-iframes.component.scss']
 })
-export class TsDistributedIframesComponent extends BaseBifrostComponent implements OnInit, AfterViewChecked, OnDestroy {
+export class TsDistributedIframesComponent extends BaseDocsComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     private chatStream: MessageHandler<any>;
     private proxyControl: ProxyControl;
