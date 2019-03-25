@@ -12,12 +12,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    // No security features currently impemented for this sample app.
+    // No security features currently implemented for this sample app.
     // Note, overiding this method as a no-op is necessary to disable the standard
     // security features that are included when spring security is on the classpath,
     // such as form login.
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-    }
 
+        // disable CSRF for demo app, we want this wide open for everyone.
+        http.csrf().disable();
+    }
 }
