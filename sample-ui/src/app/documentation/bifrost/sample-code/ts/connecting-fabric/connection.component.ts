@@ -20,8 +20,8 @@ export interface SimpleStreamObject {
     template: `
         <button class='btn btn-primary btn-sm' (click)='connect()' *ngIf="!connected">Connect To Fabric</button>
         <button class='btn btn-danger btn-sm' (click)='disconnect()' *ngIf="connected">Disconnect From Fabric</button>
-        <button class='btn btn-danger btn-sm' (click)='switchOffService()' *ngIf="connected">Switch Off Java Service</button>
-        <button class='btn btn-danger btn-sm' (click)='switchOnService()' *ngIf="connected">Switch On Java Service</button>
+        <!--<button class='btn btn-danger btn-sm' (click)='switchOffService()' *ngIf="connected">Switch Off Java Service</button>-->
+        <!--<button class='btn btn-danger btn-sm' (click)='switchOnService()' *ngIf="connected">Switch On Java Service</button>-->
         <span class="label label-danger" *ngIf="error">{{error}}</span>
         <span class="label label-purple" *ngIf="connected">{{item}}</span>`
 })
@@ -111,6 +111,7 @@ export class FabricConnectionComponent extends AbstractBase implements OnInit, O
         // disconnect.
         this.bus.fabric.disconnect();
         this.simpleStream.close();
+        this.connected = false;
     }
 
     private listenForConnectionStateChange(): void {
