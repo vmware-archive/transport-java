@@ -22,13 +22,21 @@ produces:
   - application/json
 
 paths:
-  /calendar/time:
+  /calendar:
     get:
       tags:
         - CalendarService
-      summary: Get current time
-      x-vmw-vapi-methodname: getTime
+      summary: Call the CalendarService
       x-vmw-vapi-servicename: calendar
+      x-vmw-vapi-methodname: callCalendarSrvice
+      x-vmc-ui-servicename: calendar
+      parameters:
+        - name: calendarRequet
+          in: body
+          description: Calendar request required.
+          required: true
+          schema:
+            $ref: '#/definitions/CalendarRequest'
       responses:
         '200':
           description: OK
@@ -43,72 +51,21 @@ paths:
           schema:
             $ref: '#/definitions/SampleError'
 
-  /calendar/date:
-    get:
-      tags:
-        - CalendarService
-      summary: Get current date
-      x-vmw-vapi-methodname: getDate
-      x-vmw-vapi-servicename: calendar
-      responses:
-        '200':
-          description: OK
-          schema:
-            $ref: '#/definitions/SampleResponse'
-        '400':
-          description: Bad Request, missing something
-          schema:
-            $ref: '#/definitions/SampleError'
-
-        '500':
-          description: Unexpected error.
-          schema:
-            $ref: '#/definitions/SampleError'
-
-  /pong/basic:
+  /pong:
     post:
       tags:
         - PongService
-      summary: Get basic pong response
-      x-vmw-vapi-methodname: basicPong
+      summary: Call the PongService
       x-vmw-vapi-servicename: pong
+      x-vmw-vapi-methodname: callPongService
+      x-vmc-ui-servicename: pong
       parameters:
         - name: pingRequest
           in: body
           description: Ping message to be sent.
           required: true
           schema:
-            $ref: '#/definitions/SampleRequest'
-      responses:
-        '200':
-          description: OK
-          schema:
-            $ref: '#/definitions/SampleResponse'
-
-        '400':
-          description: Bad Request, missing something
-          schema:
-            $ref: '#/definitions/SampleError'
-
-        '500':
-          description: Unexpected error.
-          schema:
-            $ref: '#/definitions/SampleError'
-
-  /pong/full:
-    post:
-      tags:
-        - PongService
-      summary: Get a full pong response (Calls CalendarService)
-      x-vmw-vapi-methodname: fullPong
-      x-vmw-vapi-servicename: pong
-      parameters:
-        - name: pingRequest
-          in: body
-          description: Ping message to be sent.
-          required: true
-          schema:
-            $ref: '#/definitions/SampleRequest'
+            $ref: '#/definitions/PongRequest'
       responses:
         '200':
           description: OK
@@ -134,9 +91,6 @@ definitions:
       id:
         description: UUID of request
         type: string
-      created:
-        description: timestamp of when the request was created
-        type: number
       version:
         description: version of the request.
         type: integer
@@ -144,12 +98,33 @@ definitions:
         description: Payload string to be sent
         type: string
 
-  SampleRequest:
+  PongRequest:
     type: object
     required:
       - payload
     allOf:
       - $ref: '#/definitions/Frame'
+    properties:
+      request:
+        description: Request command
+        type: string
+        enum:
+          - basic
+          - full
+
+  CalendarRequest:
+    type: object
+    required:
+      - payload
+    allOf:
+      - $ref: '#/definitions/Frame'
+    properties:
+      request:
+        description: Request command
+        type: string
+        enum:
+          - date
+          - time
 
   SampleResponse:
     type: object
@@ -160,7 +135,6 @@ definitions:
 
   SampleError:
     type: object
-
     allOf:
       - $ref: '#/definitions/Frame'
       - properties:
@@ -173,4 +147,3 @@ definitions:
           errorCode:
             description: error code if available
             type: integer
-

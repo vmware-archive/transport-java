@@ -8,8 +8,8 @@ import { AbstractMessageObject } from '@vmw/bifrost/core';
 export const PongServiceChannel: ChannelName = 'services-PongService';
 
 export enum PongRequestType {
-    Basic = 'Basic',
-    Full = 'Full'
+    Basic = 'basic',
+    Full = 'full'
 }
 
 export interface PongServiceRequest extends AbstractMessageObject<PongRequestType, string> {
