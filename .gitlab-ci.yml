@@ -1,4 +1,4 @@
-image: appfabric-service.artifactory.eng.vmware.com/appfabric-build:1.0
+image: appfabric-service.artifactory.eng.vmware.com/appfabric-build:1.1
 
 services:
 - name: docker:dind
