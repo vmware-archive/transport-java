@@ -5,7 +5,7 @@ import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
-import com.vmware.bifrost.core.error.RestError;
+import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.model.RestServiceRequest;
 import com.vmware.bifrost.core.util.Loggable;
@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpMethod;
+
 
 import java.net.URI;
 import java.util.Map;
@@ -54,8 +55,9 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
      * @param errorHandler     error handler lambda to handle response (RestError)
      * @param <Req>            Type of the payload being sent.
      * @param <Resp>           Type of the response being returned.
+     * @param <Err>            Type of error being returned
      */
-    protected <Req, Resp> void restServiceRequest(
+    protected <Req, Resp, Err extends GeneralError> void restServiceRequest(
             UUID id,
             URI uri,
             HttpMethod method,
@@ -63,7 +65,7 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
             Map<String, String> headers,
             String responseApiClass,
             Consumer<Resp> successHandler,
-            Consumer<RestError> errorHandler
+            Consumer<Err> errorHandler
     ) {
 
         // set defaults
@@ -75,13 +77,12 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
         req.setSentFrom(this.getName());
         req.setHeaders(headers);
 
-        this.bus.requestOnceWithId(
+        callService(
                 id,
                 CoreChannels.RestService,
                 req,
-                (Message message) -> successHandler.accept((Resp) message.getPayload()),
-                (Message message) -> errorHandler.accept((RestError) message.getPayload())
-        );
+                successHandler,
+                errorHandler);
     }
 
     /**
@@ -96,16 +97,17 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
      * @param errorHandler     error handler lambda to handle response (RestError)
      * @param <Req>            Type of the payload being sent.
      * @param <Resp>           Type of the response being returned.
+     * @param <Err>            Type of the error being returned.
      * @deprecated use method with RestOperation.
      */
-    protected <Req, Resp> void restServiceRequest(
+    protected <Req, Resp, Err extends GeneralError> void restServiceRequest(
             URI uri,
             HttpMethod method,
             Req payload,
             Map<String, String> headers,
             String responseApiClass,
             Consumer<Resp> successHandler,
-            Consumer<RestError> errorHandler
+            Consumer<Err> errorHandler
     )  throws Exception {
         this.restServiceRequest(UUID.randomUUID(), uri, method, payload, headers, responseApiClass, successHandler, errorHandler);
     }
@@ -129,5 +131,51 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
                 operation.getSuccessHandler(),
                 operation.getErrorHandler()
         );
+    }
+
+    /**
+     * Call a service on a channel with a supplied payload, handle success and error response.\
+     * @param uuid the UUID you would like to use for the service call.
+     * @param channelName the channel you want to call
+     * @param request the request to be sent.
+     * @param successHandler the lambda you want to be passed the successful result
+     * @param errorHandler the lambda you want to be passed any errors
+     * @param <Req> generic type of the request
+     * @param <Resp> generic type of the response\
+     */
+    protected <Req, Resp, Err extends GeneralError> void callService(
+            UUID uuid,
+            String channelName,
+            Req request,
+            Consumer<Resp> successHandler,
+            Consumer<Err> errorHandler
+    ) {
+
+        this.bus.requestOnceWithId(
+                uuid,
+                channelName,
+                request,
+                (Message message) -> successHandler.accept((Resp) message.getPayload()),
+                (Message message) -> errorHandler.accept((Err)message.getPayload())
+        );
+    }
+
+    /**
+     * Call a service on a channel with a supplied payload, handle success and error response.\
+     * @param channelName the channel you want to call
+     * @param request the request to be sent.
+     * @param successHandler the lambda you want to be passed the successful result
+     * @param errorHandler the lambda you want to be passed any errors
+     * @param <Req> generic type of the request
+     * @param <Resp> generic type of the response
+     */
+    protected <Req, Resp> void callService(
+            String channelName,
+            Req request,
+            Consumer<Resp> successHandler,
+            Consumer<GeneralError> errorHandler
+    ) {
+
+       callService(UUID.randomUUID(), channelName, request, successHandler, errorHandler);
     }
 }

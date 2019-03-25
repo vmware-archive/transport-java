@@ -85,6 +85,6 @@ public class PongService extends AbstractService<Request<String>, Response<Strin
 }
 
 abstract class PongRequestType {
-    static final String Basic = "Basic";
-    static final String Full = "Full";
+    static final String Basic = "basic";
+    static final String Full = "full";
 }
