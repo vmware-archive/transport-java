@@ -38,11 +38,11 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
     }
 
     public Collection<BifrostSubscription> getSubscriptions() {
-        return openSubscriptions.values();
+        return new ArrayList<>(openSubscriptions.values());
     }
 
     public Collection<String> getOpenChannels() {
-        return openChannels.keySet();
+        return new HashSet<>(openChannels.keySet());
     }
 
     public synchronized void addSubscription(

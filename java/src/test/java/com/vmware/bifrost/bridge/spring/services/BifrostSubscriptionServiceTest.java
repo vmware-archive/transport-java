@@ -24,6 +24,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
+import java.util.Iterator;
 import java.util.UUID;
 
 @RunWith(SpringRunner.class)
@@ -133,6 +134,21 @@ public class BifrostSubscriptionServiceTest {
         // Verify that we have one MonitorNewBridgeSubscription event for each
         // subscription.
         Assert.assertEquals(this.count, 3);
+    }
+
+    @Test
+    public void testConcurentOpenChannelIterator() {
+
+        subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
+        subscriptionService.addSubscription("sub2", "session1", this.channel2, this.destinationPrefix, this.subscribeEvent2);
+
+        Iterator<String> oc = subscriptionService.getOpenChannels().iterator();
+        oc.next();
+        Assert.assertEquals(oc.hasNext(), true);
+
+        // Remove all subscriptions for session1
+        subscriptionService.unsubscribeSessionsAfterDisconnect("session1");
+        oc.next();
     }
 
     @Test

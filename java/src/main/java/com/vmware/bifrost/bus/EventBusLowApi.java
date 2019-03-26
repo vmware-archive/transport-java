@@ -109,6 +109,17 @@ public interface EventBusLowApi {
     Observable<Message> getChannel(String channel, String from, boolean noRefCount);
 
     /**
+     * Get the value of a given channel attribute. Return null if the channel or
+     * the attribute doesn't exist.
+     */
+    Object getChannelAttribute(String channel, String attribute);
+
+    /**
+     * Set the value of channel attribute. Return false if the operation was not successful.
+     */
+    boolean setChannelAttribute(String channel, String attribute, Object attributeValue);
+
+    /**
      * Filter bus events that contain command messages only. Returns observable
      * that will emit a command Message to any subscribers.
      *
