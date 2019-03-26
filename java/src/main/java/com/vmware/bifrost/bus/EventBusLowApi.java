@@ -92,6 +92,11 @@ public interface EventBusLowApi {
     Channel getChannelObject(String channel, String from, boolean noRefCount);
 
     /**
+     * Get the reference count for a given channel. Returns 0 if the channel doesn't exist.
+     */
+    int getChannelRefCount(String channel);
+
+    /**
      * Get a subscribable stream from channel. If the channel doesn't exist, it will be created.
      *
      * @param channel name of the channel you want to subscribe to.
