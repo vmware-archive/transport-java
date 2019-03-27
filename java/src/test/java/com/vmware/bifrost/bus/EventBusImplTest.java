@@ -62,6 +62,31 @@ public class EventBusImplTest {
     }
 
     @Test
+    public void checkChannelAttributes() {
+        String channelName = "#local-channel";
+
+        // verify that set and get methods doesn't work for non-existing channels
+        Assert.assertNull(this.bus.getApi().getChannelAttribute("non-existing-channel", "attr1"));
+        Assert.assertFalse(this.bus.getApi().setChannelAttribute("non-existing-channel", "attr1", "value1"));
+
+        // create channel
+        this.bus.getApi().getChannelObject(channelName, "test");
+
+        Assert.assertNull(this.bus.getApi().getChannelAttribute(channelName, "attr1"));
+
+        Assert.assertTrue(this.bus.getApi().setChannelAttribute(channelName, "attr1", "value1"));
+        Assert.assertEquals(this.bus.getApi().getChannelAttribute(channelName, "attr1"), "value1");
+
+        Assert.assertTrue(this.bus.getApi().setChannelAttribute(channelName, "attr1", "value2"));
+        Assert.assertEquals(this.bus.getApi().getChannelAttribute(channelName, "attr1"), "value2");
+
+        this.bus.closeChannel(channelName, "test");
+        // verify that attributes are cleared after the channel is closed
+        Assert.assertNull(this.bus.getApi().getChannelAttribute(channelName, "attr1"));
+        Assert.assertFalse(this.bus.getApi().setChannelAttribute(channelName, "attr1", "value1"));
+    }
+
+    @Test
     public void checkChannelFilters() {
 
         Observable<Message> chan = this.bus.getApi().getChannel("#local-1", "test");

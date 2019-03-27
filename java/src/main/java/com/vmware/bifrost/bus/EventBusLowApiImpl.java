@@ -16,11 +16,14 @@ import io.reactivex.subjects.Subject;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("unchecked")
 public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
 
     private final Map<String, Channel> internalChannelMap;
+
+    private final Map<String, Map<String, Object>> channelAttributesMap;
 
     private Channel monitorStream;
     private String monitorChannel;
@@ -29,6 +32,8 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
 
     public EventBusLowApiImpl(Map<String, Channel> channelMap) {
         this.internalChannelMap = channelMap;
+
+        this.channelAttributesMap = new ConcurrentHashMap<>();
 
         this.monitorChannel = MonitorChannel.stream;
         this.monitorStream = new Channel(this.monitorChannel);
@@ -71,6 +76,7 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
             }
             if (channel.decrement() == 0) {
                 this.internalChannelMap.remove(cname);
+                this.channelAttributesMap.remove(cname);
             }
         }
 
@@ -122,6 +128,7 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
             } else {
                 channel = new Channel(cname);
                 this.internalChannelMap.put(cname, channel);
+                this.channelAttributesMap.put(cname, new ConcurrentHashMap<>());
                 symbol = " [+++] ";
             }
             if (!noRefCount) {
@@ -144,6 +151,25 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
     public Observable<Message> getChannel(String channel, String from, boolean noRefCount) {
         return this.getChannelObject(channel, from, noRefCount)
               .getStreamObject();
+    }
+
+    @Override
+    public Object getChannelAttribute(String channel, String attribute) {
+        Map<String, Object> attributes = channelAttributesMap.get(channel);
+        if (attributes != null) {
+            return attributes.get(attribute);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean setChannelAttribute(String channel, String attribute, Object attributeValue) {
+        Map<String, Object> attributes = channelAttributesMap.get(channel);
+        if (attributes != null) {
+            attributes.put(attribute, attributeValue);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -237,6 +263,7 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
         if (removeFromMap) {
             synchronized (this.internalChannelMap) {
                 this.internalChannelMap.remove(channel.getName());
+                this.channelAttributesMap.remove(channel.getName());
             }
         }
     }

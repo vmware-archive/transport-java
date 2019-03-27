@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service("bifrostSubscriptionService")
 public class BifrostSubscriptionService extends Loggable implements BifrostBridgeSubscriptionRegistry {
@@ -28,21 +29,34 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
 
     private Map<String, BifrostSubscription> openSubscriptions;
     private Map<String, List<String>> sessionChannels;
-    private HashMap<String, OpenChannel> openChannels;
+    private Map<String, OpenChannel> openChannels;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public BifrostSubscriptionService() {
-        openSubscriptions = new HashMap<>();
-        openChannels = new HashMap<>();
+        openSubscriptions = new ConcurrentHashMap<>();
+        openChannels = new ConcurrentHashMap<>();
         sessionChannels = new HashMap<>();
     }
 
     public Collection<BifrostSubscription> getSubscriptions() {
-        return openSubscriptions.values();
+        return new ArrayList<>(openSubscriptions.values());
     }
 
     public Collection<String> getOpenChannels() {
-        return openChannels.keySet();
+        return new HashSet<>(openChannels.keySet());
+    }
+
+    public Collection<String> getOpenChannelsWithAttribute(String attribute, Object attributeValue) {
+        if (attribute == null || attributeValue == null) {
+            return Collections.emptyList();
+        }
+        LinkedList<String> result = new LinkedList<>();
+        for (String channel : openChannels.keySet()) {
+            if (attributeValue.equals(bus.getApi().getChannelAttribute(channel, attribute))) {
+                result.add(channel);
+            }
+        }
+        return result;
     }
 
     public synchronized void addSubscription(
