@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service("bifrostSubscriptionService")
 public class BifrostSubscriptionService extends Loggable implements BifrostBridgeSubscriptionRegistry {
@@ -28,12 +29,12 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
 
     private Map<String, BifrostSubscription> openSubscriptions;
     private Map<String, List<String>> sessionChannels;
-    private HashMap<String, OpenChannel> openChannels;
+    private Map<String, OpenChannel> openChannels;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public BifrostSubscriptionService() {
-        openSubscriptions = new HashMap<>();
-        openChannels = new HashMap<>();
+        openSubscriptions = new ConcurrentHashMap<>();
+        openChannels = new ConcurrentHashMap<>();
         sessionChannels = new HashMap<>();
     }
 
