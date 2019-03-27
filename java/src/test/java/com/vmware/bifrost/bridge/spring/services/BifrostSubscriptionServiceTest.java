@@ -24,6 +24,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -137,7 +138,7 @@ public class BifrostSubscriptionServiceTest {
     }
 
     @Test
-    public void testConcurentOpenChannelIterator() {
+    public void testConcurrentOpenChannelIterator() {
 
         subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
         subscriptionService.addSubscription("sub2", "session1", this.channel2, this.destinationPrefix, this.subscribeEvent2);
@@ -150,6 +151,43 @@ public class BifrostSubscriptionServiceTest {
         subscriptionService.unsubscribeSessionsAfterDisconnect("session1");
         oc.next();
     }
+
+   @Test
+   public void testGetOpenChannelsWithAttribute() {
+
+      subscriptionService.addSubscription("sub1", "session1", "chan1", this.destinationPrefix, this.subscribeEvent1);
+      bus.getApi().setChannelAttribute("chan1", "clientId", "client1");
+
+      subscriptionService.addSubscription("sub2", "session1", "chan2", this.destinationPrefix, this.subscribeEvent2);
+      bus.getApi().setChannelAttribute("chan2", "clientId", "client2");
+
+      subscriptionService.addSubscription("sub3", "session1", "chan3", this.destinationPrefix, this.subscribeEvent2);
+      bus.getApi().setChannelAttribute("chan3", "clientId", "client1");
+
+      subscriptionService.addSubscription("sub4", "session2", "chan1", this.destinationPrefix, this.subscribeEvent2);
+
+      subscriptionService.addSubscription("sub5", "session2", "chan4", this.destinationPrefix, this.subscribeEvent2);
+      bus.getApi().setChannelAttribute("chan4", "clientId", "client3");
+
+      Assert.assertTrue(subscriptionService.getOpenChannelsWithAttribute("invalid-attr", "value").isEmpty());
+      Assert.assertTrue(subscriptionService.getOpenChannelsWithAttribute(null, "value").isEmpty());
+      Assert.assertTrue(subscriptionService.getOpenChannelsWithAttribute("clientId", null).isEmpty());
+
+      Collection<String> chansForClient1 = subscriptionService.getOpenChannelsWithAttribute("clientId", "client1");
+      Assert.assertEquals(chansForClient1.size(), 2);
+      Assert.assertTrue(chansForClient1.contains("chan1"));
+      Assert.assertTrue(chansForClient1.contains("chan3"));
+
+      Collection<String> chansForClient3 = subscriptionService.getOpenChannelsWithAttribute("clientId", "client3");
+      Assert.assertEquals(chansForClient3.size(), 1);
+      Assert.assertTrue(chansForClient3.contains("chan4"));
+
+      // Remove all subscriptions for session1
+      subscriptionService.unsubscribeSessionsAfterDisconnect("session2");
+      Assert.assertTrue(subscriptionService.getOpenChannelsWithAttribute("clientId", "client3").isEmpty());
+
+      Assert.assertEquals(subscriptionService.getOpenChannelsWithAttribute("clientId", "client1").size(), 2);
+   }
 
     @Test
     public void testRemoveLastSubscriptionToChannel() {

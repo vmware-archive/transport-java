@@ -19,4 +19,10 @@ public interface BifrostBridgeSubscriptionRegistry {
      * Returns all Bifrost channels with active bridge subscriptions.
      */
     Collection<String> getOpenChannels();
+
+    /**
+     * Returns all Bifrost channels with active bridge subscriptions and with a given
+     * attribute value.
+     */
+    Collection<String> getOpenChannelsWithAttribute(String attribute, Object attributeValue);
 }

@@ -46,6 +46,19 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
         return new HashSet<>(openChannels.keySet());
     }
 
+    public Collection<String> getOpenChannelsWithAttribute(String attribute, Object attributeValue) {
+        if (attribute == null || attributeValue == null) {
+            return Collections.emptyList();
+        }
+        LinkedList<String> result = new LinkedList<>();
+        for (String channel : openChannels.keySet()) {
+            if (attributeValue.equals(bus.getApi().getChannelAttribute(channel, attribute))) {
+                result.add(channel);
+            }
+        }
+        return result;
+    }
+
     public synchronized void addSubscription(
           String subId, String sessionId, String channelName,
           String destinationPrefix,
