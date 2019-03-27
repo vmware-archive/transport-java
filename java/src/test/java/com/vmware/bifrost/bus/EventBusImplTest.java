@@ -152,6 +152,29 @@ public class EventBusImplTest {
     }
 
     @Test
+    public void checkChannelRefCount() {
+        String channelName = "#local-channel";
+
+        Assert.assertEquals(0, this.bus.getApi().getChannelRefCount(channelName));
+
+        Channel channel = this.bus.getApi().getChannelObject(channelName, "test");
+        Assert.assertEquals(1, this.bus.getApi().getChannelRefCount(channelName));
+        Assert.assertEquals(1, (int)channel.getRefCount());
+
+        this.bus.getApi().getChannelObject(channelName, "test");
+        Assert.assertEquals(2, this.bus.getApi().getChannelRefCount(channelName));
+        Assert.assertEquals(2, (int)channel.getRefCount());
+
+        this.bus.closeChannel("#local-channel", "test");
+        Assert.assertEquals(1, this.bus.getApi().getChannelRefCount(channelName));
+        Assert.assertEquals(1, (int)channel.getRefCount());
+
+        this.bus.closeChannel("#local-channel", "test");
+        Assert.assertEquals(0, this.bus.getApi().getChannelRefCount(channelName));
+        Assert.assertEquals(0, (int)channel.getRefCount());
+    }
+
+    @Test
     public void checkMessagePolymorphism() {
 
         Observable<Message> chan = this.bus.getApi().getChannel("#local-1", "test");

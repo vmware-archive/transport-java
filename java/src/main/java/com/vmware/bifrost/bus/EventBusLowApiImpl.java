@@ -143,6 +143,17 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
     }
 
     @Override
+    public int getChannelRefCount(String channel) {
+        synchronized (this.internalChannelMap) {
+            Channel channelObject = this.internalChannelMap.get(channel);
+            if (channelObject != null) {
+                return channelObject.getRefCount();
+            }
+        }
+        return 0;
+    }
+
+    @Override
     public Observable<Message> getChannel(String channel, String from) {
         return this.getChannel(channel, from, false);
     }
