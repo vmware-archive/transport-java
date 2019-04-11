@@ -31,7 +31,7 @@
 
 <h4>Create a new folder called 'fabric-tools'</h4>
 
-<pre class="code"><code class="language-shell" ngNonBindable>&gt; mkdir ~/fabric-tools && cd fabric-tools</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>&gt; mkdir ~/fabric-tools && cd ~/fabric-tools</code></pre>
 
 <h4>Grab the Sewing Machine build script</h4>
 
@@ -47,7 +47,11 @@
 
 <h2>Step 2: Build all the things</h2>
 
-<pre class="code"><code class="language-shell" ngNonBindable>&gt; ./build-sewingmachine.sh</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>&gt; ./build-sewingmachine.sh latest</code></pre>
+
+<p>
+    You can use latest or the version (v2.xxx)
+</p>
 
 <p>You will see docker complaining about not finding local images of the sewing-machine and will then proceed to download the latest Docker image
 that actually compiles all our of tooling. Your console will output something like the below (along with a bunch of Docker output)</p>
