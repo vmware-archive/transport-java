@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import samples.calendar.CalendarService;
 import samples.pong.PongService;
 
 import java.util.UUID;
@@ -25,9 +26,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/rest/samples")
 @SuppressWarnings("unchecked")
-public class PongServiceController extends AbstractBase {
+public class CalendarServiceController extends AbstractBase {
 
-    PongServiceController() {
+    CalendarServiceController() {
         super();
     }
 
@@ -36,10 +37,10 @@ public class PongServiceController extends AbstractBase {
 
     }
 
-    private void callPongService(Request request, DeferredResult<ResponseEntity<?>> result) {
+    private void callCalendarService(Request request, DeferredResult<ResponseEntity<?>> result) {
         this.callService(
                 request.getId(),
-                PongService.Channel,
+                CalendarService.Channel,
                 request,
                 (Response resp) -> {
                     result.setResult(ResponseEntity.ok(resp));
@@ -50,23 +51,27 @@ public class PongServiceController extends AbstractBase {
         );
     }
 
-    @RequestMapping(value = "/pong/full", method = RequestMethod.POST)
-    public DeferredResult<ResponseEntity<?>> pongFull(@RequestBody Request request) {
+    @RequestMapping(value = "/calendar/date", method = RequestMethod.POST)
+    public DeferredResult<ResponseEntity<?>> calendarDate(@RequestBody Request request) {
         DeferredResult<ResponseEntity<?>> result = new DeferredResult<>();
 
         if (request.getId() == null) {
             request.setId(UUID.randomUUID());
         }
+
+        if (request.getRequest() == null) {
+            request.setRequest("date");
+        }
         new Thread(() -> {
-            this.callPongService(request, result);
+            this.callCalendarService(request, result);
 
         }).start();
         return result;
     }
 
-    @RequestMapping(value = "/pong/basic", method = RequestMethod.POST)
-    public DeferredResult<ResponseEntity<?>> pongBasic(@RequestBody Request request) {
-        request.setRequest("basic");
-        return this.pongFull(request);
+    @RequestMapping(value = "/calendar/time", method = RequestMethod.POST)
+    public DeferredResult<ResponseEntity<?>> calendarTime(@RequestBody Request request) {
+        request.setRequest("time");
+        return this.calendarDate(request);
     }
 }
