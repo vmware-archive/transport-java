@@ -26,6 +26,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
         "com.vmware.bifrost.bridge.spring",
         "com.vmware.bifrost.bridge",
         "com.vmware.bifrost.bus",
+        "com.vmware.bifrost.bus.store",
         "com.vmware.bifrost.core",
         "com.vmware.bifrost.core.operations"
 })
