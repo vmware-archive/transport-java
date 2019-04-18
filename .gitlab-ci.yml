@@ -1,4 +1,4 @@
-image: appfabric-service.artifactory.eng.vmware.com/appfabric-build:1.1
+image: appfabric-service.artifactory.eng.vmware.com/appfabric-build:1.2
 
 services:
 - name: docker:dind
@@ -15,9 +15,10 @@ test:unit:
   script:
   - echo "Run unit tests"
   - cd ./java
-  - ./gradlew test
-  - ./gradlew jacocoTestReport
-  - cat ./build/reports/jacoco/test/html/index.html | sed -rn 's/.*Total[^%]*>([0-9]{1,3})%.*/Total test coverage:\1%\n/p'
+  - ./gradlew test jacocoTestReport
+  - cd ./csp
+  - ./gradlew test jacocoTestReport
+  - ../../scripts/codecoverage.sh
 
   artifacts:
     paths:
@@ -35,9 +36,13 @@ build:bifrost:
   - echo "Building vmw-bifrost"
   - cd ./java
   - ./gradlew assemble
+  - echo "Building vmw-bifrost-csp"
+  - cd ./csp
+  - ./gradlew assemble
   artifacts:
     paths:
     - java/build/libs
+    - java/csp/build/libs
     expire_in: 1 week
   when: on_success
   only:
@@ -71,6 +76,19 @@ publish:bifrost:
   - echo "Publishing vmw-bifrost"
   - cd ./java
   - ./gradlew publish -PbuildType=snapshot
+  when: on_success
+  only:
+  - master
+
+publish:bifrost-csp:
+  stage: publish
+  dependencies:
+  - build:bifrost
+  script:
+  - echo "Publishing vmw-bifrost-csp"
+  - echo "Disabled until the first MR gets merged"
+  #- cd ./java/csp
+  #- ./gradlew publish -PbuildType=snapshot
   when: on_success
   only:
   - master

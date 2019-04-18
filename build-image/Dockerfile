@@ -11,7 +11,8 @@ RUN apt-get install -yq wget \
                         xvfb \
                         default-jdk \
                         openjfx \
-                        locales
+                        locales \
+			bc
 
 # fix non-ascii characters.
 RUN locale-gen en_US.UTF-8
