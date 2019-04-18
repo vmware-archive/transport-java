@@ -5,6 +5,7 @@ package com.vmware.bifrost.bus;
 
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
+import com.vmware.bifrost.bus.store.BusStoreApi;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
@@ -33,6 +34,14 @@ public class EventBusImpl extends Loggable implements EventBus {
 
     @Autowired
     private ApplicationContext context;
+
+    private BusStoreApi storeManager;
+
+    // Use setter injection to avoid circular dependencies.
+    @Autowired(required = false)
+    public void setStoreManager(BusStoreApi storeManager) {
+        this.storeManager = storeManager;
+    }
 
     @EventListener
     public void handleContextStarted(ContextRefreshedEvent evt) {
@@ -550,17 +559,17 @@ public class EventBusImpl extends Loggable implements EventBus {
 
     @Override
     public Transaction createTransaction(Transaction.TransactionType type, String name) {
-        return new TransactionImpl(this, type, name);
+        return new TransactionImpl(this, this.storeManager, type, name);
     }
 
     @Override
     public Transaction createTransaction(Transaction.TransactionType type, String name, UUID id) {
-        return new TransactionImpl(this, type, name, id);
+        return new TransactionImpl(this, this.storeManager, type, name, id);
     }
 
     @Override
     public Transaction createTransaction(Transaction.TransactionType type, UUID id) {
-        return new TransactionImpl(this, type, null, id);
+        return new TransactionImpl(this, this.storeManager, type, null, id);
     }
 
     private  void init() {

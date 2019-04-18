@@ -10,6 +10,8 @@ import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
 import com.vmware.bifrost.bus.model.MessageType;
 import com.vmware.bifrost.bus.model.MonitorObject;
 import com.vmware.bifrost.bus.model.MonitorType;
+import com.vmware.bifrost.bus.store.BusStoreApi;
+import com.vmware.bifrost.bus.store.StoreManager;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subjects.Subject;
 import org.junit.Assert;
@@ -26,6 +28,7 @@ import static org.hamcrest.core.AnyOf.anyOf;
 public class EventBusImplTest {
 
     private EventBus bus;
+    private BusStoreApi storeManager;
 
     private int counter;
     private int responsesWithIdCounter;
@@ -33,10 +36,11 @@ public class EventBusImplTest {
     private int errors;
     private int errorsWithId;
 
-
     @Before
     public void before() throws Exception {
         this.bus = new EventBusImpl();
+        this.storeManager = new StoreManager(this.bus);
+        ((EventBusImpl)this.bus).setStoreManager(storeManager);
 
         this.counter = 0;
         this.errors = 0;
@@ -1472,6 +1476,17 @@ public class EventBusImplTest {
     public void testCreateTransaction() {
         Transaction transaction = this.bus.createTransaction();
         Assert.assertNotNull(transaction);
+        transaction.waitForStoreReady("test");
+        Assert.assertNull(this.storeManager.getStore("test"));
+        transaction.commit();
+        Assert.assertNotNull(this.storeManager.getStore("test"));
+
+        Transaction syncTransaction = this.bus.createTransaction(
+              Transaction.TransactionType.SYNC, "test-transaction", UUID.randomUUID());
+        syncTransaction.sendRequest("test-channel", "test-request");
+        syncTransaction.waitForStoreReady("store1");
+        syncTransaction.waitForStoreReady("store2");
+        Assert.assertEquals(syncTransaction.commit().getRequestsSent(), 1);
     }
 
     @Test

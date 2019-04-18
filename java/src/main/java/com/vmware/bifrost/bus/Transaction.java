@@ -22,6 +22,12 @@ public interface Transaction {
     void sendRequest(String channel, Object payload);
 
     /**
+     * Wait for a store to be ready / initialized as a part of this transaction.
+     * @param storeType, the ID of the store.
+     */
+    void waitForStoreReady(String storeType);
+
+    /**
      * Registers a new complete handler. Once all responses to requests have been received,
      * the transaction is complete.
      *

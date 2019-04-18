@@ -4,16 +4,22 @@
 package com.vmware.bifrost.bus;
 
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.store.BusStoreApi;
+import com.vmware.bifrost.bus.store.StoreManager;
+import com.vmware.bifrost.bus.store.model.BusStore;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class TransactionImplTest {
 
     private EventBus bus;
+    private BusStoreApi storeManager;
 
     private Message[] responses;
     private Message errorMsg;
@@ -26,6 +32,8 @@ public class TransactionImplTest {
     @Before
     public void before() throws Exception {
         this.bus = new EventBusImpl();
+        this.storeManager = new StoreManager(this.bus);
+        ((EventBusImpl)this.bus).setStoreManager(this.storeManager);
         this.requestMessages = new ArrayList<>();
         this.channel = "local-channel";
         this.counter = 0;
@@ -75,6 +83,7 @@ public class TransactionImplTest {
 
         transaction.sendRequest(this.channel, "request1");
         transaction.sendRequest(this.channel, "request2");
+        transaction.waitForStoreReady("testStore");
         transaction.sendRequest(this.channel, "request3");
 
         TransactionReceipt receipt = transaction.commit();
@@ -91,12 +100,18 @@ public class TransactionImplTest {
         this.bus.sendResponseMessageWithId(channel, "response2", this.requestMessages.get(1).getId());
         verifyTransactionInProgress(receipt, 2);
 
+        UUID storeItemId = UUID.randomUUID();
+        this.storeManager.getStore("testStore").getBusStoreInitializer()
+              .add(storeItemId, "testItem")
+              .done();
+        verifyTransactionInProgress(receipt, 3);
+
         Assert.assertEquals(this.requestMessages.size(), 3);
         Assert.assertEquals(this.requestMessages.get(2).getPayload(), "request3");
-
         this.bus.sendResponseMessageWithId(channel, "response3", this.requestMessages.get(2).getId());
 
-        verifyTransactionCompleted(receipt, "response1", "response2", "response3");
+        verifyTransactionCompleted(receipt,
+              "response1", "response2", this.storeManager.getStore("testStore"), "response3");
 
         // Verify that there is only one channel reference (the one from the listenRequestStream).
         Assert.assertEquals(this.bus.getApi().getChannelMap().get(channel).getRefCount().intValue(), 1);
@@ -131,6 +146,7 @@ public class TransactionImplTest {
 
         transaction.sendRequest(this.channel, "request1");
         transaction.sendRequest(this.channel, "request2");
+        transaction.waitForStoreReady("testStore");
         transaction.sendRequest(this.channel, "request3");
 
         TransactionReceipt receipt = transaction.commit();
@@ -139,7 +155,7 @@ public class TransactionImplTest {
         Assert.assertEquals(this.requestMessages.get(0).getPayload(), "request1");
         Assert.assertEquals(this.requestMessages.get(1).getPayload(), "request2");
         Assert.assertEquals(this.requestMessages.get(2).getPayload(), "request3");
-        Assert.assertEquals(receipt.getRequestsSent(), 3);
+        Assert.assertEquals(receipt.getRequestsSent(), 4);
 
         this.bus.sendResponseMessageWithId(channel, "response3", this.requestMessages.get(2).getId());
         verifyTransactionInProgress(receipt, 1);
@@ -147,8 +163,13 @@ public class TransactionImplTest {
         this.bus.sendResponseMessageWithId(channel, "response1", this.requestMessages.get(0).getId());
         verifyTransactionInProgress(receipt, 2);
 
+        this.storeManager.getStore("testStore").getBusStoreInitializer()
+              .add(UUID.randomUUID(), "testValue").done();
+        verifyTransactionInProgress(receipt, 3);
+
         this.bus.sendResponseMessageWithId(channel, "response2", this.requestMessages.get(1).getId());
-        verifyTransactionCompleted(receipt, "response1", "response2", "response3");
+        verifyTransactionCompleted(receipt,
+              "response1", "response2", this.storeManager.getStore("testStore"), "response3");
 
         // Verify that there is only one channel reference (the one from the listenRequestStream).
         Assert.assertEquals(this.bus.getApi().getChannelMap().get(channel).getRefCount().intValue(), 1);
@@ -185,6 +206,7 @@ public class TransactionImplTest {
 
         transaction.sendRequest(this.channel, "request1");
         transaction.sendRequest(this.channel, "request2");
+        transaction.waitForStoreReady("testStore");
         transaction.sendRequest(this.channel, "request3");
 
         TransactionReceipt receipt = transaction.commit();
@@ -193,6 +215,7 @@ public class TransactionImplTest {
 
         this.bus.sendErrorMessageWithId(channel, "response1-error", this.requestMessages.get(0).getId());
         this.bus.sendErrorMessageWithId(channel, "response2-error", this.requestMessages.get(1).getId());
+        this.storeManager.getStore("testStore").initialize();
 
         verifyTransactionAborted(receipt, "response1-error", 1);
     }
@@ -264,6 +287,13 @@ public class TransactionImplTest {
         }
         verifyInvalidTransactionStateError(invalidStateEx, "committed");
 
+        try {
+            transaction.waitForStoreReady("testStore");
+        } catch (IllegalStateException ex) {
+            invalidStateEx = ex;
+        }
+        verifyInvalidTransactionStateError(invalidStateEx, "committed");
+
         this.bus.sendErrorMessageWithId(this.channel, "error1", this.requestMessages.get(0).getId());
 
         invalidStateEx = null;
@@ -282,8 +312,10 @@ public class TransactionImplTest {
         transaction.onComplete((Message[] msgs) -> this.counter++);
 
         transaction.sendRequest(this.channel, "request1");
+        transaction.waitForStoreReady("testStore");
         transaction.commit();
 
+        this.storeManager.getStore("testStore").initialize();
         this.bus.sendResponseMessageWithId(this.channel, "response1", this.requestMessages.get(0).getId());
         Assert.assertEquals(this.counter, 2);
     }
@@ -321,7 +353,18 @@ public class TransactionImplTest {
         Assert.assertEquals(this.responses.length, expectedResponses.length);
 
         for (int i = 0; i < this.responses.length; i++) {
-            Assert.assertEquals(this.responses[i].getPayload(), expectedResponses[i]);
+            if (expectedResponses[i] instanceof BusStore) {
+                Map<UUID, Object> expectedValue =
+                      ((BusStore)expectedResponses[i]).allValuesAsMap();
+
+                Map<UUID, Object> actualValue = (Map<UUID, Object>) this.responses[i].getPayload();
+                Assert.assertEquals(expectedValue.size(), actualValue.size());
+                for (Map.Entry<UUID, Object> value : expectedValue.entrySet()) {
+                    Assert.assertEquals(value.getValue(), actualValue.get(value.getKey()));
+                }
+            } else {
+                Assert.assertEquals(this.responses[i].getPayload(), expectedResponses[i]);
+            }
         }
 
         Assert.assertEquals(receipt.getRequestsCompleted(), expectedResponses.length);
