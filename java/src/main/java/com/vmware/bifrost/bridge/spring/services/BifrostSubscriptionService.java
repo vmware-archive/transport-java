@@ -59,6 +59,22 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
         return result;
     }
 
+    private void handleResponseMessage(Message msg, String destinationPrefix, String channelName) {
+        if (msg.isError()) {
+            this.logWarnMessage("Bifröst sending error payload over socket: " + msg.getPayload().toString() + " to " + channelName);
+        } else {
+            this.logTraceMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
+        }
+
+        // deliver the message to the target user if it is specified in the Message object.
+        // otherwise, broadcast it to all subscribers.
+        //if (msg.getTargetUser() != null) {
+        //    msgTmpl.convertAndSendToUser(msg.getTargetUser(), destinationPrefix.replace("/user", "") + channelName, msg.getPayload());
+        //} else {
+        msgTmpl.convertAndSend(destinationPrefix + channelName, msg.getPayload());
+        //}
+    }
+
     public synchronized void addSubscription(
           String subId, String sessionId, String channelName,
           String destinationPrefix,
@@ -74,12 +90,11 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
         logger.info(String.format("[+] Bifröst Bus: creating channel subscription to '%s' subId: (%s)",
               channelName, subscription.uniqueId));
 
+
         if (!openChannels.containsKey(channelName)) {
             BusTransaction transaction = bus.listenStream(channelName,
-                  (Message msg) -> {
-                      this.logTraceMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
-                      msgTmpl.convertAndSend(destinationPrefix + channelName, msg.getPayload());
-                  }
+                  (Message msg) -> handleResponseMessage(msg, destinationPrefix, channelName),
+                  (Message msg) -> handleResponseMessage(msg, destinationPrefix, channelName)
             );
             openChannels.put(channelName, new OpenChannel(channelName, transaction));
         }

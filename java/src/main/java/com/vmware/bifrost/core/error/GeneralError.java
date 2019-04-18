@@ -9,6 +9,8 @@ public class GeneralError {
     public String message;
     public String status;
 
+    public GeneralError() {}
+
     public GeneralError(String message, String status) {
         this.status = status;
         this.message = message;

@@ -11,7 +11,7 @@ import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.core.interfaces.BusServiceEnabled;
 
-
+import java.io.IOException;
 import java.util.UUID;
 
 @SuppressWarnings("unchecked")
@@ -29,6 +29,34 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
 
     String getServiceChannel() {
         return this.serviceChannel;
+    }
+
+    /**
+     * Build an error response based on request rejection details.
+     * @param requestType Request
+     * @return Response
+     */
+    private Response<GeneralError> buildErrorResponse(RequestType requestType) {
+        if (!requestType.getRejected()) {
+            return null;
+        }
+
+        Response<GeneralError> errorResponse = null;
+
+        try {
+            GeneralError generalError = mapper.readValue(
+                    requestType.getPayload().toString(),
+                    GeneralError.class);
+            errorResponse = new Response<>(
+                    requestType.getId(), generalError);
+            errorResponse.setErrorCode(generalError.errorCode);
+            errorResponse.setError(true);
+            errorResponse.setErrorMessage(generalError.message);
+        } catch (IOException e) {
+            logWarnMessage("Failed to parse request payload into GeneralError: " + e.getMessage());
+        }
+
+        return errorResponse;
     }
 
     /**
@@ -78,7 +106,17 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
                                 "Service Request Received",
                                 message.getPayload().toString());
 
-                        this.handleServiceRequest((RequestType) message.getPayload(), message);
+                        // if request is rejected by the interceptor, isRejected will be true and the payload will
+                        // be an instance of GeneralError. send the error response straight back to the user
+                        RequestType requestType = (RequestType) message.getPayload();
+                        Response<GeneralError> requestError = buildErrorResponse(requestType);
+
+                        if (requestError != null) {
+                            this.bus.sendErrorMessageWithId(serviceChannel, requestError, requestType.getId());
+                            return;
+                        }
+
+                        this.handleServiceRequest(requestType, message);
 
                     } catch (ClassCastException cce) {
                         this.logErrorMessage("Service unable to process request, " +

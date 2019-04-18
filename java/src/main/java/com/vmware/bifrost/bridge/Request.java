@@ -12,6 +12,8 @@ public class Request<ReqP> extends AbstractFrame {
     @Getter @Setter
     private String channel;
 
+    private Boolean isRejected = false;
+
     public Request() {}
 
     public Request(Integer version, UUID id, String request, ReqP payload) {
@@ -45,4 +47,15 @@ public class Request<ReqP> extends AbstractFrame {
         return "Request ID: " + this.getId();
     }
 
+    public void setRequest(String request) {
+        this.request = request;
+    }
+
+    public Boolean getRejected() {
+        return isRejected;
+    }
+
+    public void setRejected(Boolean rejected) {
+        isRejected = rejected;
+    }
 }
