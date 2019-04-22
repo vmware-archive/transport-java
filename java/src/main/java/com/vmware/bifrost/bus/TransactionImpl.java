@@ -4,6 +4,9 @@
 package com.vmware.bifrost.bus;
 
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageObject;
+import com.vmware.bifrost.bus.model.MessageType;
+import com.vmware.bifrost.bus.store.BusStoreApi;
 import com.vmware.bifrost.core.util.Loggable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.subjects.PublishSubject;
@@ -18,6 +21,7 @@ import java.util.UUID;
 public class TransactionImpl extends Loggable implements Transaction {
 
     private final EventBus bus;
+    private final BusStoreApi storeManager;
     private final TransactionType transactionType;
     private final String transactionName;
     private final UUID id;
@@ -33,13 +37,17 @@ public class TransactionImpl extends Loggable implements Transaction {
 
     private TransactionReceiptImpl transactionReceipt;
 
-    public TransactionImpl(EventBus bus, TransactionType type, String name) {
-        this(bus, type, name, UUID.randomUUID());
+    public TransactionImpl(EventBus bus, BusStoreApi storeManager,
+            TransactionType type, String name) {
+
+        this(bus, storeManager, type, name, UUID.randomUUID());
         this.useRandomIdForRequests = true;
     }
 
-    public TransactionImpl(EventBus bus, TransactionType type, String name, UUID id) {
+    public TransactionImpl(EventBus bus, BusStoreApi storeManager,
+            TransactionType type, String name, UUID id) {
         this.bus = bus;
+        this.storeManager = storeManager;
         this.transactionType = type;
         this.id = id;
         this.useRandomIdForRequests = false;
@@ -50,7 +58,15 @@ public class TransactionImpl extends Loggable implements Transaction {
     @Override
     public void sendRequest(String channel, Object payload) {
         assertUncommittedState("cannot queue a new request via sendRequest()");
-        this.requests.add(new TransactionRequest(this.requests.size(), channel, payload, this.id));
+        this.requests.add(
+              new TransactionRequest(this.requests.size(), channel, payload, null, this.id));
+    }
+
+    @Override
+    public void waitForStoreReady(String storeType) {
+        assertUncommittedState("cannot queue a new request via sendRequest()");
+        this.requests.add(
+              new TransactionRequest(this.requests.size(), null, null, storeType, this.id));
     }
 
     @Override
@@ -90,22 +106,48 @@ public class TransactionImpl extends Loggable implements Transaction {
 
     private void startAsyncTransaction() {
         for (TransactionRequest request : this.requests) {
-            sendRequestAndListen(request, null);
+            if (request.isStoreTransaction()) {
+                waitForStoreAndListen(request, null);
+            } else {
+                sendRequestAndListen(request, null);
+            }
         }
     }
 
     private void startSyncTransaction() {
         Subject<TransactionRequest> syncStream = PublishSubject.create();
 
-        syncStream.subscribe((TransactionRequest request) ->
-            sendRequestAndListen(request, (Message response) -> {
+        syncStream.subscribe((TransactionRequest request) -> {
+            Consumer<Message> requestHandler = (Message response) -> {
                 // Fire the next request (if available).
                 if (request.requestIndex + 1 < this.requests.size()) {
                     syncStream.onNext(this.requests.get(request.requestIndex + 1));
                 }
-            }));
+            };
+
+            if (request.isStoreTransaction()) {
+                waitForStoreAndListen(request, requestHandler);
+            } else {
+                sendRequestAndListen(request, requestHandler);
+            }
+        });
 
         syncStream.onNext(this.requests.get(0));
+    }
+
+    private void waitForStoreAndListen(TransactionRequest request, Consumer<Message> onSuccess) {
+        this.logDebugMessage(String.format("➡️ Transaction: Waiting '%s' for store '%s'",
+              this.transactionType.toString(), request.storeType), this.transactionName);
+        this.transactionReceipt.requestsSent++;
+        this.storeManager.createStore(request.storeType).whenReady( map -> {
+            if (this.state == TransactionState.aborted) {
+                // Ignore this response if the transaction is in aborted state.
+                return;
+            }
+            onTransactionRequestSuccess(
+                  request, new MessageObject(MessageType.MessageTypeResponse, map), onSuccess);
+        });
+
     }
 
     private void sendRequestAndListen(TransactionRequest request, Consumer<Message> onSuccess) {
@@ -138,15 +180,7 @@ public class TransactionImpl extends Loggable implements Transaction {
                         response.toString()),
                         this.transactionName);
 
-                  this.transactionReceipt.requestsCompleted++;
-                  this.responses[request.requestIndex] = response;
-                  if (onSuccess != null) {
-                      onSuccess.accept(response);
-                  }
-                  if (this.transactionReceipt.requestsCompleted == this.transactionReceipt.totalRequests) {
-                      // Complete the transaction if this is the last request.
-                      onTransactionComplete();
-                  }
+                  onTransactionRequestSuccess(request, response, onSuccess);
               },
               (Message errMessage) -> {
                   if (this.state == TransactionState.aborted) {
@@ -160,6 +194,20 @@ public class TransactionImpl extends Loggable implements Transaction {
                         this.transactionName);
                   onTransactionError(errMessage);
               });
+    }
+
+    private void onTransactionRequestSuccess(
+          TransactionRequest request, Message response, Consumer<Message> onSuccess) throws Exception {
+
+        this.transactionReceipt.requestsCompleted++;
+        this.responses[request.requestIndex] = response;
+        if (onSuccess != null) {
+            onSuccess.accept(response);
+        }
+        if (this.transactionReceipt.requestsCompleted == this.transactionReceipt.totalRequests) {
+            // Complete the transaction if this is the last request.
+            onTransactionComplete();
+        }
     }
 
     private void onTransactionError(Message errMessage) throws Exception {
@@ -208,16 +256,18 @@ public class TransactionImpl extends Loggable implements Transaction {
         final String channel;
         final Object payload;
         final UUID id;
+        final String storeType;
 
-        TransactionRequest(int index, String channel, Object payload) {
-            this(index, channel, payload, UUID.randomUUID());
-        }
-
-        TransactionRequest(int index, String channel, Object payload, UUID id) {
+        TransactionRequest(int index, String channel, Object payload, String storeType, UUID id) {
             this.requestIndex = index;
             this.payload = payload;
             this.channel = channel;
+            this.storeType = storeType;
             this.id = id;
+        }
+
+        public boolean isStoreTransaction() {
+            return this.storeType != null;
         }
     }
 
