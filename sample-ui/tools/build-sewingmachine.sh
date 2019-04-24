@@ -7,11 +7,12 @@ COLOR_RED="\033[38;5;9m"
 COLOR_LIGHTCYAN="\033[1;36m"
 COLOR_LIGHTGREEN="\033[1;32m"
 
-ROOT=$(cd $(dirname $0)/../../.. ; pwd)
+ROOT=$(cd $(dirname $0)/.. ; pwd)
 TOOLS_FOLDER=$(cd $(dirname $0) ; pwd)
 
 VERSION=$1
 ALL_TOOLS_PRESENT=1
+SKIP_DIGEST_CHECK=${SKIP_DIGEST_CHECK:-0}
 TOOLS=(apigen appgen linty modelgen servgen2 specgen appomatic)
 
 info() {
@@ -61,32 +62,40 @@ if [ -f "$DIGEST_FILE" ] ; then
 fi
 
 # get the digest for the given tag/version
-LATEST_DIGEST=$(extract_tag_digest "$VERSION")
-
-if [ "$PREVIOUS_DIGEST" != "$LATEST_DIGEST" ] ; then
-    info "Digest does not match. Building the tools..."
-    ALL_TOOLS_PRESENT=0
+if [ $SKIP_DIGEST_CHECK -eq 1 ] ; then
+    info "Digest check skipped"
+    compare_local_version "${VERSION}"
+    if [ $ALL_TOOLS_PRESENT -eq 1 ] ; then
+        success "Autogen tools ${VERSION} already found locally"
+        exit 0
+    fi
 else
-    # even if digest matches, let's make sure the actual local binaries match the version
-    # specified in the digest file
-    info "Checking if local binaries match the last used version (${PREVIOUS_VERSION})"
-    compare_local_version "${PREVIOUS_VERSION}"
-fi
+    LATEST_DIGEST=$(extract_tag_digest "$VERSION")
 
-if [ $ALL_TOOLS_PRESENT -eq 1 ] ; then
-    success "Autogen tools ${VERSION} already found locally"
-    exit 0
-fi
+    if [ "$PREVIOUS_DIGEST" != "$LATEST_DIGEST" ] ; then
+        info "Digest does not match. Building the tools..."
+        ALL_TOOLS_PRESENT=0
+    else
+        # even if digest matches, let's make sure the actual local binaries match the version
+        # specified in the digest file
+        info "Checking local binaries match the last used version (${PREVIOUS_VERSION})"
+        compare_local_version "${PREVIOUS_VERSION}"
+    fi
 
-# update digest file
-echo $LATEST_DIGEST > $DIGEST_FILE
+    if [ $ALL_TOOLS_PRESENT -eq 1 ] ; then
+        success "Autogen tools ${VERSION} already found locally"
+        exit 0
+    fi
+
+    # update digest file
+    echo $LATEST_DIGEST > $DIGEST_FILE
+fi
 
 docker run -i \
            --rm \
-           -v $TOOLS_FOLDER:/tmp/autogen-dist \
-           autogen-docker-local.artifactory.eng.vmware.com/autogen:$VERSION \
-           -a amd64 \
-           -o $(uname -s | tr '[:upper:]' '[:lower:]')
+           -v $TOOLS_FOLDER:/tmp/dist \
+           -e PLATFORM=$(uname -s | tr '[:upper:]' '[:lower:]') \
+           autogen-docker-local.artifactory.eng.vmware.com/autogen:$VERSION
 
 if [ $? -gt 0 ] ; then
     # if the command fails, remove the digest file
@@ -97,4 +106,3 @@ else
     echo $LOCAL_VERSION >> $DIGEST_FILE
     success "Sewing Machine binaries $LOCAL_VERSION were built successfully. Digest created at $DIGEST_FILE"
 fi
-
