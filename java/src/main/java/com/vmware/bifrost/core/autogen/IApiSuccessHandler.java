@@ -12,5 +12,5 @@ import com.vmware.bifrost.bus.model.Message;
  * @param <ResponseType>The service response object
  */
 public interface IApiSuccessHandler<RequestType extends Request, ResponseType extends Response> {
-    void apiSuccessHandler(IApiType<RequestType, ResponseType> apiType, String payload, Message message);
+    void apiSuccessHandler(IApiType<RequestType, ResponseType> apiType, Object payload, Message message);
 }

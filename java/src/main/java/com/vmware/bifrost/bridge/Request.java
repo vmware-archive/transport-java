@@ -47,10 +47,6 @@ public class Request<ReqP> extends AbstractFrame {
         return "Request ID: " + this.getId();
     }
 
-    public void setRequest(String request) {
-        this.request = request;
-    }
-
     public Boolean getRejected() {
         return isRejected;
     }
