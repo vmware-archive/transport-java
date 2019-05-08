@@ -24,7 +24,7 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
     @Autowired
     private EventBus bus;
 
-    @Autowired
+    @Autowired(required = false)
     private SimpMessagingTemplate msgTmpl;
 
     private Map<String, BifrostSubscription> openSubscriptions;

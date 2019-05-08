@@ -3,6 +3,8 @@
  */
 package com.vmware.bifrost.bus;
 
+import com.vmware.bifrost.broker.GalacticChannelConfig;
+import com.vmware.bifrost.broker.MessageBrokerConnector;
 import com.vmware.bifrost.bus.model.Message;
 import io.reactivex.functions.Consumer;
 
@@ -623,4 +625,40 @@ public interface EventBus {
      * @return
      */
     Transaction createTransaction(Transaction.TransactionType type, UUID id);
+
+   /**
+    * Register a new MessageBrokerConnector which will be used to extend the EventBus.
+    * @param messageBrokerConnector, a {@link MessageBrokerConnector} with unique id.
+    *
+    * @return true if the register operation was successful. Will return false if
+    * a message broker connector with the same id was already registered.
+    */
+    boolean registerMessageBroker(MessageBrokerConnector messageBrokerConnector);
+
+   /**
+    * Unregisters a MessageBrokerConnector instance from the bus.
+    * @param messageBrokerId, the unique id of the MessageBrokerConnector to be removed.
+    * @return true if the unregister operation was successful.
+    */
+    boolean unregisterMessageBroker(String messageBrokerId);
+
+    /**
+     * Mark a channel as galactic. After the channel is marked as galactic,
+     * all requests to it will be forwarded to the MessageBrokerConnector associated with it.
+     *
+     * The MessageBrokerConnector must be registered in the EventBus via the registerMessageBroker()
+     * API before calling the markChannelAsGalactic() API.
+     *
+     * @param channel, the name of the galactic channel.
+     * @param config, the galactic channel configuration.
+     */
+    void markChannelAsGalactic(String channel, GalacticChannelConfig config);
+
+   /**
+    * Closes a galactic channel and removes the GalacticChannelConfig
+    * associated with it.
+    *
+    * @param channel, the galactic channel to be removed.
+    */
+    boolean destroyGalacticChannel(String channel);
 }

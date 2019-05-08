@@ -3,6 +3,8 @@
  */
 package com.vmware.bifrost.bus;
 
+import com.vmware.bifrost.broker.TestGalacticChannelConfig;
+import com.vmware.bifrost.broker.TestMessageBrokerConnector;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.model.MessageObject;
@@ -18,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import io.reactivex.Observable;
+import org.mockito.Mockito;
 
 import java.util.UUID;
 
@@ -33,8 +36,10 @@ public class EventBusImplTest {
     private int counter;
     private int responsesWithIdCounter;
     private Message message;
+    private MonitorObject monitorObject;
     private int errors;
     private int errorsWithId;
+    private Exception lastEx;
 
     @Before
     public void before() throws Exception {
@@ -44,6 +49,8 @@ public class EventBusImplTest {
 
         this.counter = 0;
         this.errors = 0;
+        this.lastEx = null;
+        this.monitorObject = null;
     }
 
     @Test
@@ -320,7 +327,7 @@ public class EventBusImplTest {
         config.setSendChannel(chan);
         config.setReturnChannel(chan);
 
-        MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
+        MessageResponder<String> responder = new MessageResponderImpl(config, this.bus);
 
         responder.generate(
                 (Message message) -> {
@@ -355,7 +362,7 @@ public class EventBusImplTest {
         config.setSendChannel(chan);
         config.setReturnChannel(chanret);
 
-        MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
+        MessageResponder<String> responder = new MessageResponderImpl(config, this.bus);
 
         responder.generate(
                 (Message message) -> {
@@ -389,7 +396,7 @@ public class EventBusImplTest {
         config.setSendChannel(chan);
         config.setReturnChannel(chan);
 
-        MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
+        MessageResponder<String> responder = new MessageResponderImpl(config, this.bus);
         TestObserver<Message> observer = this.bus.getApi().getErrorChannel(chan, "test").test();
         observer.assertSubscribed();
         observer.assertValueCount(0);
@@ -441,7 +448,7 @@ public class EventBusImplTest {
         String question = "where is the kitty";
         String answer = "under the bed";
 
-        MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
+        MessageResponder<String> responder = new MessageResponderImpl(config, this.bus);
         TestObserver<Message> observer = this.bus.getApi().getRequestChannel(chan, "test").test();
         TestObserver<Message> observer2 = this.bus.getApi().getResponseChannel(chan, "test").test();
 
@@ -497,7 +504,7 @@ public class EventBusImplTest {
         String question = "shipoopi";
         String answer = "the girl who's hard to get";
 
-        MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
+        MessageResponder<String> responder = new MessageResponderImpl(config, this.bus);
         TestObserver<Message> observer = this.bus.getApi().getRequestChannel(chan, "test").test();
         TestObserver<Message> observer2 = this.bus.getApi().getResponseChannel(chanret, "test").test();
 
@@ -551,7 +558,7 @@ public class EventBusImplTest {
         String answer = "nope, we drank it all";
         String error = "bleh!";
 
-        MessageResponder<String> responder = new MessageResponderImpl(false, config, this.bus);
+        MessageResponder<String> responder = new MessageResponderImpl(config, this.bus);
         TestObserver<Message> observer = this.bus.getApi().getRequestChannel(chan, "test").test();
         TestObserver<Message> observer2 = this.bus.getApi().getResponseChannel(chan, "test").test();
         TestObserver<Message> observer3 = this.bus.getApi().getErrorChannel(chan, "test").test();
@@ -1581,4 +1588,219 @@ public class EventBusImplTest {
 
     }
 
+    @Test
+    public void testRegisterAndUnregisterMessageBrokerConnector() {
+
+        TestMessageBrokerConnector mbc1 = new TestMessageBrokerConnector("mbr1");
+        TestMessageBrokerConnector mbc2 = new TestMessageBrokerConnector("mbr2");
+        TestMessageBrokerConnector mbc3 = new TestMessageBrokerConnector("mbr1");
+
+        Assert.assertFalse(mbc1.connected);
+        Assert.assertFalse(mbc2.connected);
+        Assert.assertFalse(mbc3.connected);
+
+        Assert.assertTrue(bus.registerMessageBroker(mbc1));
+        Assert.assertTrue(mbc1.connected);
+
+        Assert.assertTrue(bus.registerMessageBroker(mbc2));
+        Assert.assertTrue(mbc2.connected);
+
+        Assert.assertFalse(bus.registerMessageBroker(mbc3));
+        Assert.assertFalse(mbc3.connected);
+
+        Assert.assertTrue(bus.unregisterMessageBroker("mbr1"));
+        Assert.assertFalse(mbc1.connected);
+
+        Assert.assertTrue(mbc2.connected);
+        Assert.assertFalse(bus.unregisterMessageBroker("non-existing-mbr"));
+    }
+
+    @Test
+    public void testMarkChannelAsGalacticErrorHandling() {
+        TestMessageBrokerConnector mbc1 = new TestMessageBrokerConnector("mbr1");
+
+        TestGalacticChannelConfig gcc1 =
+              new TestGalacticChannelConfig(mbc1.getMessageBrokerId(), "remote-channel-1");
+
+        this.bus.getApi().getMonitor().subscribe(message -> {
+            MonitorObject mo = (MonitorObject) message.getPayload();
+            if (mo.getType() == MonitorType.MonitorNewGalacticChannel) {
+                this.monitorObject = mo;
+                counter++;
+            }
+        });
+
+        // try to mark a channel as galactic before we register
+        // the message broker connector and verify that
+        // runtime exception will be thrown.
+        try {
+            bus.markChannelAsGalactic("channel1", gcc1);
+        } catch (Exception ex) {
+            lastEx = ex;
+        }
+        Assert.assertNotNull(lastEx);
+        Assert.assertEquals(lastEx.getMessage(),
+              "Cannot find message broker with id: " + mbc1.getMessageBrokerId());
+        Assert.assertEquals(0, counter);
+
+        bus.registerMessageBroker(mbc1);
+        bus.markChannelAsGalactic("channel1", gcc1);
+
+        Assert.assertNotNull(monitorObject);
+        Assert.assertEquals(monitorObject.getChannel(), "channel1");
+        Assert.assertEquals(1, counter);
+
+        // try to mark the same channel as galactic
+        lastEx = null;
+        try {
+            bus.markChannelAsGalactic("channel1", gcc1);
+        } catch (Exception ex) {
+            lastEx = ex;
+        }
+        Assert.assertNotNull(lastEx);
+        Assert.assertEquals(lastEx.getMessage(),
+              "Channel channel1 already marked as galactic.");
+        Assert.assertEquals(1, counter);
+    }
+
+    @Test
+    public void testMarkChannelAsGalactic() {
+
+        TestMessageBrokerConnector mbc1 = new TestMessageBrokerConnector("mbr1");
+        TestMessageBrokerConnector mbc2 = new TestMessageBrokerConnector("mbr2");
+
+        TestGalacticChannelConfig gcc1 =
+              new TestGalacticChannelConfig(mbc1.getMessageBrokerId(), "remote-channel-1");
+        TestGalacticChannelConfig gcc2 =
+              new TestGalacticChannelConfig(mbc2.getMessageBrokerId(), "remote-channel-2");
+
+        bus.registerMessageBroker(mbc1);
+        bus.markChannelAsGalactic("channel1", gcc1);
+        bus.registerMessageBroker(mbc2);
+        bus.markChannelAsGalactic("channel2", gcc2);
+
+        Channel channel = bus.getApi().getChannelMap().get("channel1");
+        Assert.assertNotNull(channel);
+        Assert.assertEquals(channel.getRefCount().intValue(), 1);
+
+        bus.sendRequestMessage("channel1", "test-message");
+
+        Assert.assertEquals(mbc1.messagesSent, 1);
+        Assert.assertEquals(mbc1.lastSentMessage, "test-message");
+        Assert.assertEquals(mbc1.lastSentMessageChannel, gcc1);
+
+        Assert.assertEquals(mbc2.messagesSent, 0);
+
+        bus.sendRequestMessage("channel2", "test-message-2");
+        Assert.assertEquals(mbc2.messagesSent, 1);
+        Assert.assertEquals(mbc1.messagesSent, 1);
+
+        BusTransaction busTransaction = bus.listenStream("channel1", galacticMessage -> {
+            counter++;
+            message = galacticMessage;
+        }, errorMessage -> {
+            errors++;
+        });
+        Assert.assertEquals(channel.getRefCount().intValue(), 2);
+        Assert.assertEquals(1, mbc1.subscriptions.size());
+        Assert.assertEquals(mbc1.subscriptions.get(0).subscriptionId, gcc1.remoteChannel);
+
+        bus.listenOnce("channel1", galacticMessage -> {
+            counter++;
+        });
+        Assert.assertEquals(channel.getRefCount().intValue(), 3);
+        Assert.assertEquals(1, mbc1.subscriptions.size());
+
+        mbc1.subscriptions.get(0).callback.onMessage("message-from-broker");
+
+        Assert.assertEquals(counter, 2);
+        Assert.assertEquals(channel.getRefCount().intValue(), 2);
+        Assert.assertEquals(message.getPayload(), "message-from-broker");
+
+        mbc1.subscriptions.get(0).callback.onMessage("message-from-broker-2");
+        Assert.assertEquals(counter, 3);
+        Assert.assertEquals(message.getPayload(), "message-from-broker-2");
+
+        mbc1.subscriptions.get(0).callback.onError("error-from-broker");
+        Assert.assertEquals(errors, 1);
+
+        busTransaction.unsubscribe();
+        Assert.assertEquals(0, mbc1.subscriptions.size());
+
+        bus.destroyGalacticChannel("channel1");
+        Assert.assertEquals(0, bus.getApi().getChannelRefCount("channel1"));
+    }
+
+    @Test
+    public void testMarkChannelAsGalacticDropMessage() {
+
+        TestMessageBrokerConnector mbc1 = Mockito.spy(new TestMessageBrokerConnector("mbr1"));
+        TestMessageBrokerConnector mbc2 = Mockito.spy(new TestMessageBrokerConnector("mbr2"));
+
+        TestGalacticChannelConfig gcc1 =
+              new TestGalacticChannelConfig(mbc1.getMessageBrokerId(), "remote-channel-1");
+        TestGalacticChannelConfig gcc2 =
+              new TestGalacticChannelConfig(mbc2.getMessageBrokerId(), "remote-channel-2");
+
+        Mockito.doReturn(false)
+              .when(mbc1).sendMessage(gcc1, "message");
+        Mockito.doThrow(new RuntimeException("failed-to-send-message"))
+              .when(mbc2).sendMessage(gcc2, "message");
+
+        bus.registerMessageBroker(mbc1);
+        bus.markChannelAsGalactic("channel1", gcc1);
+        bus.registerMessageBroker(mbc2);
+        bus.markChannelAsGalactic("channel2", gcc2);
+
+        // Verify that if MessageBrokerConnector fails to send the message
+        // or if it throws exception, the monitor stream broadcasts MonitorDropped message.
+        this.bus.getApi().getMonitor().subscribe(message -> {
+            MonitorObject mo = (MonitorObject) message.getPayload();
+            if (mo.getType() == MonitorType.MonitorDropped) {
+                this.monitorObject = mo;
+            }
+        });
+
+        bus.sendRequestMessage("channel2", "message");
+        Assert.assertNotNull(monitorObject);
+        Assert.assertEquals(monitorObject.getChannel(), "channel2");
+        Assert.assertEquals("message", ((Message) monitorObject.getData()).getPayload());
+
+        monitorObject = null;
+        bus.sendRequestMessage("channel1", "message");
+        Assert.assertNotNull(monitorObject);
+        Assert.assertEquals(monitorObject.getChannel(), "channel1");
+        Assert.assertEquals("message", ((Message) monitorObject.getData()).getPayload());
+    }
+
+    @Test
+    public void testDestroyGalacticChannel() {
+
+        TestMessageBrokerConnector mbc1 = new TestMessageBrokerConnector("mbr1");
+
+        TestGalacticChannelConfig gcc1 =
+              new TestGalacticChannelConfig(mbc1.getMessageBrokerId(), "remote-channel-1");
+        TestGalacticChannelConfig gcc2 =
+              new TestGalacticChannelConfig(mbc1.getMessageBrokerId(), "remote-channel-2");
+
+        bus.registerMessageBroker(mbc1);
+        bus.markChannelAsGalactic("channel1", gcc1);
+        bus.markChannelAsGalactic("channel2", gcc2);
+
+        bus.listenStream("channel1", response -> {
+            counter++;
+        });
+        bus.listenStream("channel2", response -> {
+            counter++;
+        });
+
+
+        Assert.assertEquals(mbc1.subscriptions.size(), 2);
+
+        Assert.assertTrue(bus.destroyGalacticChannel("channel1"));
+        Assert.assertEquals(mbc1.subscriptions.size(), 1);
+        Assert.assertEquals(mbc1.subscriptions.get(0).subscriptionId, "remote-channel-2");
+
+        Assert.assertFalse(bus.destroyGalacticChannel("invalid-channel"));
+    }
 }

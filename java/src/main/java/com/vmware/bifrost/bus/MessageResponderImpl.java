@@ -14,20 +14,14 @@ import java.util.function.Function;
  * Copyright(c) VMware Inc. 2017
  */
 public class MessageResponderImpl<T> implements MessageResponder<T> {
-    private boolean requestStream;
     private EventBus bus;
     private MessageObjectHandlerConfig config;
-    private Logger logger;
     private Observable<Message> channel;
     private Disposable sub;
 
-    public MessageResponderImpl(
-            boolean requestStream, MessageObjectHandlerConfig config, EventBus bus) {
-        this.requestStream = requestStream;
+    public MessageResponderImpl(MessageObjectHandlerConfig config, EventBus bus) {
         this.config = config;
         this.bus = bus;
-        this.logger = LoggerFactory.getLogger(this.getClass());
-
     }
 
     private Consumer<Message> createGenerator(Function<Message, T> supplier) {

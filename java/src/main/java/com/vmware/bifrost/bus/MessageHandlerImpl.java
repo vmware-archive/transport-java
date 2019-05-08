@@ -25,14 +25,25 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
     private Observable<Message> errors;
     private Disposable sub;
     private Disposable errorSub;
+    private Consumer<Void> onClose;
 
     public MessageHandlerImpl(
-            boolean requestStream, MessageObjectHandlerConfig config, EventBus bus) {
+          boolean requestStream,
+          MessageObjectHandlerConfig config,
+          EventBus bus) {
+        this(requestStream, config, bus, null);
+    }
+
+    public MessageHandlerImpl(
+            boolean requestStream,
+            MessageObjectHandlerConfig config,
+            EventBus bus,
+            Consumer<Void> onClose) {
         this.requestStream = requestStream;
         this.config = config;
         this.bus = bus;
+        this.onClose = onClose;
         logger = LoggerFactory.getLogger(this.getClass());
-
     }
 
     @Override
@@ -100,6 +111,15 @@ public class MessageHandlerImpl<T> implements MessageHandler<T> {
         }
         if (this.errorSub != null && !this.errorSub.isDisposed()) {
             this.errorSub.dispose();
+        }
+        if (onClose != null) {
+            try {
+                onClose.accept(null);
+            } catch (Exception ex) {
+                logger.warn("OnClose handler failed: ", ex);
+            }
+            // Make sure that onClose handler will be invoked only once.
+            onClose = null;
         }
     }
 

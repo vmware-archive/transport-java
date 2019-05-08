@@ -21,7 +21,6 @@ public class Channel {
     private String name;
     private AtomicInteger refCount = new AtomicInteger(0);
     private Boolean closed;
-    private Boolean galactic;
 
     private Subject<Message> streamObject;
 
@@ -30,7 +29,6 @@ public class Channel {
         this.name = name;
         streamObject = PublishSubject.create();
         closed = false;
-        galactic = false;
     }
 
     public Integer getRefCount() {
@@ -71,19 +69,5 @@ public class Channel {
 
     public Integer decrement() {
         return refCount.updateAndGet(i -> i > 0 ? i - 1 : i);
-    }
-
-    public Channel setGalatic() {
-        galactic = true;
-        return this;
-    }
-
-    public Channel setPrivate() {
-        this.galactic = false;
-        return this;
-    }
-
-    public Boolean isGalactic() {
-        return galactic;
     }
 }

@@ -11,4 +11,6 @@ public interface BifrostBridgeConfigurer {
    default void registerBifrostDestinationPrefixes(BifrostBridgeConfiguration configuration) { };
 
    default void registerBifrostStompInterceptors(BifrostBridgeConfiguration configuration) { };
+
+   default void configureGalacticChannels() {};
 }

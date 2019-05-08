@@ -60,7 +60,7 @@ public class MessageResponderImplTest {
 
         setConfig(true);
 
-        MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
+        MessageResponder<String> handler = new MessageResponderImpl(this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
@@ -82,7 +82,7 @@ public class MessageResponderImplTest {
 
         setConfig(true);
 
-        MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
+        MessageResponder<String> handler = new MessageResponderImpl(this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
@@ -107,7 +107,7 @@ public class MessageResponderImplTest {
 
         setConfig(false);
 
-        MessageResponder<String> handler = new MessageResponderImpl(true, this.config, this.bus);
+        MessageResponder<String> handler = new MessageResponderImpl(this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
@@ -144,7 +144,7 @@ public class MessageResponderImplTest {
 
         setConfig(true);
 
-        MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
+        MessageResponder<String> handler = new MessageResponderImpl(this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
@@ -165,7 +165,7 @@ public class MessageResponderImplTest {
 
         setConfig(true);
 
-        MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
+        MessageResponder<String> handler = new MessageResponderImpl(this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
@@ -185,7 +185,7 @@ public class MessageResponderImplTest {
 
         setConfig(true);
 
-        MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
+        MessageResponder<String> handler = new MessageResponderImpl(this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
@@ -214,7 +214,7 @@ public class MessageResponderImplTest {
 
         setConfig(true);
 
-        MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
+        MessageResponder<String> handler = new MessageResponderImpl(this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
@@ -246,7 +246,7 @@ public class MessageResponderImplTest {
 
         setConfig(true);
 
-        MessageResponder<String> handler = new MessageResponderImpl(false, this.config, this.bus);
+        MessageResponder<String> handler = new MessageResponderImpl(this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
@@ -284,7 +284,7 @@ public class MessageResponderImplTest {
 
         setConfig(true);
 
-        MessageResponder<String> responder = new MessageResponderImpl(false, this.config, this.bus);
+        MessageResponder<String> responder = new MessageResponderImpl(this.config, this.bus);
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(
                 this.testChannelSend, this.getClass().getName()).test();
