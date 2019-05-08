@@ -14,8 +14,8 @@ import { PongService } from './pong.service';
     template: `
         <button (click)="sendPingBasic()" class="btn btn-primary">Ping (Basic)</button>
         <button (click)="sendPingFull()" class="btn btn-primary">Ping (Full)</button><br/>
-        <button (click)="switchFabric()" class="btn btn-primary">Switch Fab</button><br/>
-        <button (click)="switchLocal()" class="btn btn-primary">Switch Local</button><br/>
+<!--        <button (click)="switchFabric()" class="btn btn-primary">Switch Fab</button><br/>-->
+<!--        <button (click)="switchLocal()" class="btn btn-primary">Switch Local</button><br/>-->
         Response: {{response}}`
 })
 export class PingComponent extends AbstractBase implements OnInit {

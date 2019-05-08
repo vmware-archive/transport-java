@@ -15,7 +15,7 @@
 }
 
 #fabric-intro {
-    height: 400px;
+    height: 200px;
     position: relative;
     background-color: #0f171c;
 }
@@ -25,7 +25,7 @@
     top: 0px;
     left: 0px;
     width: 100%;
-    height: 400px;
+    height: 200px;
     background-repeat: repeat-x;
     opacity: 0.3;
     background-color: #3f004d;
@@ -37,14 +37,14 @@
     top: 0px;
     left: 0px;
     width: 100%;
-    height: 400px;
+    height: 200px;
     background-size: cover;
     background-position: 50% 50%;
 }
 
 #fabric-banner {
     position: absolute;
-    top: 80px;
+    top: 10px;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
@@ -56,6 +56,7 @@
 
     font-size: 60px;
     text-shadow: 0px 3px 3px #62388e;
+    margin-bottom: 2rem;
 }
 
 #welcome-content {
