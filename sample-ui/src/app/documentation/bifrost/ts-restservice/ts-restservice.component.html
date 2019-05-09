@@ -31,7 +31,7 @@
 
 <hr/>
 
-<h3>Loading the RestService</h3>
+<h3>Starting up the RestService</h3>
 
 <p>
     Ideally, you want your <code class="clr-code">RestService</code> to boot when your application boots. This allows your application to start making
@@ -58,6 +58,41 @@ ServiceLoader.addService(RestService);</code></pre>
 <pre>▫️️ <span class="console-purple">[Inf]:</span> <span class="console-pink">RESTService Online</span></pre>
 
 <hr/>
+
+<h3>
+    Setting global headers for RestService calls.
+</h3>
+
+<p>
+    Sometimes there is a need to set headers for all Rest operations. This is most commonly setting a 'Content-Type' or a csp-auth-token
+    or something. The good news is that there is a built in mechanism for this. It is made available by <code class="clr-code">AbstractBase</code>.
+    It is named <code class="clr-code">setGlobalHttpHeaders()</code>.
+</p>
+
+<pre class="code"><code class="language-typescript" ngNonBindable>this.setGlobalHttpHeaders( &#123;'Content-Type': 'application/json'&#125; )</code></pre>
+
+<p>
+    The method takes an object, you can put as man headers in here as you like.
+</p>
+<hr/>
+
+<h3>
+    Changing RestService host options
+</h3>
+
+<p>
+    Sometimes you need to change host details for API calls. You might want to call a different host defined by the API, or change scheme.
+    The good news is that there is a built in mechanism for this. It is made available by <code class="clr-code">AbstractBase</code>.
+    It is named <code class="clr-code">setGlobalRestServiceHostOptions()</code>.
+</p>
+
+<pre class="code"><code class="language-typescript" ngNonBindable>this.setGlobalRestServiceHostOptions('subdomain.somehost.com', 'http')</code></pre>
+
+<p>
+    You can set a different host for all <code class="clr-code">RestService</code> calls. In the above example, we also override the scheme to 'http'
+</p>
+<hr/>
+
 
 <h3>Calling RestService from your Service</h3>
 
