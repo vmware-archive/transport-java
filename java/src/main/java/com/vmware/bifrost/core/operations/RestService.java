@@ -3,6 +3,7 @@
  */
 package com.vmware.bifrost.core.operations;
 
+import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
 import com.vmware.bifrost.core.CoreChannels;
@@ -36,7 +37,7 @@ import java.util.function.Consumer;
  */
 @Service
 @SuppressWarnings("unchecked")
-public class RestService extends AbstractService<RestServiceRequest, RestServiceResponse> {
+public class RestService extends AbstractService<Request<RestServiceRequest>, RestServiceResponse> {
 
     private final URIMatcher uriMatcher;
     private final RestControllerInvoker controllerInvoker;
@@ -51,11 +52,12 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
     /**
      * Handle bus request.
      *
-     * @param request RestServiceRequest instance sent on bus
+     * @param req RestServiceRequest instance sent on bus
      */
     @Override
-    protected void handleServiceRequest(RestServiceRequest request, Message message) {
+    protected void handleServiceRequest(Request req, Message message) {
 
+        RestServiceRequest request = (RestServiceRequest) req.getPayload();
         this.logDebugMessage(this.getClass().getSimpleName()
                 + " handling Rest Request for URI: " + request.getUri().toASCIIString());
 
@@ -65,14 +67,14 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
         operation.setMethod(request.getMethod());
         operation.setHeaders(request.getHeaders());
         operation.setApiClass(request.getApiClass());
-        operation.setId(request.getId());
+        operation.setId(req.getId());
         operation.setSentFrom(this.getName());
 
         // create a success handler to respond
         Consumer<Object> successHandler = (Object restResponseObject) -> {
             this.logDebugMessage(this.getClass().getSimpleName()
                     + " Successful REST response " + request.getUri().toASCIIString());
-            RestServiceResponse response = new RestServiceResponse(request.getId(), restResponseObject);
+            RestServiceResponse response = new RestServiceResponse(req.getId(), restResponseObject);
             this.sendResponse(response, message.getId());
         };
 

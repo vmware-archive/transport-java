@@ -3,7 +3,6 @@
  */
 package com.vmware.bifrost.core.model;
 
-import com.vmware.bifrost.bridge.Request;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.HttpMethod;
@@ -16,7 +15,7 @@ import java.util.Map;
  * @param <Req> The request payload type (what we're sending)
  * @param <Resp> the response payload type (what we're expecting back)
  */
-public class RestServiceRequest<Req, Resp> extends Request<Req> {
+public class RestServiceRequest<Req, Resp> {
 
     @Getter @Setter
     private URI uri;

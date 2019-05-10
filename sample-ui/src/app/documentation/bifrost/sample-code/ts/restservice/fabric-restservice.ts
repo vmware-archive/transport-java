@@ -56,6 +56,7 @@ export class FabricRestServiceComponent extends AbstractBase implements OnInit, 
 
         this.restServiceRequest(
             {
+                apiClass: 'java.lang.String',
                 id: GeneralUtil.genUUID(),
                 uri: `https://jsonplaceholder.typicode.com/todos/1`,
                 method: HttpRequest.Get,

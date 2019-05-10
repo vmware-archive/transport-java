@@ -1,6 +1,7 @@
 package com.vmware.bifrost.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.EventBus;
@@ -8,6 +9,7 @@ import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.model.RestServiceRequest;
+import com.vmware.bifrost.core.operations.RestService;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.core.util.ServiceMethodLookupUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import org.springframework.http.HttpMethod;
 
 
 import java.net.URI;
+import java.util.Calendar;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -77,10 +80,17 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
         req.setSentFrom(this.getName());
         req.setHeaders(headers);
 
+        Request request = new Request<Req>();
+        request.setId(id);
+        request.setPayload(req);
+        request.setRequest(method.toString());
+        request.setChannel(CoreChannels.RestService);
+        request.setCreated(Calendar.getInstance().getTime());
+
         callService(
                 id,
                 CoreChannels.RestService,
-                req,
+                request,
                 successHandler,
                 errorHandler);
     }
