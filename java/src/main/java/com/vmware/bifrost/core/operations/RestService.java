@@ -3,6 +3,8 @@
  */
 package com.vmware.bifrost.core.operations;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
@@ -11,6 +13,7 @@ import com.vmware.bifrost.core.model.RestServiceRequest;
 import com.vmware.bifrost.core.model.RestServiceResponse;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
+import com.vmware.bifrost.core.util.ClassMapper;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
 import com.vmware.bifrost.core.util.URIMatcher;
 import com.vmware.bifrost.core.util.URIMethodResult;
@@ -41,12 +44,14 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
 
     private final URIMatcher uriMatcher;
     private final RestControllerInvoker controllerInvoker;
+    JsonParser parser;
 
     @Autowired
     public RestService(URIMatcher uriMatcher, RestControllerInvoker controllerInvoker) {
         super(CoreChannels.RestService);
         this.uriMatcher = uriMatcher;
         this.controllerInvoker = controllerInvoker;
+        parser = new JsonParser();
     }
 
     /**
@@ -57,46 +62,51 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
     @Override
     protected void handleServiceRequest(Request req, Message message) {
 
-        RestServiceRequest request = (RestServiceRequest) req.getPayload();
-        this.logDebugMessage(this.getClass().getSimpleName()
-                + " handling Rest Request for URI: " + request.getUri().toASCIIString());
-
         RestOperation operation = new RestOperation();
-        operation.setUri(request.getUri());
-        operation.setBody(request.getBody());
-        operation.setMethod(request.getMethod());
-        operation.setHeaders(request.getHeaders());
-        operation.setApiClass(request.getApiClass());
-        operation.setId(req.getId());
-        operation.setSentFrom(this.getName());
-
-        // create a success handler to respond
-        Consumer<Object> successHandler = (Object restResponseObject) -> {
-            this.logDebugMessage(this.getClass().getSimpleName()
-                    + " Successful REST response " + request.getUri().toASCIIString());
-            RestServiceResponse response = new RestServiceResponse(req.getId(), restResponseObject);
-            this.sendResponse(response, message.getId());
-        };
-
-        operation.setSuccessHandler(successHandler);
-
-        // create an error handler to respond in case something goes wrong.
-        Consumer<RestError> errorHandler = (RestError error) -> {
-            this.logErrorMessage(this.getClass().getSimpleName()
-                    + " Error with making REST response ", request.getUri().toASCIIString());
-            this.sendError(error, message.getId());
-        };
-
-        operation.setErrorHandler(errorHandler);
 
         try {
+            RestServiceRequest request = ClassMapper.CastPayload(RestServiceRequest.class, req);
+            this.logDebugMessage(this.getClass().getSimpleName()
+                    + " handling Rest Request for URI: " + request.getUri().toASCIIString());
+
+            operation.setUri(request.getUri());
+            operation.setBody(request.getBody());
+            operation.setMethod(request.getMethod());
+            operation.setHeaders(request.getHeaders());
+            operation.setApiClass(request.getApiClass());
+            operation.setId(req.getId());
+            operation.setSentFrom(this.getName());
+
+            // create a success handler to respond
+            Consumer<Object> successHandler = (Object restResponseObject) -> {
+                JsonElement respJson = parser.parse(restResponseObject.toString());
+                this.logDebugMessage(this.getClass().getSimpleName()
+                        + " Successful REST response " + request.getUri().toASCIIString());
+                RestServiceResponse response = new RestServiceResponse(req.getId(), respJson.toString());
+                this.sendResponse(response, message.getId());
+            };
+
+            operation.setSuccessHandler(successHandler);
+
+            // create an error handler to respond in case something goes wrong.
+            Consumer<RestError> errorHandler = (RestError error) -> {
+                this.logErrorMessage(this.getClass().getSimpleName()
+                        + " Error with making REST response ", request.getUri().toASCIIString());
+                this.sendError(error, message.getId());
+            };
+
+            operation.setErrorHandler(errorHandler);
+
             this.restServiceRequest(operation);
+
+        } catch (ClassCastException exp) {
+            exp.printStackTrace();
 
         } catch (Exception exp) {
 
             // something bubbled up, throw it back as a response.
             this.logErrorMessage(this.getName()
-                    + " Exception thrown when making REST response ", request.getUri().toASCIIString());
+                    + " Exception thrown when making REST response ", exp.getMessage());
 
             RestError error = new RestError("Exception thrown '"
                     + exp.getClass().getSimpleName() + ": " + exp.getMessage() + "'", 500);
@@ -225,7 +235,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
             this.logErrorMessage("Runtime Exception when making REST Call", rex.toString());
             operation.getErrorHandler().accept(
                     new RestError("Runtime exception thrown for: "
-                                  + operation.getUri().toString(), 500)
+                            + operation.getUri().toString(), 500)
             );
         } catch (ClassNotFoundException cnfexp) {
             this.logErrorMessage("Class Not Found Exception when making REST Call", cnfexp.toString());

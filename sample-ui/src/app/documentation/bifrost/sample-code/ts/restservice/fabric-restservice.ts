@@ -2,7 +2,7 @@
  * Copyright(c) VMware Inc. 2019
  */
 import { AbstractBase, HttpRequest, RestError } from '@vmw/bifrost/core';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { MyAPIServiceChannel, MyAPIServiceRequest, MyAPIServiceResponse } from './myapi.service.model';
 import { ClrLoadingState } from '@clr/angular';
 import { RestService } from '@vmw/bifrost/core/services/rest/rest.service';
@@ -12,7 +12,9 @@ import { GeneralUtil } from '@vmw/bifrost/util/util';
 @Component({
     selector: 'fabric-restservice-component',
     template: `
-        <button (click)="requestAPI()" class="btn btn-primary" [clrLoading]="iconState">Request API via Fabric Rest Service</button><br/>
+        <button (click)="requestAPI()" class="btn btn-primary" [clrLoading]="iconState">Request API via Fabric Rest
+            Service
+        </button><br/>
         Response: {{response}}`
 })
 export class FabricRestServiceComponent extends AbstractBase implements OnInit, OnDestroy {
@@ -21,10 +23,9 @@ export class FabricRestServiceComponent extends AbstractBase implements OnInit, 
     public iconState: ClrLoadingState = ClrLoadingState.DEFAULT;
     private restService: RestService;
 
-    constructor() {
+    constructor(private cd: ChangeDetectorRef) {
         super('FabricRestServiceComponent');
     }
-
 
 
     disableLocalRestService(): void {
@@ -39,11 +40,13 @@ export class FabricRestServiceComponent extends AbstractBase implements OnInit, 
     }
 
     ngOnInit(): void {
+
         this.restService = ServiceLoader.getService(RestService);
+        this.disableLocalRestService();
     }
 
     ngOnDestroy(): void {
-       this.enableLocalRestService();
+        this.enableLocalRestService();
     }
 
     /**
@@ -51,7 +54,7 @@ export class FabricRestServiceComponent extends AbstractBase implements OnInit, 
      */
     public requestAPI(): void {
         this.iconState = ClrLoadingState.LOADING;
-        this.disableLocalRestService();
+
 
 
         this.restServiceRequest(
@@ -61,10 +64,14 @@ export class FabricRestServiceComponent extends AbstractBase implements OnInit, 
                 uri: `https://jsonplaceholder.typicode.com/todos/1`,
                 method: HttpRequest.Get,
                 successHandler: (response: any) => {
-                  this.log.info('hello kitty!' + response);
+                    this.log.info('hello kitty! ' + response);
+                    this.iconState = ClrLoadingState.SUCCESS;
+                    this.cd.detectChanges();
                 },
                 errorHandler: (error: RestError) => {
-                    this.log.error('bad kitty!' + error.message);
+                    this.log.error('bad kitty! ' + error.message);
+                    this.iconState = ClrLoadingState.SUCCESS;
+                    this.cd.detectChanges();
                 }
             }
         );

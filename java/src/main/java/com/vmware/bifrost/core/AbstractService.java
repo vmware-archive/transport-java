@@ -33,6 +33,7 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
 
     /**
      * Build an error response based on request rejection details.
+     *
      * @param requestType Request
      * @return Response
      */
