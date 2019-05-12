@@ -12,69 +12,66 @@ import { GeneralUtil } from '@vmw/bifrost/util/util';
 @Component({
     selector: 'fabric-restservice-component',
     template: `
-        <button (click)="requestAPI()" class="btn btn-primary" [clrLoading]="iconState">Request API via Fabric Rest
-            Service
-        </button><br/>
+        <button (click)="requestAPI()" class="btn btn-primary" [clrLoading]="iconState">Request Valid API via Fabric Rest Service</button>
+        <button (click)="requestInvalidAPI()" class="btn btn-primary" [clrLoading]="iconState">Request Invalid API (404) via Fabric Rest Service</button><br/>
         Response: {{response}}`
 })
-export class FabricRestServiceComponent extends AbstractBase implements OnInit, OnDestroy {
+export class FabricRestServiceComponent extends AbstractBase {
 
     public response = 'nothing yet, request something!';
     public iconState: ClrLoadingState = ClrLoadingState.DEFAULT;
-    private restService: RestService;
+    private uri: string;
 
     constructor(private cd: ChangeDetectorRef) {
         super('FabricRestServiceComponent');
     }
 
-
     disableLocalRestService(): void {
-        this.restService.offline();
-        this.bus.markChannelAsGalactic('fabric-rest');
-        // get a reference to
+        // disable local Rest Service
+        ServiceLoader.offlineLocalRestService();
+        this.fabric.useFabricRestService();
     }
 
     enableLocalRestService(): void {
-        this.bus.markChannelAsLocal('fabric-rest');
-        this.restService.online();
+        // disable local Rest Service
+        ServiceLoader.onlineLocalRestService();
+        this.fabric.useLocalRestService();
     }
 
-    ngOnInit(): void {
-
-        this.restService = ServiceLoader.getService(RestService);
-        this.disableLocalRestService();
-    }
-
-    ngOnDestroy(): void {
-        this.enableLocalRestService();
-    }
-
-    /**
-     * s
-     */
-    public requestAPI(): void {
+    private makeApiRequest() {
         this.iconState = ClrLoadingState.LOADING;
 
-
+        // disable local Rest Service
+        this.disableLocalRestService();
+        this.response = "requesting from API, via Fabric (not local)....";
 
         this.restServiceRequest(
             {
-                apiClass: 'java.lang.String',
-                id: GeneralUtil.genUUID(),
-                uri: `https://jsonplaceholder.typicode.com/todos/1`,
+                uri: this.uri,
                 method: HttpRequest.Get,
                 successHandler: (response: any) => {
                     this.iconState = ClrLoadingState.SUCCESS;
-                    this.response = `API Response Success: userID: ${response.userId}, title: ${response.title}`;
+                    this.response = `API Call Success: ${response.title}`;
                     this.cd.detectChanges();
+                    this.enableLocalRestService();
                 },
                 errorHandler: (error: RestError) => {
-                    this.log.error('bad kitty! ' + error.message);
-                    this.iconState = ClrLoadingState.SUCCESS;
+                    this.iconState = ClrLoadingState.ERROR;
                     this.response = `API Response Error: ${error.message}`;
                     this.cd.detectChanges();
+                    this.enableLocalRestService();
                 }
             }
         );
+    }
+
+    public requestAPI(): void {
+        this.uri = `https://jsonplaceholder.typicode.com/todos/${Math.floor(Math.random() * (10 - 1 + 1)) + 1}`;
+        this.makeApiRequest();
+    }
+
+    public requestInvalidAPI(): void {
+        this.uri = `https://jsonplaceholder.typicode.com/I-DO-NOT-EXIST`;
+        this.makeApiRequest();
     }
 }
