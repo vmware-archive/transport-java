@@ -64,13 +64,14 @@ export class FabricRestServiceComponent extends AbstractBase implements OnInit, 
                 uri: `https://jsonplaceholder.typicode.com/todos/1`,
                 method: HttpRequest.Get,
                 successHandler: (response: any) => {
-                    this.log.info('hello kitty! ' + response);
                     this.iconState = ClrLoadingState.SUCCESS;
+                    this.response = `API Response Success: userID: ${response.userId}, title: ${response.title}`;
                     this.cd.detectChanges();
                 },
                 errorHandler: (error: RestError) => {
                     this.log.error('bad kitty! ' + error.message);
                     this.iconState = ClrLoadingState.SUCCESS;
+                    this.response = `API Response Error: ${error.message}`;
                     this.cd.detectChanges();
                 }
             }
