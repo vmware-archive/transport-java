@@ -130,8 +130,6 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
                                 cce,
                                 500
                         );
-                        cce.printStackTrace();
-
                         this.sendError(error, message.getId());
                     }
                 },
