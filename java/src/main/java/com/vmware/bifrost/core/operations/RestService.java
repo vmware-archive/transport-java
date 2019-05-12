@@ -83,7 +83,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                 this.logDebugMessage(this.getClass().getSimpleName()
                         + " Successful REST response " + request.getUri().toASCIIString());
                 RestServiceResponse response = new RestServiceResponse(req.getId(), respJson.toString());
-                this.sendResponse(response, message.getId());
+                this.sendResponse(response, req.getId());
             };
 
             operation.setSuccessHandler(successHandler);
@@ -92,7 +92,12 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
             Consumer<RestError> errorHandler = (RestError error) -> {
                 this.logErrorMessage(this.getClass().getSimpleName()
                         + " Error with making REST response ", request.getUri().toASCIIString());
-                this.sendError(error, message.getId());
+
+                RestServiceResponse response = new RestServiceResponse(req.getId(), error);
+                response.setError(true);
+                response.setErrorCode(error.errorCode);
+                response.setErrorMessage(error.message);
+                this.sendResponse(response, req.getId());
             };
 
             operation.setErrorHandler(errorHandler);
@@ -100,7 +105,8 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
             this.restServiceRequest(operation);
 
         } catch (ClassCastException exp) {
-            exp.printStackTrace();
+            this.logErrorMessage(this.getName()
+                    + " Exception thrown when making REST response ClassCastException: ", exp.getMessage());
 
         } catch (Exception exp) {
 
@@ -110,7 +116,11 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
 
             RestError error = new RestError("Exception thrown '"
                     + exp.getClass().getSimpleName() + ": " + exp.getMessage() + "'", 500);
-            this.sendError(error, message.getId());
+            RestServiceResponse response = new RestServiceResponse(req.getId(), error);
+            response.setError(true);
+            response.setErrorCode(error.errorCode);
+            response.setErrorMessage(error.message);
+            this.sendResponse(response, req.getId());
 
         }
     }
@@ -216,12 +226,12 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                     break;
             }
 
-        } catch (RestClientException exp) {
+        } catch (HttpClientErrorException exp) {
 
             this.logErrorMessage("REST Client Error, unable to complete request: ", exp.getMessage());
             operation.getErrorHandler().accept(
                     new RestError("REST Client Error, unable to complete request: "
-                            + exp.getMessage(), 500)
+                            + exp.getMessage(), exp.getRawStatusCode())
             );
 
         } catch (NullPointerException npe) {

@@ -56,6 +56,7 @@ export class FabricRestServiceComponent extends AbstractBase {
                     this.enableLocalRestService();
                 },
                 errorHandler: (error: RestError) => {
+                    console.log('the error....', error);
                     this.iconState = ClrLoadingState.ERROR;
                     this.response = `API Response Error: ${error.message}`;
                     this.cd.detectChanges();
