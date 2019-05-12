@@ -177,7 +177,7 @@ public class TestServiceTest {
                     TestResponse resp = (TestResponse) msg.getPayload();
                     TestServiceObjectResponse respPayload = (TestServiceObjectResponse) resp.getPayload();
                     Assert.assertEquals(id, resp.getId());
-                    Assert.assertEquals("pretty-baby", respPayload.getResponseValue());
+                    Assert.assertEquals("\"pretty-baby\"", respPayload.getResponseValue());
                 }
         );
     }
