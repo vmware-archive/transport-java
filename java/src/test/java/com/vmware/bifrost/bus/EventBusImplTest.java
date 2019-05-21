@@ -1634,13 +1634,12 @@ public class EventBusImplTest {
         // the message broker connector and verify that
         // runtime exception will be thrown.
         try {
-            bus.markChannelAsGalactic("channel1", gcc1);
+            Assert.assertFalse(bus.markChannelAsGalactic("channel1", gcc1));
         } catch (Exception ex) {
             lastEx = ex;
         }
-        Assert.assertNotNull(lastEx);
-        Assert.assertEquals(lastEx.getMessage(),
-              "Cannot find message broker with id: " + mbc1.getMessageBrokerId());
+        Assert.assertNull(lastEx);
+
         Assert.assertEquals(0, counter);
 
         bus.registerMessageBroker(mbc1);
@@ -1653,13 +1652,11 @@ public class EventBusImplTest {
         // try to mark the same channel as galactic
         lastEx = null;
         try {
-            bus.markChannelAsGalactic("channel1", gcc1);
+            Assert.assertFalse(bus.markChannelAsGalactic("channel1", gcc1));
         } catch (Exception ex) {
             lastEx = ex;
         }
-        Assert.assertNotNull(lastEx);
-        Assert.assertEquals(lastEx.getMessage(),
-              "Channel channel1 already marked as galactic.");
+        Assert.assertNull(lastEx);
         Assert.assertEquals(1, counter);
     }
 
@@ -1675,7 +1672,7 @@ public class EventBusImplTest {
               new TestGalacticChannelConfig(mbc2.getMessageBrokerId(), "remote-channel-2");
 
         bus.registerMessageBroker(mbc1);
-        bus.markChannelAsGalactic("channel1", gcc1);
+        Assert.assertTrue(bus.markChannelAsGalactic("channel1", gcc1));
         bus.registerMessageBroker(mbc2);
         bus.markChannelAsGalactic("channel2", gcc2);
 
@@ -1727,8 +1724,8 @@ public class EventBusImplTest {
         busTransaction.unsubscribe();
         Assert.assertEquals(0, mbc1.subscriptions.size());
 
-        bus.destroyGalacticChannel("channel1");
-        Assert.assertEquals(0, bus.getApi().getChannelRefCount("channel1"));
+        bus.markChannelAsLocal("channel1");
+        Assert.assertEquals(1, bus.getApi().getChannelRefCount("channel1"));
     }
 
     @Test
@@ -1774,7 +1771,7 @@ public class EventBusImplTest {
     }
 
     @Test
-    public void testDestroyGalacticChannel() {
+    public void testMarkChannelAsLocal() {
 
         TestMessageBrokerConnector mbc1 = new TestMessageBrokerConnector("mbr1");
 
@@ -1785,22 +1782,28 @@ public class EventBusImplTest {
 
         bus.registerMessageBroker(mbc1);
         bus.markChannelAsGalactic("channel1", gcc1);
+        Assert.assertEquals(1, bus.getApi().getChannelRefCount("channel1"));
         bus.markChannelAsGalactic("channel2", gcc2);
 
         bus.listenStream("channel1", response -> {
             counter++;
         });
+        Assert.assertEquals(2, bus.getApi().getChannelRefCount("channel1"));
         bus.listenStream("channel2", response -> {
             counter++;
         });
 
-
         Assert.assertEquals(mbc1.subscriptions.size(), 2);
 
-        Assert.assertTrue(bus.destroyGalacticChannel("channel1"));
+        Assert.assertTrue(bus.markChannelAsLocal("channel1"));
+        Assert.assertEquals(1, bus.getApi().getChannelRefCount("channel1"));
+
+        bus.sendRequestMessage("channel1", "test-message");
+        Assert.assertEquals(mbc1.messagesSent, 0);
+
         Assert.assertEquals(mbc1.subscriptions.size(), 1);
         Assert.assertEquals(mbc1.subscriptions.get(0).subscriptionId, "remote-channel-2");
 
-        Assert.assertFalse(bus.destroyGalacticChannel("invalid-channel"));
+        Assert.assertFalse(bus.markChannelAsLocal("invalid-channel"));
     }
 }

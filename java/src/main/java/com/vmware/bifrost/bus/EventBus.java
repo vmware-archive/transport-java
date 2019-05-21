@@ -652,13 +652,13 @@ public interface EventBus {
      * @param channel, the name of the galactic channel.
      * @param config, the galactic channel configuration.
      */
-    void markChannelAsGalactic(String channel, GalacticChannelConfig config);
+    boolean markChannelAsGalactic(String channel, GalacticChannelConfig config);
 
    /**
-    * Closes a galactic channel and removes the GalacticChannelConfig
-    * associated with it.
+    * Remove the GalacticChannelConfig associated with the channel and
+    * stop forwarding requests to the MessageBrokerConnector.
     *
-    * @param channel, the galactic channel to be removed.
+    * @param channel, the galactic channel to be marked as local.
     */
-    boolean destroyGalacticChannel(String channel);
+    boolean markChannelAsLocal(String channel);
 }

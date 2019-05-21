@@ -610,16 +610,18 @@ public class EventBusImpl extends Loggable implements EventBus {
     }
 
     @Override
-    public void markChannelAsGalactic(final String channel, final GalacticChannelConfig config) {
+    public boolean markChannelAsGalactic(final String channel, final GalacticChannelConfig config) {
         synchronized (this.galacticChannelsMap) {
             if (this.galacticChannelsMap.containsKey(channel)) {
-                throw new RuntimeException("Channel " + channel + " already marked as galactic.");
+                logWarnMessage("Channel " + channel + " already marked as galactic.");
+                return false;
             }
             MessageBrokerConnector messageBroker =
                   this.messageBrokersMap.get(config.getMessageBrokerId());
             if (messageBroker == null) {
-                throw new RuntimeException(
+                logErrorMessage("Cannot mark " + channel + " as galactic.",
                       "Cannot find message broker with id: " + config.getMessageBrokerId());
+                return false;
             }
 
             GalacticChannelData galacticChannel = new GalacticChannelData(config, messageBroker);
@@ -648,16 +650,17 @@ public class EventBusImpl extends Loggable implements EventBus {
             this.api.getMonitorStream().send(new MessageObject<>(MessageType.MessageTypeRequest,
                   new MonitorObject(MonitorType.MonitorNewGalacticChannel, channel, getName())));
         }
+        return true;
     }
 
     @Override
-    public boolean destroyGalacticChannel(String channel) {
+    public boolean markChannelAsLocal(String channel) {
         GalacticChannelData galacticChannel = this.galacticChannelsMap.remove(channel);
         if (galacticChannel != null) {
             // Close the message broker channel connections
             galacticChannel.close();
-            // Close the proxy channel obj
-            this.getApi().complete(channel, getName());
+            // Remove the channel reference which was created by the markChannelAsGalactic() API
+            closeChannel(channel, getName());
             return true;
         }
         return false;
