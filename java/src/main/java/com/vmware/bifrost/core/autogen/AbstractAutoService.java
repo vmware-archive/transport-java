@@ -163,7 +163,9 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
      * @param message Message
      */
     protected void postError(String channel, RestError err, Message message) {
-        this.bus.sendErrorMessageWithId(channel, err, message.getId());
+        Gson gson = new Gson();
+        String serialized = gson.toJson(err);
+        this.bus.sendErrorMessageWithId(channel, serialized, message.getId());
     }
 
     /**
