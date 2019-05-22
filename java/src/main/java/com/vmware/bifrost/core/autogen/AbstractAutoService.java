@@ -97,7 +97,7 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
      */
     protected void apiSuccessHandler(IApiType<RequestType, ResponseType> apiType, Object payload, Message message) {
         apiType.getResponseType().setPayload(payload);
-        this.postResponse(apiType.getRequestType().getChannel(), apiType.getResponseType(), message);
+        this.postResponse(this.serviceChannel, apiType.getResponseType(), message);
     }
 
     /**
@@ -108,7 +108,7 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
      * @param message Message
      */
     protected void apiFailureHandler(IApiType<RequestType, ResponseType> apiType, RestError err, Message message) {
-        this.postError(apiType.getRequestType().getChannel(), err, message);
+        this.postError(this.serviceChannel, err, message);
     }
 
     /**
