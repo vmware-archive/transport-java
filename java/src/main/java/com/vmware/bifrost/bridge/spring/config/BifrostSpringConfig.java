@@ -54,6 +54,7 @@ public class BifrostSpringConfig extends AbstractWebSocketMessageBrokerConfigure
             for (BifrostBridgeConfigurer configurer : bifrostBridgeConfigurers) {
                 configurer.registerBifrostDestinationPrefixes(bifrostBridgeConfiguration());
                 configurer.registerBifrostStompInterceptors(bifrostBridgeConfiguration());
+                configurer.configureGalacticChannels();
             }
         }
     }

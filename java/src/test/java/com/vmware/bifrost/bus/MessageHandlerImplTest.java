@@ -27,6 +27,8 @@ public class MessageHandlerImplTest {
     Logger logger;
     int successCount = 0;
     int errorCount = 0;
+    int closeCount = 0;
+    Exception lastException;
 
     private Consumer<Message> generateSuccess() {
         return (Message message) -> {
@@ -53,6 +55,8 @@ public class MessageHandlerImplTest {
         this.bus = new EventBusImpl();
         this.logger = LoggerFactory.getLogger(this.getClass());
         this.successCount = 0;
+        this.closeCount = 0;
+        this.lastException = null;
     }
 
     @Test
@@ -218,7 +222,9 @@ public class MessageHandlerImplTest {
         this.config.setSingleResponse(false);
         this.config.setSendChannel(this.testChannelSend);
         this.config.setReturnChannel(this.testChannelSend);
-        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus, aVoid -> {
+            this.closeCount++;
+        });
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
 
@@ -231,10 +237,13 @@ public class MessageHandlerImplTest {
         Assert.assertEquals(0, this.successCount);
         Assert.assertFalse(sub.isDisposed());
         Assert.assertFalse(handler.isClosed());
+        Assert.assertEquals(0, this.closeCount);
         handler.close();
         Assert.assertTrue(handler.isClosed());
         Assert.assertTrue(sub.isDisposed());
-
+        Assert.assertEquals(1, this.closeCount);
+        handler.close();
+        Assert.assertEquals(1, this.closeCount);
     }
 
     @Test
@@ -262,7 +271,10 @@ public class MessageHandlerImplTest {
         this.config.setSingleResponse(false);
         this.config.setSendChannel(this.testChannelSend);
         this.config.setReturnChannel(this.testChannelSend);
-        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus);
+        MessageHandler handler = new MessageHandlerImpl(false, this.config, this.bus, aVoid -> {
+            this.closeCount++;
+            throw new RuntimeException("OnCloseHandler exception");
+        });
 
         TestObserver<Message> observer = this.bus.getApi().getResponseChannel(this.testChannelSend, this.getClass().getName()).test();
         TestObserver<Message> observer2 = this.bus.getApi().getRequestChannel(this.testChannelSend, this.getClass().getName()).test();
@@ -286,9 +298,14 @@ public class MessageHandlerImplTest {
         Assert.assertEquals(1, this.successCount);
         Assert.assertEquals(2, this.errorCount);
 
-        handler.close();
+        try {
+            handler.close();
+        } catch (Exception ex) {
+            lastException = ex;
+        }
         Assert.assertTrue(handler.isClosed());
-
+        Assert.assertEquals(1, this.closeCount);
+        Assert.assertNull(lastException);
     }
 
     @Test

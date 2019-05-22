@@ -128,7 +128,7 @@ public class BusResponderTransactionTest {
         config.setSingleResponse(false);
         config.setSendChannel(sendChannel);
         config.setReturnChannel(sendChannel);
-        MessageResponder responder = new MessageResponderImpl(false, config, this.bus);
+        MessageResponder responder = new MessageResponderImpl(config, this.bus);
         responder.generate(null);
         return responder;
     }

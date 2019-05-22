@@ -5,7 +5,14 @@ package com.vmware.bifrost.bus;
 
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
+import com.vmware.bifrost.broker.GalacticMessageHandler;
+import com.vmware.bifrost.bus.model.MessageObject;
+import com.vmware.bifrost.bus.model.MonitorObject;
+import com.vmware.bifrost.bus.model.MonitorType;
 import com.vmware.bifrost.bus.store.BusStoreApi;
+import com.vmware.bifrost.broker.MessageBrokerSubscription;
+import com.vmware.bifrost.broker.GalacticChannelConfig;
+import com.vmware.bifrost.broker.MessageBrokerConnector;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
@@ -22,6 +29,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static com.vmware.bifrost.bus.model.MonitorChannel.stream;
@@ -31,6 +39,10 @@ import static com.vmware.bifrost.bus.model.MonitorChannel.stream;
 public class EventBusImpl extends Loggable implements EventBus {
 
     private EventBusLowApi api;
+
+    private ConcurrentHashMap<String, MessageBrokerConnector> messageBrokersMap;
+
+    private ConcurrentHashMap<String, GalacticChannelData> galacticChannelsMap;
 
     @Autowired
     private ApplicationContext context;
@@ -54,6 +66,9 @@ public class EventBusImpl extends Loggable implements EventBus {
 
     public EventBusImpl() {
         this.channelMap = new HashMap<>();
+        this.messageBrokersMap = new ConcurrentHashMap<>();
+        this.galacticChannelsMap = new ConcurrentHashMap<>();
+
         this.monitorChannel = stream;
         this.monitorStream = new Channel(this.monitorChannel);
         this.channelMap.put(this.monitorChannel, this.monitorStream);
@@ -514,7 +529,7 @@ public class EventBusImpl extends Loggable implements EventBus {
         config.setReturnChannel(returnChannel);
         config.setSendChannel(sendChannel);
 
-        MessageResponder messageResponder = this.createMessageResponder(config, false);
+        MessageResponder messageResponder = this.createMessageResponder(config);
         Disposable sub = messageResponder.generate(generateHandler);
         BusTransaction transaction = new BusResponderTransaction(sub, messageResponder);
         return transaction;
@@ -530,7 +545,7 @@ public class EventBusImpl extends Loggable implements EventBus {
         config.setReturnChannel(returnChannel);
         config.setSendChannel(sendChannel);
 
-        MessageResponder messageResponder = this.createMessageResponder(config, false);
+        MessageResponder messageResponder = this.createMessageResponder(config);
         Disposable sub = messageResponder.generate(generateHandler);
         BusTransaction transaction = new BusResponderTransaction(sub, messageResponder);
         return transaction;
@@ -572,6 +587,85 @@ public class EventBusImpl extends Loggable implements EventBus {
         return new TransactionImpl(this, this.storeManager, type, null, id);
     }
 
+    @Override
+    public boolean registerMessageBroker(MessageBrokerConnector messageBrokerConnector) {
+        synchronized (this.messageBrokersMap) {
+            if (this.messageBrokersMap.containsKey(messageBrokerConnector.getMessageBrokerId())) {
+               return false;
+            }
+            this.messageBrokersMap.put(messageBrokerConnector.getMessageBrokerId(), messageBrokerConnector);
+        }
+        messageBrokerConnector.connectMessageBroker();
+        return true;
+    }
+
+    @Override
+    public boolean unregisterMessageBroker(String messageBrokerId) {
+        MessageBrokerConnector connector = this.messageBrokersMap.remove(messageBrokerId);
+        if (connector != null) {
+            connector.disconnectMessageBroker();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean markChannelAsGalactic(final String channel, final GalacticChannelConfig config) {
+        synchronized (this.galacticChannelsMap) {
+            if (this.galacticChannelsMap.containsKey(channel)) {
+                logWarnMessage("Channel " + channel + " already marked as galactic.");
+                return false;
+            }
+            MessageBrokerConnector messageBroker =
+                  this.messageBrokersMap.get(config.getMessageBrokerId());
+            if (messageBroker == null) {
+                logErrorMessage("Cannot mark " + channel + " as galactic.",
+                      "Cannot find message broker with id: " + config.getMessageBrokerId());
+                return false;
+            }
+
+            GalacticChannelData galacticChannel = new GalacticChannelData(config, messageBroker);
+            this.galacticChannelsMap.put(channel, galacticChannel);
+
+            // Register a request listener which will forward all requests
+            // to the message broker. This will create a local {@link Channel} instance
+            // which will act as a proxy to the message broker.
+            galacticChannel.requestListener = this.listenRequestStream(channel, message -> {
+                boolean result;
+                String errorMsg = "";
+                try {
+                    result = messageBroker.sendMessage(config, message.getPayload());
+                } catch (Exception ex) {
+                    errorMsg = ex.getMessage();
+                    result = false;
+                }
+                if (!result) {
+                    logErrorMessage("Failed to send galactic message to channel '" + channel + "' " , errorMsg);
+                    MonitorObject mo = new MonitorObject(
+                          MonitorType.MonitorDropped, channel, getName(), message);
+                    this.api.getMonitorStream().send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
+                }
+            });
+
+            this.api.getMonitorStream().send(new MessageObject<>(MessageType.MessageTypeRequest,
+                  new MonitorObject(MonitorType.MonitorNewGalacticChannel, channel, getName())));
+        }
+        return true;
+    }
+
+    @Override
+    public boolean markChannelAsLocal(String channel) {
+        GalacticChannelData galacticChannel = this.galacticChannelsMap.remove(channel);
+        if (galacticChannel != null) {
+            // Close the message broker channel connections
+            galacticChannel.close();
+            // Remove the channel reference which was created by the markChannelAsGalactic() API
+            closeChannel(channel, getName());
+            return true;
+        }
+        return false;
+    }
+
     private  void init() {
         this.logBannerMessage("\uD83C\uDF08","Starting Bifröst");
         Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostService.class);
@@ -584,11 +678,99 @@ public class EventBusImpl extends Loggable implements EventBus {
         }
     }
 
-    private MessageHandler createMessageHandler(MessageObjectHandlerConfig config, boolean requestStream) {
+    private MessageHandler createMessageHandler(
+          MessageObjectHandlerConfig config, boolean requestStream) {
+
+        if (!requestStream) {
+            final String channelName = config.getReturnChannel();
+            // Check if the response channel is a galactic channel.
+            GalacticChannelData galacticChannel = galacticChannelsMap.get(channelName);
+            if (galacticChannel != null) {
+                return createMessageHandlerForGalacticResponseChannel(
+                      config,  channelName, galacticChannel);
+            }
+        }
         return new MessageHandlerImpl(requestStream, config, this);
     }
 
-    private MessageResponder createMessageResponder(MessageObjectHandlerConfig config, boolean requestStream) {
-        return new MessageResponderImpl(requestStream, config, this);
+    private MessageHandler createMessageHandlerForGalacticResponseChannel(
+          MessageObjectHandlerConfig config, String channelName, GalacticChannelData galacticChannel) {
+
+        galacticChannel.addResponseListener(new GalacticMessageHandler() {
+            @Override
+            public void onMessage(Object message) {
+                sendResponseMessage(channelName, message);
+            }
+
+            @Override
+            public void onError(Object error) {
+                sendErrorMessage(channelName, error);
+            }
+        });
+        return new MessageHandlerImpl(false, config, this,
+              aVoid -> galacticChannel.removeResponseListener());
+    }
+
+    private MessageResponder createMessageResponder(MessageObjectHandlerConfig config) {
+        return new MessageResponderImpl(config, this);
+    }
+
+    private static class GalacticChannelData {
+
+        final GalacticChannelConfig config;
+        final MessageBrokerConnector messageBroker;
+
+        BusTransaction requestListener;
+
+        private MessageBrokerSubscription brokerSubscription;
+
+        private int responseListeners = 0;
+
+        GalacticChannelData(GalacticChannelConfig config, MessageBrokerConnector messageBroker) {
+            this.config = config;
+            this.messageBroker = messageBroker;
+        }
+
+        /**
+         * Called when a new local listener subscribes to the remote galactic channel.
+         * All local listeners share a single MessageBrokerSubscription.
+         */
+        synchronized void addResponseListener(GalacticMessageHandler handler) {
+            if (brokerSubscription != null) {
+                // We already have a valid subscription to the external MessageBroker
+                // channel, just increase the responseListeners reference counter.
+                responseListeners++;
+            } else {
+                // This is the first listener, subscribe to the external channel.
+                brokerSubscription = messageBroker.subscribeToChannel(config, handler);
+                responseListeners++;
+            }
+        }
+
+        /**
+         * Called when a local listeners is removed.
+         */
+        synchronized void removeResponseListener() {
+            responseListeners--;
+            // Remove response listener. If it was the last one,
+            // unsubscribe from the MessageBroker.
+            if (responseListeners == 0 && brokerSubscription != null) {
+                messageBroker.unsubscribeFromChannel(brokerSubscription);
+                brokerSubscription = null;
+            }
+        }
+
+        /**
+         * Unsubscribe from the local request stream and the remote response stream.
+         */
+        synchronized void close() {
+            if (requestListener != null) {
+                requestListener.unsubscribe();
+            }
+            if (brokerSubscription != null) {
+                messageBroker.unsubscribeFromChannel(brokerSubscription);
+                responseListeners = 0;
+            }
+        }
     }
 }

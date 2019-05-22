@@ -108,6 +108,7 @@ jar {
                         "com.vmware.bifrost.bus.model;version=$version," +
                         "com.vmware.bifrost.bus.store;version=$version," +
                         "com.vmware.bifrost.bus.store.model;version=$version," +
+                        "com.vmware.bifrost.broker;version=$version," +
                         "com.vmware.bifrost.core;version=$version," +
                         "com.vmware.bifrost.core.error;version=$version," +
                         "com.vmware.bifrost.core.interfaces;version=$version," +
