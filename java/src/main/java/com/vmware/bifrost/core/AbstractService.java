@@ -33,6 +33,7 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
 
     /**
      * Build an error response based on request rejection details.
+     *
      * @param requestType Request
      * @return Response
      */
@@ -79,6 +80,10 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
 
     protected <E extends GeneralError> void sendError(E error, UUID id) {
         this.bus.sendErrorMessageWithId(this.serviceChannel, error, id);
+    }
+
+    protected void sendError(Response errorResponse, UUID id) {
+        this.bus.sendErrorMessageWithId(this.serviceChannel, errorResponse, id);
     }
 
     <T> T castPayload(Class clazz, Request request) throws ClassCastException {

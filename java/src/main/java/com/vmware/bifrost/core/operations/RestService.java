@@ -3,6 +3,10 @@
  */
 package com.vmware.bifrost.core.operations;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.vmware.bifrost.bridge.Request;
+import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
 import com.vmware.bifrost.core.CoreChannels;
@@ -10,6 +14,7 @@ import com.vmware.bifrost.core.model.RestServiceRequest;
 import com.vmware.bifrost.core.model.RestServiceResponse;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
+import com.vmware.bifrost.core.util.ClassMapper;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
 import com.vmware.bifrost.core.util.URIMatcher;
 import com.vmware.bifrost.core.util.URIMethodResult;
@@ -20,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.*;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -36,69 +43,93 @@ import java.util.function.Consumer;
  */
 @Service
 @SuppressWarnings("unchecked")
-public class RestService extends AbstractService<RestServiceRequest, RestServiceResponse> {
+public class RestService extends AbstractService<Request<RestServiceRequest>, Response> {
 
     private final URIMatcher uriMatcher;
     private final RestControllerInvoker controllerInvoker;
+    JsonParser parser;
 
     @Autowired
     public RestService(URIMatcher uriMatcher, RestControllerInvoker controllerInvoker) {
         super(CoreChannels.RestService);
         this.uriMatcher = uriMatcher;
         this.controllerInvoker = controllerInvoker;
+        parser = new JsonParser();
     }
 
     /**
      * Handle bus request.
      *
-     * @param request RestServiceRequest instance sent on bus
+     * @param req RestServiceRequest instance sent on bus
      */
     @Override
-    protected void handleServiceRequest(RestServiceRequest request, Message message) {
-
-        this.logDebugMessage(this.getClass().getSimpleName()
-                + " handling Rest Request for URI: " + request.getUri().toASCIIString());
+    protected void handleServiceRequest(Request req, Message message) {
 
         RestOperation operation = new RestOperation();
-        operation.setUri(request.getUri());
-        operation.setBody(request.getBody());
-        operation.setMethod(request.getMethod());
-        operation.setHeaders(request.getHeaders());
-        operation.setApiClass(request.getApiClass());
-        operation.setId(request.getId());
-        operation.setSentFrom(this.getName());
-
-        // create a success handler to respond
-        Consumer<Object> successHandler = (Object restResponseObject) -> {
-            this.logDebugMessage(this.getClass().getSimpleName()
-                    + " Successful REST response " + request.getUri().toASCIIString());
-            RestServiceResponse response = new RestServiceResponse(request.getId(), restResponseObject);
-            this.sendResponse(response, message.getId());
-        };
-
-        operation.setSuccessHandler(successHandler);
-
-        // create an error handler to respond in case something goes wrong.
-        Consumer<RestError> errorHandler = (RestError error) -> {
-            this.logErrorMessage(this.getClass().getSimpleName()
-                    + " Error with making REST response ", request.getUri().toASCIIString());
-            this.sendError(error, message.getId());
-        };
-
-        operation.setErrorHandler(errorHandler);
 
         try {
+            RestServiceRequest request = ClassMapper.CastPayload(RestServiceRequest.class, req);
+            this.logDebugMessage(this.getClass().getSimpleName()
+                    + " handling Rest Request for URI: " + request.getUri().toASCIIString());
+
+            operation.setUri(request.getUri());
+            operation.setBody(request.getBody());
+            operation.setMethod(request.getMethod());
+            operation.setHeaders(request.getHeaders());
+            operation.setApiClass(request.getApiClass());
+            operation.setId(req.getId());
+            operation.setSentFrom(this.getName());
+
+            // create a success handler to respond
+            Consumer<Object> successHandler = (Object restResponseObject) -> {
+                this.logDebugMessage(this.getClass().getSimpleName()
+                        + " Successful REST response " + request.getUri().toASCIIString());
+
+                // check if we got back a string / json, or an actual object.
+                if (restResponseObject instanceof String) {
+                    JsonElement respJson = parser.parse(restResponseObject.toString());
+                    restResponseObject = respJson.toString();
+                }
+
+                Response response = new Response(req.getId(), restResponseObject);
+                this.sendResponse(response, req.getId());
+            };
+
+            operation.setSuccessHandler(successHandler);
+
+            // create an error handler to respond in case something goes wrong.
+            Consumer<RestError> errorHandler = (RestError error) -> {
+                this.logErrorMessage(this.getClass().getSimpleName()
+                        + " Error with making REST response ", request.getUri().toASCIIString());
+
+                Response response = new Response(req.getId(), error);
+                response.setError(true);
+                response.setErrorCode(error.errorCode);
+                response.setErrorMessage(error.message);
+                this.sendError(response, req.getId());
+            };
+
+            operation.setErrorHandler(errorHandler);
+
             this.restServiceRequest(operation);
+
+        } catch (ClassCastException exp) {
+            this.logErrorMessage(this.getName()
+                    + " Exception thrown when making REST response ClassCastException: ", exp.getMessage());
 
         } catch (Exception exp) {
 
             // something bubbled up, throw it back as a response.
             this.logErrorMessage(this.getName()
-                    + " Exception thrown when making REST response ", request.getUri().toASCIIString());
+                    + " Exception thrown when making REST response ", exp.getMessage());
 
             RestError error = new RestError("Exception thrown '"
                     + exp.getClass().getSimpleName() + ": " + exp.getMessage() + "'", 500);
-            this.sendError(error, message.getId());
+            Response response = new Response(req.getId(), error);
+            response.setError(true);
+            response.setErrorCode(error.errorCode);
+            response.setErrorMessage(error.message);
+            this.sendResponse(response, req.getId());
 
         }
     }
@@ -108,11 +139,9 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
      * via a standard rest call.
      *
      * @param operation RestOperation to be supplied
-     * @param <Req>     request body type
-     * @param <Resp>    return body type
      */
     @Override
-    protected <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) {
+    protected void restServiceRequest(RestOperation operation) {
 
         // check if the URI is local to the system
         try {
@@ -130,7 +159,7 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
         }
 
 
-        HttpEntity<Req> entity;
+        HttpEntity entity;
         HttpHeaders headers = new HttpHeaders();
 
         // fix patch issue.
@@ -138,9 +167,10 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
 
         // check if headers are set.
         if (operation.getHeaders() != null) {
-
-            for (String key : operation.getHeaders().keySet()) {
-                headers.add(key, operation.getHeaders().get(key));
+            Map<String, String> opHeaders = operation.getHeaders();
+            Set<String> keySet = opHeaders.keySet();
+            for (String key : keySet) {
+                headers.add(key, opHeaders.get(key));
             }
         }
         headers.setContentType(mediaType);
@@ -160,7 +190,7 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp) resp.getBody());
+                    operation.getSuccessHandler().accept(resp.getBody());
                     break;
 
                 case POST:
@@ -170,7 +200,7 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp) resp.getBody());
+                    operation.getSuccessHandler().accept(resp.getBody());
                     break;
 
                 case PUT:
@@ -180,7 +210,7 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp) resp.getBody());
+                    operation.getSuccessHandler().accept(resp.getBody());
                     break;
 
                 case PATCH:
@@ -190,7 +220,7 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp) resp.getBody());
+                    operation.getSuccessHandler().accept(resp.getBody());
                     break;
 
                 case DELETE:
@@ -200,16 +230,16 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp) resp.getBody());
+                    operation.getSuccessHandler().accept(resp.getBody());
                     break;
             }
 
-        } catch (RestClientException exp) {
+        } catch (HttpClientErrorException exp) {
 
             this.logErrorMessage("REST Client Error, unable to complete request: ", exp.getMessage());
             operation.getErrorHandler().accept(
                     new RestError("REST Client Error, unable to complete request: "
-                            + exp.getMessage(), 500)
+                            + exp.getMessage(), exp.getRawStatusCode())
             );
 
         } catch (NullPointerException npe) {
@@ -220,10 +250,10 @@ public class RestService extends AbstractService<RestServiceRequest, RestService
                             + operation.getUri().toString(), 500)
             );
         } catch (RuntimeException rex) {
-            this.logErrorMessage("Runtime Exception when making REST Call", rex.toString());
+            this.logErrorMessage("REST Client Error, unable to complete request: ", rex.toString());
             operation.getErrorHandler().accept(
-                    new RestError("Runtime exception thrown for: "
-                                  + operation.getUri().toString(), 500)
+                    new RestError("REST Client Error, unable to complete request: "
+                            + operation.getUri().toString(), 500)
             );
         } catch (ClassNotFoundException cnfexp) {
             this.logErrorMessage("Class Not Found Exception when making REST Call", cnfexp.toString());

@@ -94,7 +94,7 @@ ServiceLoader.addService(RestService);</code></pre>
 <hr/>
 
 
-<h3>Calling RestService from your Service</h3>
+<h3>Making a Rest Call for any API.</h3>
 
 <p>
     When your service extends from <code class="clr-code">AbstractService</code>, a method named <code class="clr-code">restServiceRequest()</code>
@@ -140,12 +140,77 @@ ServiceLoader.addService(RestService);</code></pre>
 
 <hr/>
 
+<h3>How can I call the Fabric/Non Browser version of the RestService?</h3>
+
+<h5>Need to bypass all browser CORS and security restrictions? Need a clean way to make any REST API call to anywhere from the browser? </h5>
+
+<p>
+    The Fabric comes with a counter-part <code class="clr-code">RestService</code>. This means you can bypass all the browser security restrictions
+    placed on your application by CORS. You can fire your Restful API call via the Backend (Java). You don't need to change anything, the existing
+    methods work.
+</p>
+
+<p>
+    In order to use the Java Bifröst <code class="clr-code">RestService</code> from your browser application, you need to disable the currently
+    loaded (local) <code class="clr-code">RestService</code> and switch over to the Java (remote) one. This can be done easily with a couple of commands.
+</p>
+
+<pre class="code"><code class="language-typescript" ngNonBindable>// to use remote RestService (remote, no security restrictions)
+disableLocalRestService(): void &#123;
+
+    ServiceLoader.offlineLocalRestService(); // offline the local (JavaScript) version of the RestService
+    this.fabric.useFabricRestService(); // mark the RestService channel as galactic and fire off the request over the wire.
+&#125;
+
+// to use the local RestService (in browser - all restrictions apply)
+enableLocalRestService(): void &#123;
+
+    ServiceLoader.onlineLocalRestService(); // local RestService comes back online.
+    this.fabric.useLocalRestService(); // no more Rest requests will be set over the wire.
+&#125;
+</code></pre>
+
+<appfab-tryitout-component>
+    <fabric-restservice-component></fabric-restservice-component>
+</appfab-tryitout-component>
+
+<p>The code we used to make the remote call above, is pretty simple. If you check your developer tools, you will see <strong class="emphasis">No XHR or Fetch calls</strong>
+ being made by your browser. Everything is via the bus, over the websocket.</p>
+
+<h3>Making an unrestricted API call using the Java fabric</h3>
+<pre class="code"><code class="language-typescript" ngNonBindable>public requestAPI(): void &#123;
+    this.iconState = ClrLoadingState.LOADING;
+
+    // disable local Rest Service
+    this.disableLocalRestService();
+    this.response = "requesting from API, via Fabric (not local)....";
+
+    this.restServiceRequest(
+            &#123;
+                uri: `https://jsonplaceholder.typicode.com/todos/$&#123;Math.floor(Math.random() * (10 - 1 + 1)) + 1&#125;`,
+                method: HttpRequest.Get,
+                successHandler: (response: any) => &#123;
+                    this.iconState = ClrLoadingState.SUCCESS;
+                    this.response = `API Call Success: $&#123;response.title&#125;`;
+                    this.enableLocalRestService();
+                &#125;,
+                errorHandler: (error: RestError) => &#123;
+                    this.iconState = ClrLoadingState.SUCCESS;
+                    this.response = `API Response Error: $&#123;error.message&#125;`;
+                    this.enableLocalRestService();
+                &#125;
+            &#125;
+        );
+&#125;
+</code></pre>
+<hr/>
+<h3>Creating a Service to handle/hide API call logic.</h3>
 <p>
     Let's create a simple service called <code class="clr-code">MyAPIService</code> that calls a remote API via the
     <code class="clr-code">RestService</code>
 </p>
 
-
+<p>This design would prevent any of your components containing any API or business logic for API calls (which is the way it should be)</p>
 
 <h3>MyAPIService</h3>
 <pre class="code"><code class="language-typescript" ngNonBindable>import &#123; AbstractService &#125; from '@vmw/bifrost/core';
@@ -259,11 +324,3 @@ export class MyAPIComponent extends AbstractBase &#123;
 <appfab-tryitout-component>
     <myapi-component></myapi-component>
 </appfab-tryitout-component>
-
-<!--<h3>How can I call the Fabric version of the RestService?</h3>-->
-
-<!--<h5>Need to bypass all browser restrictions? Need a clean way to make any REST API call to anywhere from the browser? </h5>-->
-
-<!--<appfab-tryitout-component>-->
-    <!--<fabric-rest-component></fabric-rest-component>-->
-<!--</appfab-tryitout-component>-->

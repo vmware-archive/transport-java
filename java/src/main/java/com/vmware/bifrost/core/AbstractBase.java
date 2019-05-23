@@ -1,13 +1,17 @@
 package com.vmware.bifrost.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vmware.bifrost.bridge.Request;
+import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.error.GeneralError;
+import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.model.RestServiceRequest;
+import com.vmware.bifrost.core.operations.RestService;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.core.util.ServiceMethodLookupUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +21,7 @@ import org.springframework.http.HttpMethod;
 
 
 import java.net.URI;
+import java.util.Calendar;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -55,17 +60,16 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
      * @param errorHandler     error handler lambda to handle response (RestError)
      * @param <Req>            Type of the payload being sent.
      * @param <Resp>           Type of the response being returned.
-     * @param <Err>            Type of error being returned
      */
-    protected <Req, Resp, Err extends GeneralError> void restServiceRequest(
+    protected <Req, Resp> void restServiceRequest(
             UUID id,
             URI uri,
             HttpMethod method,
             Req payload,
             Map<String, String> headers,
             String responseApiClass,
-            Consumer<Resp> successHandler,
-            Consumer<Err> errorHandler
+            Consumer<Response<Resp>> successHandler,
+            Consumer<Response<RestError>> errorHandler
     ) {
 
         // set defaults
@@ -77,10 +81,17 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
         req.setSentFrom(this.getName());
         req.setHeaders(headers);
 
+        Request request = new Request<Req>();
+        request.setId(id);
+        request.setPayload(req);
+        request.setRequest(method.toString());
+        request.setChannel(CoreChannels.RestService);
+        request.setCreated(Calendar.getInstance().getTime());
+
         callService(
                 id,
                 CoreChannels.RestService,
-                req,
+                request,
                 successHandler,
                 errorHandler);
     }
@@ -97,17 +108,16 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
      * @param errorHandler     error handler lambda to handle response (RestError)
      * @param <Req>            Type of the payload being sent.
      * @param <Resp>           Type of the response being returned.
-     * @param <Err>            Type of the error being returned.
      * @deprecated use method with RestOperation.
      */
-    protected <Req, Resp, Err extends GeneralError> void restServiceRequest(
+    protected <Req, Resp> void restServiceRequest(
             URI uri,
             HttpMethod method,
             Req payload,
             Map<String, String> headers,
             String responseApiClass,
-            Consumer<Resp> successHandler,
-            Consumer<Err> errorHandler
+            Consumer<Response<Resp>> successHandler,
+            Consumer<Response<RestError>> errorHandler
     )  throws Exception {
         this.restServiceRequest(UUID.randomUUID(), uri, method, payload, headers, responseApiClass, successHandler, errorHandler);
     }
@@ -116,10 +126,8 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
      * Make a new RestService call.
      *
      * @param operation RestOperation for call Encapsulates individual argument calls.
-     * @param <Req>     Type of the payload being sent.
-     * @param <Resp>    Type of the response being returned.
      */
-    protected <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) {
+    protected void restServiceRequest(RestOperation operation) {
 
         this.restServiceRequest(
                 operation.getId(),
@@ -143,7 +151,7 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
      * @param <Req> generic type of the request
      * @param <Resp> generic type of the response\
      */
-    protected <Req, Resp, Err extends GeneralError> void callService(
+    protected <Req, Resp, Err> void callService(
             UUID uuid,
             String channelName,
             Req request,

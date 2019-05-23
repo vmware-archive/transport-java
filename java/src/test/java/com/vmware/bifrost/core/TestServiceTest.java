@@ -5,6 +5,7 @@
 package com.vmware.bifrost.core;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
@@ -96,6 +97,9 @@ public class TestServiceTest {
                     TestServiceObjectResponse respPayload = (TestServiceObjectResponse) resp.getPayload();
                     Assert.assertEquals(id, resp.getId());
                     Assert.assertEquals("CommandA-My Little Melody", respPayload.getResponseValue());
+                },
+                (Message error) -> {
+                    Assert.fail();
                 }
         );
     }
@@ -177,7 +181,7 @@ public class TestServiceTest {
                     TestResponse resp = (TestResponse) msg.getPayload();
                     TestServiceObjectResponse respPayload = (TestServiceObjectResponse) resp.getPayload();
                     Assert.assertEquals(id, resp.getId());
-                    Assert.assertEquals("pretty-baby", respPayload.getResponseValue());
+                    Assert.assertEquals("\"pretty-baby\"", respPayload.getResponseValue());
                 }
         );
     }
@@ -189,7 +193,7 @@ public class TestServiceTest {
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.FORBIDDEN.value())
                         .withHeader("Content-Type", APPLICATION_JSON_VALUE)
-                        .withBody("no-access!")));
+                        .withBody("{message: 'no-access!'}")));
 
 
         String serviceChannel = "test::TestService";
@@ -205,18 +209,19 @@ public class TestServiceTest {
         request.uri = new URI("http://localhost:9999/bus-test-service-error");
         request.method = HttpMethod.GET;
 
-        bus.requestOnce(
+        bus.requestOnceWithId(
+                id,
                 serviceChannel,
                 request,
                 (Message msg) -> {
                     Assert.fail();
                 },
                 (Message msg) -> {
-                    RestError error = (RestError) msg.getPayload();
-                    Assert.assertEquals(new Integer(500), error.errorCode);
+                    Response<RestError> resp = (Response<RestError>) msg.getPayload();
+                    RestError error = resp.getPayload();
+                    Assert.assertEquals(new Integer(403), error.errorCode);
                     Assert.assertEquals("REST Client Error, unable to complete request: 403 Forbidden", error.message);
                 }
-
         );
     }
 

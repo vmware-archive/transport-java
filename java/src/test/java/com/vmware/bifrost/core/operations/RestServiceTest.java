@@ -2,6 +2,8 @@ package com.vmware.bifrost.core.operations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.vmware.bifrost.bridge.Request;
+import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
@@ -549,14 +551,20 @@ public class RestServiceTest {
         req.setMethod(HttpMethod.GET);
         req.setUri(new URI("http://localhost:9999/bus-uri"));
         req.setSentFrom(this.getClass().getSimpleName());
-        req.setId(id);
+
+        // we need to wrap a rest service request into a request.
+        Request<RestServiceRequest> request = new Request<>();
+        request.setId(id);
+        request.setChannel(CoreChannels.RestService);
+        request.setPayload(req);
+
         this.bus.requestOnceWithId(
                 id,
                 CoreChannels.RestService,
-                req,
+                request,
                 (Message message) -> {
-                    RestServiceResponse resp = (RestServiceResponse) message.getPayload();
-                    Assert.assertEquals("bus-request-success", resp.getPayload().toString());
+                    Response resp = (Response) message.getPayload();
+                    Assert.assertEquals("\"bus-request-success\"", resp.getPayload().toString());
                 },
                 (Message message) -> {
                     Assert.fail();
@@ -579,19 +587,27 @@ public class RestServiceTest {
         req.setMethod(HttpMethod.GET);
         req.setUri(new URI("http://localhost:9999/bus-uri-error"));
         req.setSentFrom(this.getClass().getSimpleName());
-        req.setId(id);
+
+        // we need to wrap a rest service request into a request.
+        Request<RestServiceRequest> request = new Request<>();
+        request.setId(id);
+        request.setChannel(CoreChannels.RestService);
+        request.setPayload(req);
+
+        //req.setId(id);
         this.bus.requestOnceWithId(
                 id,
                 CoreChannels.RestService,
-                req,
+                request,
                 (Message message) -> {
                     Assert.fail();
                 },
                 (Message message) -> {
-                    RestError error = (RestError) message.getPayload();
+                    Response<RestError> resp = (Response<RestError>) message.getPayload();
+                    RestError error = resp.getPayload();
                     Assert.assertEquals(new Integer(500), error.errorCode);
                     Assert.assertEquals(
-                            "REST Client Error, unable to complete request: 500 Server Error", error.message);
+                            "REST Client Error, unable to complete request: http://localhost:9999/bus-uri-error", error.message);
                 }
         );
     }
@@ -611,19 +627,26 @@ public class RestServiceTest {
         req.setMethod(HttpMethod.GET);
         req.setUri(new URI("http://localhost:9999/throw-exception"));
         req.setSentFrom(this.getClass().getSimpleName());
-        req.setId(id);
+        //req.setId(id);
+        // we need to wrap a rest service request into a request.
+        Request<RestServiceRequest> request = new Request<>();
+        request.setId(id);
+        request.setChannel(CoreChannels.RestService);
+        request.setPayload(req);
+
         this.bus.requestOnceWithId(
                 id,
                 CoreChannels.RestService,
-                req,
+                request,
                 (Message message) -> {
                     Assert.fail();
                 },
                 (Message message) -> {
-                    RestError error = (RestError) message.getPayload();
+                    Response<RestError> resp = (Response) message.getPayload();
+                    RestError error = resp.getPayload();
                     Assert.assertEquals(new Integer(500), error.errorCode);
                     Assert.assertEquals(
-                            "Exception thrown 'ClassNotFoundException: com.fake.ClassDoesNotExist'", error.message);
+                            "Class Not Found Exception thrown for: http://localhost:9999/throw-exception", error.message);
                 }
         );
     }

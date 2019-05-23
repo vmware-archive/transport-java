@@ -4,6 +4,7 @@
 package com.vmware.bifrost.core;
 
 
+import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.error.RestError;
@@ -14,15 +15,15 @@ import java.util.UUID;
 
 @BifrostService
 @Component
-public class TestService extends AbstractService<TestRequest, TestResponse>{
+public class TestService extends AbstractService<TestRequest, TestResponse> {
 
     public TestService() {
         super("test::TestService");
     }
 
     @Override
-    protected void handleServiceRequest(TestRequest request, Message message)  {
-        switch (request.getRequest()){
+    protected void handleServiceRequest(TestRequest request, Message message) {
+        switch (request.getRequest()) {
             case TestCommand.COMMAND_A:
                 this.handleCommandA(request, message.getId());
                 break;
@@ -62,26 +63,26 @@ public class TestService extends AbstractService<TestRequest, TestResponse>{
 
     }
 
-    private void handleCommandC(TestRequest request, UUID id)  {
+    private void handleCommandC(TestRequest request, UUID id) {
 
         TestServiceObjectResponse responsePayload = new TestServiceObjectResponse();
 
         try {
-
             this.restServiceRequest(
+                    UUID.randomUUID(),
                     request.uri,
                     request.method,
                     request.getPayload(),
                     null,
                     String.class.getName(),
-                    (RestServiceResponse response) -> {
-                        responsePayload.setResponseValue((String) response.getPayload());
+                    (Response<String> response) -> {
+                        responsePayload.setResponseValue(response.getPayload());
                         this.sendResponse(
                                 new TestResponse(request.getId(), responsePayload),
                                 id
                         );
                     },
-                    (RestError error) -> {
+                    (Response<RestError> error) -> {
                         this.sendError(error, id);
                     }
             );

@@ -2,7 +2,7 @@ package com.vmware.bifrost.bridge;
 
 import java.util.UUID;
 
-public class Response<RespP> extends AbstractFrame {
+public class Response<RespP> extends AbstractFrame<RespP> {
 
     protected boolean error = false;
     protected int errorCode;
