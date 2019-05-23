@@ -1,0 +1,5 @@
+FROM rabbitmq:3.6.11-management-alpine
+
+ADD rabbitmq.definitions.json /etc/rabbitmq
+ADD rabbitmq.config /etc/rabbitmq
+

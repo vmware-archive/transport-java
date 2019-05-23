@@ -39,10 +39,14 @@ build:bifrost:
   - echo "Building vmw-bifrost-csp"
   - cd ./csp
   - ./gradlew assemble
+  - echo "Building vmw-bifrost-rabbitmq"
+  - cd ../rabbitmq
+  - ./gradlew assemble
   artifacts:
     paths:
     - java/build/libs
     - java/csp/build/libs
+    - java/rabbitmq/build/libs
     expire_in: 1 week
   when: on_success
   only:
@@ -89,6 +93,18 @@ publish:bifrost-csp:
   - echo "Disabled until the first MR gets merged"
   #- cd ./java/csp
   #- ./gradlew publish -PbuildType=snapshot
+  when: on_success
+  only:
+  - master
+
+publish:bifrost-rabbitmq:
+  stage: publish
+  dependencies:
+  - build:bifrost
+  script:
+  - echo "Publishing vmw-bifrost-rabbitmq"
+  - cd ./java/rabbitmq
+  - ./gradlew publish -PbuildType=snapshot
   when: on_success
   only:
   - master

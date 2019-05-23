@@ -1,0 +1,155 @@
+buildscript {
+    ext {
+        springBootVersion = '1.5.18.RELEASE'
+    }
+    repositories {
+        maven { url "http://build-squid.eng.vmware.com/nexus/content/groups/repo" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "gradle.plugin.com.github.onslip:gradle-one-jar:1.0.5"
+    }
+}
+
+// Configure latest Lombok
+plugins {
+    id 'io.franzbecker.gradle-lombok' version '1.14'
+}
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+apply plugin: 'eclipse'
+apply plugin: 'com.github.onslip.gradle-one-jar'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'idea'
+apply plugin: 'jacoco'
+
+def profiles = 'prod'
+
+group = 'com.vmware.bifrost'
+sourceCompatibility = 1.8
+
+initProperties()
+
+ext.bifrost_version = "[0.0.19,1.0.0)"
+
+jar {
+    enabled = true
+    from sourceSets.main.output
+    include 'com/vmware/bifrost/**/*'
+
+    manifest {
+        attributes (
+                'Bundle-Name': 'Bifrost-RabbitMq',
+                'Bundle-Version': version,
+                'Bundle-SymbolicName': 'com.vmware.bifrost.rabbitmq',
+                'Import-Package': 'org.springframework.beans.factory,' +
+                        'org.springframework.beans,' +
+                        'org.springframework.beans.factory.annotation,' +
+                        'org.springframework.web.socket.config.annotation,' +
+                        'org.slf4j,' +
+                        'com.vmware.bifrost.broker,' +
+                        'org.springframework.amqp.core,' +
+                        'org.springframework.amqp.rabbit.core,' +
+                        'org.springframework.amqp.rabbit.listener,' +
+                        'org.springframework.amqp.support.converter,' +
+                        'org.springframework.amqp.rabbit.connection,' +
+                        'org.springframework.util',
+                'Export-Package': "com.vmware.bifrost.broker.rabbitmq;version=$version"
+        )
+    }
+}
+
+task buildAppJar(type: Jar) {
+    classifier "rabbitApp"
+    from sourceSets.main.output
+}
+
+task buildBootJar(type: OneJar) {
+    dependsOn buildAppJar, build
+    baseJar = buildAppJar
+    mainClass = 'rabbitApp.Application'
+    archiveName = 'rabbitAppSample.jar'
+}
+
+
+repositories {
+    maven { url "http://build-squid.eng.vmware.com/nexus/content/groups/repo" }
+}
+
+// Maven artifact publishing using the maven-publish plugin.
+publishing {
+    publications {
+        // Publishes
+        mavenJava(MavenPublication) {
+            // Publishes a POM to maven repo.
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            // To publish to the build-artifactory:
+            //
+            // 1. Ensure you have write access to the bifrost-maven-local repo.
+            // 2. Update the version in "version.txt" file.
+            // 3. Run "gradlew publish" task by specifying your credentials using the
+            //    mavenUser and mavenPassword gradle properties. This can be done via:
+            //       - command line arguments - "gradlew publish -PmavenUser=user -PmavenPassword=password"
+            //       - the local gradle.properties file, usually located in USER_HOME/.gradle/gradle.properties
+            //
+            // To test you changes during development, you can publish project's jars
+            // to your maven local repo by running "gradlew publishToMavenLocal" task.
+            credentials {
+                username mavenUser
+                password mavenPassword
+            }
+            name = 'build-artifactory'
+            url = "https://build-artifactory.eng.vmware.com/artifactory/bifrost-maven-local"
+        }
+    }
+}
+
+dependencies {
+    implementation "com.vmware.bifrost:vmw-bifrost:$bifrost_version"
+    runtime "com.vmware.bifrost:vmw-bifrost:$bifrost_version"
+
+    compile "org.springframework.boot:spring-boot-starter-amqp:$springBootVersion"
+
+    testImplementation 'org.mockito:mockito-core:2.+'
+    testImplementation 'org.powermock:powermock-module-junit4:1.7.4'
+    testImplementation("junit:junit")
+}
+
+jacoco {
+    toolVersion = "0.8.0"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['rabbitApp/**',
+                              'rabbitSamples/**'])
+        })
+    }
+}
+
+void initProperties() {
+    version = rootProject.file('version.txt').getText('UTF-8').trim()
+    if ("snapshot".compareTo(buildType) == 0) {
+        version = version + "-SNAPSHOT"
+    }
+
+    if (System.getenv("bifrost_maven_user")?.trim()) {
+        mavenUser = System.getenv("bifrost_maven_user").trim()
+    }
+
+    if (System.getenv("bifrost_maven_password")?.trim()) {
+        mavenPassword = System.getenv("bifrost_maven_password").trim()
+    }
+}
