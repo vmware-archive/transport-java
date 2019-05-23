@@ -39,7 +39,9 @@ build:bifrost:
   - echo "Building vmw-bifrost-csp"
   - cd ./csp
   - ./gradlew assemble
+  - echo "Building vmw-bifrost-rabbitmq"
   - cd ../rabbitmq
+  - ls
   - ./gradlew assemble
   artifacts:
     paths:
