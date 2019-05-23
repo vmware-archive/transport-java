@@ -43,26 +43,39 @@ export class FabricRestServiceComponent extends AbstractBase {
 
         // disable local Rest Service
         this.disableLocalRestService();
-        this.response = "requesting from API, via Fabric (not local)....";
+        this.response = "....";
 
-        this.restServiceRequest(
-            {
-                uri: this.uri,
-                method: HttpRequest.Get,
-                successHandler: (response: any) => {
-                    this.iconState = ClrLoadingState.SUCCESS;
-                    this.response = `API Call Success: ${response.title}`;
-                    this.cd.detectChanges();
-                    this.enableLocalRestService();
-                },
-                errorHandler: (error: RestError) => {
-                    this.iconState = ClrLoadingState.ERROR;
-                    this.response = `API Response Error: ${error.message}`;
-                    this.cd.detectChanges();
-                    this.enableLocalRestService();
-                }
-            }
-        );
+        this.bus.api.tickEventLoop(
+            () => {
+                this.restServiceRequest(
+                    {
+                        uri: this.uri,
+                        method: HttpRequest.Get,
+                        successHandler: (response: any) => {
+                            this.iconState = ClrLoadingState.SUCCESS;
+                            this.response = `API Call Success: ${response.title}`;
+                            this.cd.detectChanges();
+                            this.bus.api.tickEventLoop(
+                                () => {
+                                    this.enableLocalRestService();
+                                }, 20
+                            )
+
+                        },
+                        errorHandler: (error: RestError) => {
+                            this.iconState = ClrLoadingState.ERROR;
+                            this.response = `API Response Error: ${error.message}`;
+                            this.cd.detectChanges();
+                            this.bus.api.tickEventLoop(
+                                () => {
+                                    this.enableLocalRestService();
+                                }, 20
+                            )
+                        }
+                    }
+                );
+            }, 20
+        )
     }
 
     public requestAPI(): void {
