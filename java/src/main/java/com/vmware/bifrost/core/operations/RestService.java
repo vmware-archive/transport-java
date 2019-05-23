@@ -6,6 +6,7 @@ package com.vmware.bifrost.core.operations;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.vmware.bifrost.bridge.Request;
+import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
 import com.vmware.bifrost.core.CoreChannels;
@@ -24,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.*;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -40,7 +43,7 @@ import java.util.function.Consumer;
  */
 @Service
 @SuppressWarnings("unchecked")
-public class RestService extends AbstractService<Request<RestServiceRequest>, RestServiceResponse> {
+public class RestService extends AbstractService<Request<RestServiceRequest>, Response> {
 
     private final URIMatcher uriMatcher;
     private final RestControllerInvoker controllerInvoker;
@@ -79,10 +82,16 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
 
             // create a success handler to respond
             Consumer<Object> successHandler = (Object restResponseObject) -> {
-                JsonElement respJson = parser.parse(restResponseObject.toString());
                 this.logDebugMessage(this.getClass().getSimpleName()
                         + " Successful REST response " + request.getUri().toASCIIString());
-                RestServiceResponse response = new RestServiceResponse(req.getId(), respJson.toString());
+
+                // check if we got back a string / json, or an actual object.
+                if (restResponseObject instanceof String) {
+                    JsonElement respJson = parser.parse(restResponseObject.toString());
+                    restResponseObject = respJson.toString();
+                }
+
+                Response response = new Response(req.getId(), restResponseObject);
                 this.sendResponse(response, req.getId());
             };
 
@@ -93,11 +102,11 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                 this.logErrorMessage(this.getClass().getSimpleName()
                         + " Error with making REST response ", request.getUri().toASCIIString());
 
-                RestServiceResponse response = new RestServiceResponse(req.getId(), error);
+                Response response = new Response(req.getId(), error);
                 response.setError(true);
                 response.setErrorCode(error.errorCode);
                 response.setErrorMessage(error.message);
-                this.sendResponse(response, req.getId());
+                this.sendError(response, req.getId());
             };
 
             operation.setErrorHandler(errorHandler);
@@ -116,7 +125,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
 
             RestError error = new RestError("Exception thrown '"
                     + exp.getClass().getSimpleName() + ": " + exp.getMessage() + "'", 500);
-            RestServiceResponse response = new RestServiceResponse(req.getId(), error);
+            Response response = new Response(req.getId(), error);
             response.setError(true);
             response.setErrorCode(error.errorCode);
             response.setErrorMessage(error.message);
@@ -130,11 +139,9 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
      * via a standard rest call.
      *
      * @param operation RestOperation to be supplied
-     * @param <Req>     request body type
-     * @param <Resp>    return body type
      */
     @Override
-    protected <Req, Resp> void restServiceRequest(RestOperation<Req, Resp> operation) {
+    protected void restServiceRequest(RestOperation operation) {
 
         // check if the URI is local to the system
         try {
@@ -152,7 +159,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
         }
 
 
-        HttpEntity<Req> entity;
+        HttpEntity entity;
         HttpHeaders headers = new HttpHeaders();
 
         // fix patch issue.
@@ -160,9 +167,10 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
 
         // check if headers are set.
         if (operation.getHeaders() != null) {
-
-            for (String key : operation.getHeaders().keySet()) {
-                headers.add(key, operation.getHeaders().get(key));
+            Map<String, String> opHeaders = operation.getHeaders();
+            Set<String> keySet = opHeaders.keySet();
+            for (String key : keySet) {
+                headers.add(key, opHeaders.get(key));
             }
         }
         headers.setContentType(mediaType);
@@ -182,7 +190,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp) resp.getBody());
+                    operation.getSuccessHandler().accept(resp.getBody());
                     break;
 
                 case POST:
@@ -192,7 +200,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp) resp.getBody());
+                    operation.getSuccessHandler().accept(resp.getBody());
                     break;
 
                 case PUT:
@@ -202,7 +210,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp) resp.getBody());
+                    operation.getSuccessHandler().accept(resp.getBody());
                     break;
 
                 case PATCH:
@@ -212,7 +220,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp) resp.getBody());
+                    operation.getSuccessHandler().accept(resp.getBody());
                     break;
 
                 case DELETE:
@@ -222,7 +230,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                             entity,
                             Class.forName(operation.getApiClass())
                     );
-                    operation.getSuccessHandler().accept((Resp) resp.getBody());
+                    operation.getSuccessHandler().accept(resp.getBody());
                     break;
             }
 
@@ -242,9 +250,9 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                             + operation.getUri().toString(), 500)
             );
         } catch (RuntimeException rex) {
-            this.logErrorMessage("Runtime Exception when making REST Call", rex.toString());
+            this.logErrorMessage("REST Client Error, unable to complete request: ", rex.toString());
             operation.getErrorHandler().accept(
-                    new RestError("Runtime exception thrown for: "
+                    new RestError("REST Client Error, unable to complete request: "
                             + operation.getUri().toString(), 500)
             );
         } catch (ClassNotFoundException cnfexp) {

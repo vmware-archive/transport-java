@@ -82,6 +82,10 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
         this.bus.sendErrorMessageWithId(this.serviceChannel, error, id);
     }
 
+    protected void sendError(Response errorResponse, UUID id) {
+        this.bus.sendErrorMessageWithId(this.serviceChannel, errorResponse, id);
+    }
+
     <T> T castPayload(Class clazz, Request request) throws ClassCastException {
         return (T) this.mapper.convertValue(request.getPayload(), clazz);
     }

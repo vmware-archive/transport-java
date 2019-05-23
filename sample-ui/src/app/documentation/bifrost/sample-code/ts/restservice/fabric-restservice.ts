@@ -12,8 +12,8 @@ import { GeneralUtil } from '@vmw/bifrost/util/util';
 @Component({
     selector: 'fabric-restservice-component',
     template: `
-        <button (click)="requestAPI()" class="btn btn-primary" [clrLoading]="iconState">Request Valid API via Fabric Rest Service</button>
-        <button (click)="requestInvalidAPI()" class="btn btn-primary" [clrLoading]="iconState">Request Invalid API (404) via Fabric Rest Service</button><br/>
+        <button (click)="requestAPI()" class="btn btn-primary" [clrLoading]="iconState">Request API via Fabric Rest Service</button>
+        <button (click)="requestInvalidAPI()" class="btn btn-primary" [clrLoading]="iconState">Error 404 via Fabric Rest Service</button><br/>
         Response: {{response}}`
 })
 export class FabricRestServiceComponent extends AbstractBase {
@@ -56,7 +56,6 @@ export class FabricRestServiceComponent extends AbstractBase {
                     this.enableLocalRestService();
                 },
                 errorHandler: (error: RestError) => {
-                    console.log('the error....', error);
                     this.iconState = ClrLoadingState.ERROR;
                     this.response = `API Response Error: ${error.message}`;
                     this.cd.detectChanges();

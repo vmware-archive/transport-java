@@ -235,6 +235,7 @@ dependencies {
     testImplementation('com.github.tomakehurst:wiremock:2.19.0')
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
     testImplementation("junit:junit")
+    testCompile('org.awaitility:awaitility:3.1.6')
 }
 
 test {

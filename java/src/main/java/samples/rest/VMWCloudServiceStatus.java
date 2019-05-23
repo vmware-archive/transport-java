@@ -38,32 +38,19 @@ public class VMWCloudServiceStatus extends AbstractService<Request<String>, Resp
 
     private void handleCloudServiceStatusRequest(Request req) throws Exception {
 
-        // create a rest call for cloud services.
-        RestOperation<String, RestServiceResponse<CloudServicesStatusResponse>> restOperation = new RestOperation<>();
-        restOperation.setId(UUID.randomUUID());
-        restOperation.setUri(new URI("https://status.vmware-services.io/api/v2/status.json"));
-        restOperation.setApiClass("samples.rest.CloudServicesStatusResponse");
-        restOperation.setMethod(HttpMethod.GET);
-        restOperation.setSentFrom(this.getName());
-
-        // define success handler for rest call.
-        restOperation.setSuccessHandler(
-                (RestServiceResponse<CloudServicesStatusResponse> resp) -> {
-                    CloudServicesStatusResponse payload = ClassMapper.CastPayload(CloudServicesStatusResponse.class, resp);
-                    Response<CloudServicesStatusResponse> response = new Response<>(req.getId(), payload);
-                    this.sendResponse(response, req.getId());
-                }
-        );
-
-        // define an error handler for rest call.
-        restOperation.setErrorHandler(
-                (RestError error) -> {
+        // make rest call
+        super.restServiceRequest(
+                UUID.randomUUID(),
+                new URI("https://status.vmware-services.io/api/v2/status.json"),
+                HttpMethod.GET,
+                null, null,
+                "samples.rest.CloudServicesStatusResponse",
+                (Response<CloudServicesStatusResponse> resp) -> {
+                    this.sendResponse(resp, req.getId());
+                },
+                (Response<RestError> error) -> {
                     this.sendError(error, req.getId());
                 }
         );
-
-        // make rest call
-        super.restServiceRequest(restOperation);
-
     }
 }
