@@ -65,7 +65,7 @@ task buildAppJar(type: Jar) {
 }
 
 task buildBootJar(type: OneJar) {
-    dependsOn buildAppJar
+    dependsOn buildAppJar, build
     baseJar = buildAppJar
     mainClass = 'rabbitApp.Application'
     archiveName = 'rabbitAppSample.jar'
