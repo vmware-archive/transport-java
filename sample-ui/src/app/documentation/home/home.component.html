@@ -31,7 +31,7 @@
 <p>
     Everything is in gitlab, no Perforce here. All you need to do is check it out.
 </p>
-<pre class="code"><code class="language-shell" ngNonBindable>&gt; git clone git@gitlab.eng.vmware.com:bifrost/java.git appfabric</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>git clone git@gitlab.eng.vmware.com:bifrost/java.git appfabric</code></pre>
 <hr/>
 
 <h3>
@@ -40,7 +40,7 @@
 <p>
     Once you have the source, cd into <code class="clr-code">appfabric</code> and run the <code class="clr-code">build.sh</code> script.
 </p>
-<pre class="code"><code class="language-shell" ngNonBindable>&gt; cd appfabric && ./build.sh</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>cd appfabric && ./build.sh</code></pre>
 
 <hr/>
 
@@ -53,16 +53,19 @@
 </p>
 
 <h4>Booting fabric manually</h4>
-<pre class="code"><code class="language-shell" ngNonBindable>&gt; cd java && ./runme.sh</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>cd java && ./runme.sh</code></pre>
 
 <h4>Booting UI manually</h4>
-<pre class="code"><code class="language-shell" ngNonBindable>&gt; cd sample-ui && npm start</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>cd sample-ui && npm start</code></pre>
 
 <p>Now you should be able hit <strong class="emphasis">http://localhost:4200</strong> and you will see this site.</p>
 <hr/>
 
-<h4>Running everything via Docker</h4>
-<pre class="code"><code class="language-shell" ngNonBindable>&gt; docker-compose up</code></pre>
+<h4>Build everything via Docker</h4>
+<pre class="code"><code class="language-shell" ngNonBindable>docker-compose -f docker-compose.local.yaml build</code></pre>
+
+<h4>Run everything via Docker</h4>
+<pre class="code"><code class="language-shell" ngNonBindable>docker-compose -f docker-compose.local.yaml up</code></pre>
 <p>
     Once docker has booted, hit <strong class="emphasis">http://localhost</strong> (UI container comes up on port 80)
 </p>
