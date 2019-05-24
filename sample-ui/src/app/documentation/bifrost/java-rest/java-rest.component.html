@@ -129,31 +129,19 @@ public class VMWCloudServiceStatus extends AbstractService&lt;Request&lt;String&
     private void handleCloudServiceStatusRequest(Request req) throws Exception &#123;
 
         // create a rest call for cloud services.
-        RestOperation&lt;String, RestServiceResponse&lt;CloudServicesStatusResponse&gt;&gt; restOperation = new RestOperation&lt;&gt;();
-        restOperation.setId(UUID.randomUUID());
-        restOperation.setUri(new URI("https://status.vmware-services.io/api/v2/status.json"));
-        restOperation.setApiClass("samples.rest.CloudServicesStatusResponse");
-        restOperation.setMethod(HttpMethod.GET);
-        restOperation.setSentFrom(this.getName());
-
-        // define success handler for rest call.
-        restOperation.setSuccessHandler(
-                (RestServiceResponse&lt;CloudServicesStatusResponse&gt; resp) -&gt; &#123;
-                    CloudServicesStatusResponse payload = ClassMapper.CastPayload(CloudServicesStatusResponse.class, resp);
-                    Response&lt;CloudServicesStatusResponse&gt; response = new Response&lt;&gt;(req.getId(), payload);
-                    this.sendResponse(response, req.getId());
-                &#125;
-        );
-
-        // define an error handler for rest call.
-        restOperation.setErrorHandler(
-                (RestError error) -&gt; &#123;
+        super.restServiceRequest(
+                UUID.randomUUID(),
+                new URI("https://status.vmware-services.io/api/v2/status.json"),
+                HttpMethod.GET,
+                null, null,
+                "samples.rest.CloudServicesStatusResponse",
+                (Response&lt;CloudServicesStatusResponse&gt; resp) -> &#123;
+                    this.sendResponse(resp, req.getId());
+                &#125;,
+                (Response&lt;RestError&gt; error) -> &#123;
                     this.sendError(error, req.getId());
                 &#125;
         );
-
-        // make rest call
-        super.restServiceRequest(restOperation);
 
     &#125;
 &#125;</code></pre>
