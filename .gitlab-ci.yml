@@ -122,8 +122,8 @@ publish:bifrost-kafka:
   - cd ./java/kafka
   - ./gradlew publish -PbuildType=snapshot
   when: on_success
-  #only:
-  #- master
+  only:
+  - master
 
 publish:appfabric:
   stage: publish
