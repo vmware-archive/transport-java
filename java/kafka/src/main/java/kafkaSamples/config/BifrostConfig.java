@@ -6,6 +6,7 @@ package kafkaSamples.config;
 import com.vmware.bifrost.bridge.spring.config.BifrostBridgeConfigurer;
 import com.vmware.bifrost.broker.GalacticChannelConfig;
 import com.vmware.bifrost.broker.kafka.KafkaMessageBrokerConnector;
+import com.vmware.bifrost.broker.kafka.KafkaUtil;
 import com.vmware.bifrost.bus.EventBus;
 import kafkaSamples.RequestLogEntry;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -15,9 +16,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
@@ -25,9 +24,14 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Contains the configuration for all galactic channels.
+ * Used to map {@link GalacticChannels} to Kafka topics.
+ */
 @Configuration
 public class BifrostConfig implements BifrostBridgeConfigurer {
 
+   // The address of the Kafka Server
    private final String KAFKA_SERVER = "localhost:9092";
 
    @Autowired
@@ -36,26 +40,36 @@ public class BifrostConfig implements BifrostBridgeConfigurer {
    @Override
    public void configureGalacticChannels() {
 
+      // Create KafkaMessageBrokerConnector and register it in the EventBus
       KafkaMessageBrokerConnector kafkaMbc = new KafkaMessageBrokerConnector();
       eventBus.registerMessageBroker(kafkaMbc);
 
+      // Create consumer factory using StringDeserializer for
+      // the keys and the values.
       DefaultKafkaConsumerFactory<String, String> cf =
             new DefaultKafkaConsumerFactory<>(consumerProps(),
                   new StringDeserializer(), new StringDeserializer());
+
+      // Map GalacticChannels.REQUEST_CHANNEL to Kafka "request-q" topic.
       GalacticChannelConfig requestChannelConf = kafkaMbc.newKafkaChannelConfig(
             "request-q", cf, true, createTemplate(StringSerializer.class));
       eventBus.markChannelAsGalactic(GalacticChannels.REQUEST_CHANNEL, requestChannelConf);
 
+      // Map GalacticChannels.RESPONSE_CHANNEL to Kafka "response-q" topic.
       GalacticChannelConfig responseChannelConf = kafkaMbc.newKafkaChannelConfig(
             "response-q", cf, false,
             AbstractMessageListenerContainer.AckMode.RECORD,
             createTemplate(StringSerializer.class));
       eventBus.markChannelAsGalactic(GalacticChannels.RESPONSE_CHANNEL, responseChannelConf);
 
+      // Create consumer factory using StringDeserializer for the keys and
+      // JsonDeserializer for the values.
       DefaultKafkaConsumerFactory<String, RequestLogEntry> jsonCf =
             new DefaultKafkaConsumerFactory<>(
                   consumerProps(), new StringDeserializer(),
                   new JsonDeserializer<>(RequestLogEntry.class));
+
+      // Map GalacticChannels.REQUEST_LOG_CHANNEL to Kafka "request-log-q" topic.
       GalacticChannelConfig logChannelConf = kafkaMbc.newKafkaChannelConfig(
             "request-log-q", jsonCf, false,
             createTemplate(JsonSerializer.class));
@@ -64,10 +78,7 @@ public class BifrostConfig implements BifrostBridgeConfigurer {
 
    private KafkaTemplate createTemplate(Class valueSerializer) {
       Map<String, Object> senderProps = senderProps(valueSerializer);
-      ProducerFactory<Object, Object> pf =
-            new DefaultKafkaProducerFactory<>(senderProps);
-      KafkaTemplate<Object, Object> template = new KafkaTemplate<>(pf);
-      return template;
+      return KafkaUtil.createDefaultKafkaTemplate(senderProps);
    }
 
    private Map<String, Object> senderProps(Class valueSerializer) {

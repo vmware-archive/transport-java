@@ -70,7 +70,7 @@ public class KafkaMessageBrokerConnector extends Loggable
          @Override
          public void onMessage(ConsumerRecord<Object, Object> message) {
             if (channelConfig.isWrapIncomingMessages()) {
-               handler.onMessage(new KafkaMessageWrapper(message.key(), message.value()));
+               handler.onMessage(KafkaUtil.wrapMessage(message.key(), message.value()));
             } else {
                handler.onMessage(message.value());
             }
