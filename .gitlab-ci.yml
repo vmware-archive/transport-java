@@ -42,11 +42,15 @@ build:bifrost:
   - echo "Building vmw-bifrost-rabbitmq"
   - cd ../rabbitmq
   - ./gradlew assemble
+  - echo "Building vmw-bifrost-kafka"
+  - cd ../kafka
+  - ./gradlew assemble
   artifacts:
     paths:
     - java/build/libs
     - java/csp/build/libs
     - java/rabbitmq/build/libs
+    - java/kafka/build/libs
     expire_in: 1 week
   when: on_success
   only:
@@ -104,6 +108,18 @@ publish:bifrost-rabbitmq:
   script:
   - echo "Publishing vmw-bifrost-rabbitmq"
   - cd ./java/rabbitmq
+  - ./gradlew publish -PbuildType=snapshot
+  when: on_success
+  only:
+  - master
+
+publish:bifrost-kafka:
+  stage: publish
+  dependencies:
+  - build:bifrost
+  script:
+  - echo "Publishing vmw-bifrost-kafka"
+  - cd ./java/kafka
   - ./gradlew publish -PbuildType=snapshot
   when: on_success
   only:
