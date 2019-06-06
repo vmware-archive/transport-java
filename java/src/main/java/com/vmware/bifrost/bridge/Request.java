@@ -8,6 +8,8 @@ import java.util.UUID;
 public class Request<ReqP> extends AbstractFrame {
 
     @Getter @Setter
+    private String targetUser;
+    @Getter @Setter
     private String request;
     @Getter @Setter
     private String channel;

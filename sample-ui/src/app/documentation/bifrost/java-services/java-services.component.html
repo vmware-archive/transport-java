@@ -69,7 +69,7 @@ public class PongService extends AbstractService&lt;Request&lt;String&gt;, Respo
 
         // prepare and send a basic response.
         Response&lt;String&gt; response = new Response&lt;&gt;(request.getId(), "Fabric Pong (Basic): Pong");
-        this.sendResponse(response, request.getId());
+        this.sendResponse(response, request.getId(), request.getTargetUser());
     &#125;
 
     /**
@@ -102,7 +102,7 @@ public class PongService extends AbstractService&lt;Request&lt;String&gt;, Respo
                     // prepare a response, with our date and time requests stuck together as a more elaborate response.
                     Response&lt;String&gt; response = new Response&lt;&gt;(request.getId(),
                             "Fabric Pong (Full): Pong++ " + dateAndTime.toString());
-                    this.sendResponse(response, request.getId());
+                    this.sendResponse(response, request.getId(), request.getTargetUser());
                 &#125;
         );
 

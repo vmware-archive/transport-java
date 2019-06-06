@@ -7,6 +7,10 @@ import java.util.UUID;
 
 public interface Message<T> {
 
+    void setTargetUser(String targetUser);
+
+    String getTargetUser();
+
     void setPayload(T payload);
 
     T getPayload();

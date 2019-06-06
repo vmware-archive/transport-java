@@ -126,12 +126,12 @@ public class CalendarService extends AbstractService&lt;Request&lt;String&gt;, R
 
     private void handleTime(Request request) &#123;
         Response&lt;String&gt; response = new Response&lt;&gt;(request.getId(), formatCalendar("hh:mm:ss a"));
-        this.sendResponse(response, request.getId());
+        this.sendResponse(response, request.getId(), request.getTargetUser());
     &#125;
 
     private void handleDate(Request request) &#123;
         Response&lt;String&gt; response = new Response&lt;&gt;(request.getId(), formatCalendar("yyyy-MM-dd"));
-        this.sendResponse(response, request.getId());
+        this.sendResponse(response, request.getId(), request.getTargetUser());
     &#125;
 &#125;
 

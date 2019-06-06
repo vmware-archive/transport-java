@@ -4,6 +4,8 @@
 
 package com.vmware.bifrost.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.EventBus;
@@ -225,4 +227,146 @@ public class TestServiceTest {
         );
     }
 
+    @Test
+    public void testServiceCommandOverQueue() {
+
+        String serviceChannel = "test::TestService";
+
+        TestServiceObjectRequest requestPayload = new TestServiceObjectRequest();
+        requestPayload.setRequestValue("My Little Song");
+
+        TestRequest request = new TestRequest();
+        UUID id = UUID.randomUUID();
+        request.setId(id);
+        request.setRequest(TestCommand.COMMAND_OVERQUEUE);
+        request.setTargetUser("user-id");
+        request.setPayload(requestPayload);
+
+        bus.requestOnce(
+                serviceChannel,
+                request,
+                (Message msg) -> {
+                    TestResponse resp = (TestResponse) msg.getPayload();
+                    TestServiceObjectResponse respPayload = (TestServiceObjectResponse) resp.getPayload();
+                    Assert.assertEquals(id, resp.getId());
+                    Assert.assertEquals("CommandOverQueue-My Little Song", respPayload.getResponseValue());
+                }
+        );
+    }
+
+    @Test
+    public void testServiceCommandOverQueueWithError() {
+        String serviceChannel = "test::TestService";
+
+        TestServiceObjectRequest requestPayload = new TestServiceObjectRequest();
+        requestPayload.setRequestValue("My Little Song");
+
+        TestRequest request = new TestRequest();
+        UUID id = UUID.randomUUID();
+        request.setId(id);
+        request.setRequest(TestCommand.ERROR_OVERQUEUE);
+        request.setTargetUser("user-id");
+        request.setPayload(requestPayload);
+
+        bus.requestOnce(
+                serviceChannel,
+                request,
+                (Message msg) -> {
+                    Assert.fail();
+                },
+                (Message msg) -> {
+                    Response<GeneralError> resp = (Response<GeneralError>) msg.getPayload();
+                    GeneralError error = resp.getPayload();
+                    Assert.assertEquals("user-id", msg.getTargetUser());
+                    Assert.assertEquals("error", error.message);
+                }
+        );
+    }
+
+    @Test
+    public void testRejectedRequest() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectWriter ow = objectMapper.writer().withDefaultPrettyPrinter();
+        String serviceChannel = "test::TestService";
+
+        TestRequest request = new TestRequest();
+        GeneralError error = new GeneralError();
+        error.message = "Bad request";
+        error.errorCode = 400;
+
+        request.setRequest(TestCommand.COMMAND_B);
+        request.setRejected(true);
+        request.setId(UUID.randomUUID());
+        request.setPayload(ow.writeValueAsString(error));
+
+        bus.requestOnce(
+                serviceChannel,
+                request,
+                (Message msg) -> {
+                    Assert.fail();
+                },
+                (Message msg) -> {
+                    Response<GeneralError> resp = (Response<GeneralError>) msg.getPayload();
+                    GeneralError generalError = resp.getPayload();
+                    Assert.assertEquals("Bad request", generalError.message);
+                    Assert.assertEquals(400, (long) generalError.errorCode);
+                }
+        );
+    }
+
+    @Test
+    public void testRejectedRequestWithError() {
+        String serviceChannel = "test::TestService";
+
+        TestRequest request = new TestRequest();
+        GeneralError error = new GeneralError();
+
+        request.setRequest(TestCommand.COMMAND_B);
+        request.setRejected(true);
+        request.setId(UUID.randomUUID());
+        request.setPayload(error);
+
+        bus.requestOnce(
+                serviceChannel,
+                request,
+                (Message msg) -> {
+                    Assert.fail();
+                },
+                (Message msg) -> {
+                    Response<GeneralError> resp = (Response<GeneralError>) msg.getPayload();
+                    GeneralError generalError = resp.getPayload();
+                    Assert.assertTrue(generalError.message.contains("Failed to parse request payload into GeneralError:"));
+                    Assert.assertEquals(500, (long) generalError.errorCode);
+                }
+        );
+    }
+
+    @Test
+    public void testRejectedRequestWithErrorToTarget() {
+        String serviceChannel = "test::TestService";
+
+        TestRequest request = new TestRequest();
+        GeneralError error = new GeneralError();
+
+        request.setRequest(TestCommand.COMMAND_B);
+        request.setRejected(true);
+        request.setTargetUser("user-id");
+        request.setId(UUID.randomUUID());
+        request.setPayload(error);
+
+        bus.requestOnce(
+                serviceChannel,
+                request,
+                (Message msg) -> {
+                    Assert.fail();
+                },
+                (Message msg) -> {
+                    Response<GeneralError> resp = (Response<GeneralError>) msg.getPayload();
+                    GeneralError generalError = resp.getPayload();
+                    Assert.assertTrue(generalError.message.contains("Failed to parse request payload into GeneralError:"));
+                    Assert.assertEquals(500, (long) generalError.errorCode);
+                    Assert.assertEquals("user-id", msg.getTargetUser());
+                }
+        );
+    }
 }

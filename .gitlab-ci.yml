@@ -94,9 +94,8 @@ publish:bifrost-csp:
   - build:bifrost
   script:
   - echo "Publishing vmw-bifrost-csp"
-  - echo "Disabled until the first MR gets merged"
-  #- cd ./java/csp
-  #- ./gradlew publish -PbuildType=snapshot
+  - cd ./java/csp
+  - ./gradlew publish -PbuildType=snapshot
   when: on_success
   only:
   - master

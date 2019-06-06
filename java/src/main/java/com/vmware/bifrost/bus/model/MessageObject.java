@@ -12,6 +12,10 @@ public class MessageObject<T> implements Message<T> {
 
     @Setter
     @Getter
+    private String targetUser;
+
+    @Setter
+    @Getter
     protected MessageType type;
 
     @Setter

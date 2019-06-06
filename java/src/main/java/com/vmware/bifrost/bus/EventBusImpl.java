@@ -3,6 +3,7 @@
  */
 package com.vmware.bifrost.bus;
 
+import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.broker.GalacticMessageHandler;
@@ -13,6 +14,7 @@ import com.vmware.bifrost.bus.store.BusStoreApi;
 import com.vmware.bifrost.broker.MessageBrokerSubscription;
 import com.vmware.bifrost.broker.GalacticChannelConfig;
 import com.vmware.bifrost.broker.MessageBrokerConnector;
+import com.vmware.bifrost.core.util.ClassMapper;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
@@ -107,6 +109,19 @@ public class EventBusImpl extends Loggable implements EventBus {
     }
 
     @Override
+    public void sendRequestMessageToTarget(String channel, Object payload, UUID id, String targetUser) {
+
+        MessageObjectHandlerConfig config =
+                new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
+        config.setSingleResponse(true);
+        config.setSendChannel(channel);
+        config.setReturnChannel(channel);
+        config.setTargetUser(targetUser);
+        config.setId(id);
+        this.api.send(config.getSendChannel(), config, this.getName());
+    }
+
+    @Override
     public void sendResponseMessage(String channel, Object payload) {
 
         MessageObjectHandlerConfig config =
@@ -130,6 +145,19 @@ public class EventBusImpl extends Loggable implements EventBus {
     }
 
     @Override
+    public void sendResponseMessageToTarget(String channel, Object payload, UUID id, String targetUser) {
+
+        MessageObjectHandlerConfig config =
+                new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload);
+        config.setSingleResponse(true);
+        config.setSendChannel(channel);
+        config.setReturnChannel(channel);
+        config.setTargetUser(targetUser);
+        config.setId(id);
+        this.api.send(config.getSendChannel(), config, this.getName());
+    }
+
+    @Override
     public void sendErrorMessage(String channel, Object payload) {
 
         MessageObjectHandlerConfig config =
@@ -148,6 +176,19 @@ public class EventBusImpl extends Loggable implements EventBus {
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
+        config.setId(id);
+        this.api.send(config.getSendChannel(), config, this.getName());
+    }
+
+    @Override
+    public void sendErrorMessageToTarget(String channel, Object payload, UUID id, String targetUser) {
+
+        MessageObjectHandlerConfig config =
+                new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload);
+        config.setSingleResponse(true);
+        config.setSendChannel(channel);
+        config.setReturnChannel(channel);
+        config.setTargetUser(targetUser);
         config.setId(id);
         this.api.send(config.getSendChannel(), config, this.getName());
     }

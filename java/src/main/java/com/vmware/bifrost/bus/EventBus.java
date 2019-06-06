@@ -36,6 +36,16 @@ public interface EventBus {
     void sendRequestMessageWithId(String channel, Object payload, UUID id);
 
     /**
+     * Send a command payload to a channel for the specified user.
+     *
+     * @param channel channel name to send payload to
+     * @param payload the payload to be sent
+     * @parma id the UUID of the command
+     * @param targetUser target user name
+     */
+    void sendRequestMessageToTarget(String channel, Object payload, UUID id, String targetUser);
+
+    /**
      * Send response payload to a channel.
      *
      * @param channel the channel name to send payload to
@@ -50,6 +60,16 @@ public interface EventBus {
      * @param id the UUID to be attached to the response
      */
     void sendResponseMessageWithId(String channel, Object payload, UUID id);
+
+    /**
+     * Send a response payload to a channel for the specified user.
+     *
+     * @param channel the channel name to send payload to
+     * @param payload the payload to be sent
+     * @parma id the UUID to be attached to the response
+     * @param targetUser target user name
+     */
+    void sendResponseMessageToTarget(String channel, Object payload, UUID id, String targetUser);
 
     /**
      * Listen for a command on sendChannel and return a single response via the generateHandler() method.
@@ -569,6 +589,16 @@ public interface EventBus {
      * @param id the UUID for the response
      */
     void sendErrorMessageWithId(String channel, Object payload, UUID id);
+
+    /**
+     * Send error payload to channel for the specified user.
+     *
+     * @param channel the channel to send the payload to
+     * @param payload the payload to be send
+     * @param id the UUID for the response
+     * @param targetUser target user name
+     */
+    void sendErrorMessageToTarget(String channel, Object payload, UUID id, String targetUser);
 
     /**
      * Close a channel. If the closer is the last subscriber, then the channel is destroyed.

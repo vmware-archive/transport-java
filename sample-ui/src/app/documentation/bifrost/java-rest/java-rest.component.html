@@ -136,7 +136,7 @@ public class VMWCloudServiceStatus extends AbstractService&lt;Request&lt;String&
                 null, null,
                 "samples.rest.CloudServicesStatusResponse",
                 (Response&lt;CloudServicesStatusResponse&gt; resp) -> &#123;
-                    this.sendResponse(resp, req.getId());
+                    this.sendResponse(resp, req.getId(), req.getTargetUser());
                 &#125;,
                 (Response&lt;RestError&gt; error) -> &#123;
                     this.sendError(error, req.getId());
