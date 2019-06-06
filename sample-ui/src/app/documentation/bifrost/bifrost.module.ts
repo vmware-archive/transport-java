@@ -44,6 +44,7 @@ import { JavaLoggingComponent } from './java-logging/java-logging.component';
 import { JavaRestComponent } from './java-rest/java-rest.component';
 import { CloudServicesApiComponent } from './sample-code/java/cloud-services-api.component';
 import { FabricRestServiceComponent } from './sample-code/ts/restservice/fabric-restservice';
+import { JavaPrivateChannelComponent } from './java-private-channel/java-private-channel.component';
 
 @NgModule({
     declarations: [
@@ -87,7 +88,8 @@ import { FabricRestServiceComponent } from './sample-code/ts/restservice/fabric-
         JavaMessagingComponent,
         JavaLoggingComponent,
         JavaRestComponent,
-        FabricRestServiceComponent
+        FabricRestServiceComponent,
+        JavaPrivateChannelComponent
     ],
     imports: [
         CommonModule,

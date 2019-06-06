@@ -108,13 +108,13 @@ public class ServbotService extends AbstractService {
 
     private void error(Request request) {
         Response response = new Response(request.getId(), Arrays.asList("No such command as " + request.getRequest()));
-        this.sendResponse(response, request.getId());
+        this.sendResponse(response, request.getId(), request.getTargetUser());
     }
 
     private Response messageStats(Request request) {
         Response response = new Response(request.getId(),
                 Arrays.asList("Total of " + this.chatMessageList.size() + " messages sent"));
-        this.sendResponse(response, request.getId());
+        this.sendResponse(response, request.getId(), request.getTargetUser());
         return response;
     }
 
@@ -127,19 +127,19 @@ public class ServbotService extends AbstractService {
 
     private Response help(Request request) {
         Response response = new Response(request.getId(), this.helpList);
-        this.sendResponse(response, request.getId());
+        this.sendResponse(response, request.getId(), request.getTargetUser());
         return response;
     }
 
     private Response joke(Request request) {
         Response response = new Response(request.getId(), Arrays.asList(getAJoke().joke));
-        this.sendResponse(response, request.getId());
+        this.sendResponse(response, request.getId(), request.getTargetUser());
         return response;
     }
 
     private Response motd(Request request) {
         Response response = new Response(request.getId(), Arrays.asList("You should enable VMCBot. It's pretty cool."));
-        this.sendResponse(response, request.getId());
+        this.sendResponse(response, request.getId(), request.getTargetUser());
         return response;
     }
 

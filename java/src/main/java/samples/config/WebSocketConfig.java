@@ -8,15 +8,21 @@ import com.vmware.bifrost.bridge.spring.config.BifrostBridgeConfigurer;
 import com.vmware.bifrost.bridge.spring.config.interceptors.AnyDestinationMatcher;
 import com.vmware.bifrost.bridge.spring.config.interceptors.StartsWithDestinationMatcher;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import samples.interceptors.DropStompMessageInterceptor;
 import samples.interceptors.MessageLoggerInterceptor;
 
+import java.security.Principal;
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.UUID;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -25,20 +31,25 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
+        config.enableSimpleBroker("/topic", "/queue", "/pub");
         //config.enableStompBrokerRelay("/topic"); // enable rabbit as source of truth instead of local broker.
         config.setApplicationDestinationPrefixes("/pub");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/bifrost").setAllowedOrigins("*");
-        registry.addEndpoint("/fabric").setAllowedOrigins("*");
+        SocketHandshakeHandler socketHandshakeHandler = new SocketHandshakeHandler();
+        registry.addEndpoint("/bifrost")
+                .setHandshakeHandler(socketHandshakeHandler)
+                .setAllowedOrigins("*");
+        registry.addEndpoint("/fabric")
+                .setHandshakeHandler(socketHandshakeHandler)
+                .setAllowedOrigins("*");
     }
 
     @Override
     public void registerBifrostDestinationPrefixes(BifrostBridgeConfiguration configuration) {
-        configuration.addBifrostDestinationPrefixes("/topic", "/pub");
+        configuration.addBifrostDestinationPrefixes("/topic", "/pub", "/user/queue");
     }
 
     @Override
@@ -72,5 +83,30 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer
               EnumSet.of(StompCommand.SEND),
               new StartsWithDestinationMatcher("/pub/some-service"),
               1000);
+    }
+}
+
+class SocketHandshakeHandler extends DefaultHandshakeHandler {
+    @Override
+    protected Principal determineUser(ServerHttpRequest request,
+                                      WebSocketHandler wsHandler,
+                                      Map<String, Object> attributes) {
+        return new SessionPrincipal(UUID.randomUUID().toString());
+    }
+}
+
+class SessionPrincipal implements Principal {
+    private String name;
+    public SessionPrincipal(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

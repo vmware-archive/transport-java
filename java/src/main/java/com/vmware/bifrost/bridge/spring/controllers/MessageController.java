@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import com.vmware.bifrost.bridge.Request;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @Controller
@@ -34,6 +35,17 @@ public class MessageController extends Loggable {
         validateRequest(request);
         this.logTraceMessage("New inbound message received for channel: ", topicDestination);
         bus.sendRequestMessage(topicDestination, request);
+    }
+
+    @MessageMapping("/queue/{queueDestination}")
+    public void bridgeQueueMessage(Request request,
+                                   @DestinationVariable String queueDestination,
+                                   Principal principal) throws RequestException {
+
+        validateRequest(request);
+        request.setTargetUser(principal.getName());
+        this.logTraceMessage("New inbound message received for private channel: ", queueDestination);
+        bus.sendRequestMessageToTarget(queueDestination, request, request.getId(), principal.getName());
     }
 
     @MessageExceptionHandler

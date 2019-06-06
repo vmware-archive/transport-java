@@ -13,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.security.Principal;
 import java.util.UUID;
 
 public class MessageControllerTest {
@@ -94,8 +95,63 @@ public class MessageControllerTest {
         Assert.assertEquals(response.getErrorMessage(), "Request cannot be processed: request-exception");
     }
 
+    @Test
+    public void testBridgeQueueMessageWithInvalidRequest() {
+        Principal testPrincipal = new TestPrincipal();
+        Exception ex = null;
+        try {
+            this.controller.bridgeQueueMessage(new Request(), "channel1", testPrincipal);
+        } catch (Exception e) {
+            ex = e;
+        }
+        assertRequestException(ex, "Request 'id' is missing");
+
+        ex = null;
+        try {
+            this.controller.bridgeQueueMessage(new Request(
+                    UUID.randomUUID(), null, null), "channel1", testPrincipal);
+        } catch (Exception e) {
+            ex = e;
+        }
+        assertRequestException(ex, "Request 'request' is missing");
+
+        ex = null;
+        try {
+            Request request = new Request();
+            request.setRequest("request");
+            request.setId(UUID.randomUUID());
+            this.controller.bridgeQueueMessage(request, "channel1", testPrincipal);
+        } catch (Exception e) {
+            ex = e;
+        }
+        assertRequestException(ex, "Request 'version' is missing");
+    }
+
+    @Test
+    public void testBridgeQueueMessageWithValidRequest() throws Exception {
+        this.bus.listenRequestStream("channel", message -> {
+            this.message = message;
+            this.count++;
+        });
+
+        Request bridgeRequest = new Request(UUID.randomUUID(), "test", "request-payload");
+        Principal testPrincipal = new TestPrincipal();
+
+        this.controller.bridgeQueueMessage(bridgeRequest, "channel", testPrincipal);
+        Assert.assertEquals(this.count, 1);
+        Assert.assertEquals(this.message.getPayload(), bridgeRequest);
+        Assert.assertEquals(testPrincipal.getName(), this.message.getTargetUser());
+    }
+
     private void assertRequestException(Exception ex, String expectedErrorMsg) {
         Assert.assertTrue(ex instanceof RequestException);
         Assert.assertEquals(ex.getMessage(), expectedErrorMsg);
+    }
+
+    class TestPrincipal implements Principal {
+        @Override
+        public String getName() {
+            return "unique-id";
+        }
     }
 }

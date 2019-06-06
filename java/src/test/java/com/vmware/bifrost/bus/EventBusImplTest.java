@@ -274,6 +274,26 @@ public class EventBusImplTest {
     }
 
     @Test
+    public void testSendErrorMessageToTarget() {
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-channel", "test");
+        TestObserver<Message> observer = chan.test();
+
+        this.bus.sendErrorMessageToTarget("#local-channel", "chickie!", UUID.randomUUID(), "user-id");
+
+        observer.assertSubscribed();
+
+        for (Message msg : observer.values()) {
+
+            Assert.assertEquals(msg.getClass(), MessageObjectHandlerConfig.class);
+            Assert.assertEquals(msg.getPayloadClass(), String.class);
+            Assert.assertEquals("chickie!", msg.getPayload());
+            Assert.assertEquals(msg.getTargetUser(), "user-id");
+            Assert.assertTrue(msg.isError());
+
+        }
+    }
+
+    @Test
     public void testErrorBus() {
         Observable<Message> chan = this.bus.getApi().getChannel("#local-error", "test");
         TestObserver<Message> observer = chan.test();
@@ -862,6 +882,44 @@ public class EventBusImplTest {
         });
 
         this.bus.sendRequestMessageWithId(chan, "request", requestUuid);
+        Assert.assertEquals(this.counter, 1);
+    }
+
+    @Test
+    public void testSendRequestMessageToTarget() {
+
+        UUID requestUuid = UUID.randomUUID();
+        String chan = "#local-simple-error";
+
+        this.bus.respondOnce(chan, (Message message) -> {
+            Assert.assertEquals(message.getId(), requestUuid);
+            Assert.assertEquals(message.getTargetUser(), "user-id");
+            return "response";
+        });
+
+        this.bus.listenStream(chan, (Message message) -> {
+            Assert.assertEquals(message.getId(), requestUuid);
+            Assert.assertEquals(message.getPayload(), "response");
+            this.counter++;
+        });
+
+        this.bus.sendRequestMessageToTarget(chan, "request", requestUuid, "user-id");
+        Assert.assertEquals(this.counter, 1);
+    }
+
+    @Test
+    public void testSendResponseMessageToTarget() {
+
+        UUID requestUuid = UUID.randomUUID();
+        String chan = "#local-simple-error";
+
+        this.bus.listenStream(chan, (Message message) -> {
+            Assert.assertEquals(message.getId(), requestUuid);
+            Assert.assertEquals(message.getTargetUser(), "user-id");
+            this.counter++;
+        });
+
+        this.bus.sendResponseMessageToTarget(chan, "request", requestUuid, "user-id");
         Assert.assertEquals(this.counter, 1);
     }
 

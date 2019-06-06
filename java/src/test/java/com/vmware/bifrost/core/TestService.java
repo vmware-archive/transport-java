@@ -7,6 +7,7 @@ package com.vmware.bifrost.core;
 import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.*;
 import org.springframework.stereotype.Component;
@@ -34,6 +35,14 @@ public class TestService extends AbstractService<TestRequest, TestResponse> {
 
             case TestCommand.COMMAND_C:
                 this.handleCommandC(request, message.getId());
+                break;
+
+            case TestCommand.COMMAND_OVERQUEUE:
+                this.handleCommandOverQueue(request, message.getId());
+                break;
+
+            case TestCommand.ERROR_OVERQUEUE:
+                this.sendErrorOverQueue(request, message.getId());
                 break;
         }
     }
@@ -89,5 +98,22 @@ public class TestService extends AbstractService<TestRequest, TestResponse> {
         } catch (Exception exp) {
             this.sendError(new RestError("something went wrong making rest request", 500), id);
         }
+    }
+
+    private void handleCommandOverQueue(TestRequest request, UUID id) {
+        TestServiceObjectRequest requestPayload = this.castPayload(TestServiceObjectRequest.class, request);
+        TestServiceObjectResponse responsePayload = new TestServiceObjectResponse();
+        responsePayload.setResponseValue("CommandOverQueue-" + requestPayload.getRequestValue());
+
+        TestResponse resp = new TestResponse(request.getId(), responsePayload);
+
+        this.sendResponse(resp, id, request.getTargetUser());
+    }
+
+    private void sendErrorOverQueue(TestRequest request, UUID id) {
+        GeneralError err = new GeneralError();
+        err.message = "error";
+        Response<GeneralError> errResponse = new Response<>(id, err);
+        this.sendError(errResponse, id, request.getTargetUser());
     }
 }

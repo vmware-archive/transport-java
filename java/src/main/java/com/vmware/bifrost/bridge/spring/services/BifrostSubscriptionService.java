@@ -1,9 +1,11 @@
 package com.vmware.bifrost.bridge.spring.services;
 
+import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.model.MessageObject;
 import com.vmware.bifrost.bus.model.MessageType;
 import com.vmware.bifrost.bus.model.MonitorObject;
 import com.vmware.bifrost.bus.model.MonitorType;
+import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bus.EventBus;
@@ -68,11 +70,11 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
 
         // deliver the message to the target user if it is specified in the Message object.
         // otherwise, broadcast it to all subscribers.
-        //if (msg.getTargetUser() != null) {
-        //    msgTmpl.convertAndSendToUser(msg.getTargetUser(), destinationPrefix.replace("/user", "") + channelName, msg.getPayload());
-        //} else {
-        msgTmpl.convertAndSend(destinationPrefix + channelName, msg.getPayload());
-        //}
+        if (msg.getTargetUser() != null) {
+            msgTmpl.convertAndSendToUser(msg.getTargetUser(), destinationPrefix.replace("/user", "") + channelName, msg.getPayload());
+        } else {
+            msgTmpl.convertAndSend(destinationPrefix + channelName, msg.getPayload());
+        }
     }
 
     public synchronized void addSubscription(

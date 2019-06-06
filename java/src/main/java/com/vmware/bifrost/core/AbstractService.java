@@ -43,19 +43,20 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
         }
 
         Response<GeneralError> errorResponse = null;
-
+        GeneralError generalError = null;
         try {
-            GeneralError generalError = mapper.readValue(
+            generalError = mapper.readValue(
                     requestType.getPayload().toString(),
                     GeneralError.class);
-            errorResponse = new Response<>(
-                    requestType.getId(), generalError);
-            errorResponse.setErrorCode(generalError.errorCode);
-            errorResponse.setError(true);
-            errorResponse.setErrorMessage(generalError.message);
         } catch (IOException e) {
-            logWarnMessage("Failed to parse request payload into GeneralError: " + e.getMessage());
+            generalError = new GeneralError();
+            generalError.errorCode = 500;
+            generalError.message = "Failed to parse request payload into GeneralError: " + e.getMessage();
         }
+        errorResponse = new Response<>(requestType.getId(), generalError);
+        errorResponse.setErrorCode(generalError.errorCode);
+        errorResponse.setError(true);
+        errorResponse.setErrorMessage(generalError.message);
 
         return errorResponse;
     }
@@ -78,12 +79,26 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
         this.bus.sendResponseMessageWithId(this.serviceChannel, response, id);
     }
 
+    protected void sendResponse(ResponseType response, UUID id, String targetUser) {
+        String logMessageTemplate = "Sending Service Response%s";
+        this.logInfoMessage(
+                "\uD83D\uDCE4",
+                String.format(logMessageTemplate,
+                        targetUser != null ? String.format(" to %s", targetUser) : ""),
+                response.toString());
+        this.bus.sendResponseMessageToTarget(this.serviceChannel, response, id, targetUser);
+    }
+
     protected <E extends GeneralError> void sendError(E error, UUID id) {
         this.bus.sendErrorMessageWithId(this.serviceChannel, error, id);
     }
 
     protected void sendError(Response errorResponse, UUID id) {
         this.bus.sendErrorMessageWithId(this.serviceChannel, errorResponse, id);
+    }
+
+    protected void sendError(Response errorResponse, UUID id, String targetUser) {
+        this.bus.sendErrorMessageToTarget(this.serviceChannel, errorResponse, id, targetUser);
     }
 
     <T> T castPayload(Class clazz, Request request) throws ClassCastException {
@@ -105,19 +120,26 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
         this.serviceChannelStream = this.bus.listenRequestStream(this.serviceChannel,
                 (Message message) -> {
                     try {
-
-                        this.logInfoMessage(
-                                "\uD83D\uDCE5",
-                                "Service Request Received",
-                                message.getPayload().toString());
-
                         // if request is rejected by the interceptor, isRejected will be true and the payload will
                         // be an instance of GeneralError. send the error response straight back to the user
                         RequestType requestType = (RequestType) message.getPayload();
                         Response<GeneralError> requestError = buildErrorResponse(requestType);
+                        String logMessageTemplate = "Service Request Received%s";
+                        boolean isPrivateMessage = requestType.getTargetUser() != null;
+
+                        this.logInfoMessage(
+                                "\uD83D\uDCE5",
+                                String.format(logMessageTemplate,
+                                        isPrivateMessage ? String.format(" from %s", requestType.getTargetUser()) : ""),
+                                message.getPayload().toString());
 
                         if (requestError != null) {
-                            this.bus.sendErrorMessageWithId(serviceChannel, requestError, requestType.getId());
+                            if (isPrivateMessage) {
+                                this.bus.sendErrorMessageToTarget(
+                                        serviceChannel, requestError, requestType.getId(), requestType.getTargetUser());
+                            } else {
+                                this.bus.sendErrorMessageWithId(serviceChannel, requestError, requestType.getId());
+                            }
                             return;
                         }
 
