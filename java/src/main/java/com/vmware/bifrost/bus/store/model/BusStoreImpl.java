@@ -19,12 +19,12 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.Observable;
 import org.apache.commons.lang3.ArrayUtils;
 
-public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
+public class BusStoreImpl<K, T> extends Loggable implements BusStore<K, T> {
 
    private final UUID uuid;
    private final String storeType;
    private final EventBus eventBus;
-   private final Map<UUID, T> cache;
+   private final Map<K, T> cache;
 
    private final String cacheStreamChannelName;
    private final String cacheMutationChannelName;
@@ -51,7 +51,7 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
    }
 
    @Override
-   public <State> void put(UUID id, T value, State state) {
+   public <State> void put(K id, T value, State state) {
       if (id == null) {
          return;
       }
@@ -61,7 +61,7 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
    }
 
    @Override
-   public T get(UUID id) {
+   public T get(K id) {
       if (id  == null) {
          return null;
       }
@@ -74,12 +74,12 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
    }
 
    @Override
-   public Map<UUID, T> allValuesAsMap() {
+   public Map<K, T> allValuesAsMap() {
       return new HashMap<>(cache);
    }
 
    @Override
-   public <State> boolean remove(UUID id, State state) {
+   public <State> boolean remove(K id, State state) {
       if (id == null) {
          return false;
       }
@@ -131,9 +131,9 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
    }
 
    @Override
-   public synchronized boolean populate(Map<UUID, T> items) {
+   public synchronized boolean populate(Map<K, T> items) {
       if (this.cache.isEmpty() && !this.isInitialized()) {
-         for (Map.Entry<UUID, T> item : items.entrySet()) {
+         for (Map.Entry<K, T> item : items.entrySet()) {
             this.cache.put(item.getKey(), item.getValue());
          }
 
@@ -144,14 +144,14 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
    }
 
    @Override
-   public BusStoreInitializer<T> getBusStoreInitializer() {
+   public BusStoreInitializer<K, T> getBusStoreInitializer() {
       if (isCacheInitialized.get()) {
          return null;
       }
 
-      return new BusStoreInitializer<T>() {
+      return new BusStoreInitializer<K, T>() {
          @Override
-         public BusStoreInitializer<T> add(UUID id, T value) {
+         public BusStoreInitializer<K, T> add(K id, T value) {
             if (id != null) {
                cache.put(id, value);
             }
@@ -166,7 +166,7 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
    }
 
    @Override
-   public <State> StoreStream<T> onChange(UUID id, State... stateChangeType) {
+   public <State> StoreStream<T> onChange(K id, State... stateChangeType) {
       if (id == null) {
          return null;
       }
@@ -176,9 +176,9 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
       final Observable<Message> cacheErrorChannel =
             this.eventBus.getApi().getErrorChannel(getObjectChannelName(id), getName());
 
-      final Observable<StoreStateChange<State, T>> stream =
+      final Observable<StoreStateChange<State, T, K>> stream =
             Observable.merge(cacheStreamChannel, cacheErrorChannel)
-                  .map( (Message msg) -> (StoreStateChange<State, T>) msg.getPayload());
+                  .map( (Message msg) -> (StoreStateChange<State, T, K>) msg.getPayload());
 
       return new StoreStreamImpl<>(filterByChangeType(stream, stateChangeType));
    }
@@ -190,15 +190,15 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
       final Observable<Message> cacheErrorChannel =
             this.eventBus.getApi().getErrorChannel(this.cacheStreamChannelName, getName());
 
-      final Observable<StoreStateChange<State, T>> stream =
+      final Observable<StoreStateChange<State, T, K>> stream =
             Observable.merge(cacheStreamChannel, cacheErrorChannel)
-                  .map( (Message msg) -> (StoreStateChange<State, T>) msg.getPayload());
+                  .map( (Message msg) -> (StoreStateChange<State, T, K>) msg.getPayload());
 
       return new StoreStreamImpl<>(filterByChangeType(stream, stateChangeType));
    }
 
    @Override
-   public synchronized void whenReady(Consumer<Map<UUID, T>> readyFunction) {
+   public synchronized void whenReady(Consumer<Map<K, T>> readyFunction) {
       if (this.isCacheInitialized.get()) {
          this.logDebugMessage(String.format("Store: [%s] Ready! Contains %d values",
                this.storeType, this.cache.size()));
@@ -209,7 +209,7 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
          }
       } else {
          this.eventBus.listenOnce(this.cacheReadyChannelName, (Message message) -> {
-            readyFunction.accept((Map<UUID, T>) message.getPayload());
+            readyFunction.accept((Map<K, T>) message.getPayload());
          });
       }
    }
@@ -230,17 +230,17 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
    }
 
    private <State> Observable<T> filterByChangeType(
-         Observable<StoreStateChange<State, T>> stream, State... stateChangeType) {
+         Observable<StoreStateChange<State, T, K>> stream, State... stateChangeType) {
 
-      return stream.filter((StoreStateChange<State, T> state) ->
+      return stream.filter((StoreStateChange<State, T, K> state) ->
             ArrayUtils.isEmpty(stateChangeType) ||
                   ArrayUtils.indexOf(stateChangeType, state.getType()) >= 0
-      ).map((StoreStateChange<State, T> state) -> state.getValue());
+      ).map((StoreStateChange<State, T, K> state) -> state.getValue());
    }
 
-   private <C> void sendChangeBroadcast(C changeType, UUID id, T value) {
+   private <C> void sendChangeBroadcast(C changeType, K id, T value) {
 
-      final StoreStateChange<C, T> stateChange = new StoreStateChange<>(id, changeType, value);
+      final StoreStateChange<C, T, K> stateChange = new StoreStateChange<>(id, changeType, value);
 
       sendResponseMessage(this.cacheStreamChannelName, stateChange);
       sendResponseMessage(this.getObjectChannelName(stateChange.getObjectId()), stateChange);
@@ -253,7 +253,7 @@ public class BusStoreImpl<T> extends Loggable implements BusStore<T> {
       }
    }
 
-   private String getObjectChannelName(UUID objectId) {
+   private String getObjectChannelName(K objectId) {
       return "store-" + this.uuid + "-object-" + objectId;
    }
 

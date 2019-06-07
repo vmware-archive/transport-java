@@ -3,18 +3,16 @@
  */
 package com.vmware.bifrost.bus.store.model;
 
-import java.util.UUID;
-
 /**
- * Helper initilizer class which can be used to populate the initial content
+ * Helper initializer class which can be used to populate the initial content
  * of a given store. It can be used as an alternative of the BusStore.populate() method.
  */
-public interface BusStoreInitializer<T> {
+public interface BusStoreInitializer<K, T> {
 
    /**
     * Adds a new item to store.
     */
-   BusStoreInitializer<T> add(UUID id, T value);
+   BusStoreInitializer<K, T> add(K id, T value);
 
    /**
     * Should be called when all initial items are added to the store.

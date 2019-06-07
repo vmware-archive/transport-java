@@ -30,7 +30,7 @@ public class BusStoreImplTest {
    private TestStoreItem item4;
    private TestStoreItem lastItem;
    private TestStoreItem lastRemovedItem;
-   private BusStore<TestStoreItem> store;
+   private BusStore<UUID, TestStoreItem> store;
 
    @Before
    public void before() throws Exception {
@@ -81,6 +81,29 @@ public class BusStoreImplTest {
       store.reset();
       store.initialize();
       Assert.assertFalse(store.populate(map));
+   }
+
+   @Test
+   public void testPopulateStringKey() {
+      BusStore<String, TestStoreItem> store = new BusStoreImpl<>(eventBus, "stringStore");
+      Assert.assertFalse(store.isInitialized());
+
+      store.whenReady(storeItemsMap -> {
+         whenReadyCalls++;
+         Assert.assertEquals(store.get("key1"), item1);
+         Assert.assertNull(store.get(null));
+      });
+
+      store.getBusStoreInitializer().add("key1", item1).add("key2", item2).done();
+      Assert.assertTrue(store.isInitialized());
+
+      Assert.assertEquals(whenReadyCalls, 1);
+
+      store.put("key3", item3, TestStoreItemState.ITEM_ADDED);
+      store.put("key2", item3, TestStoreItemState.ITEM_UPDATED);
+
+      Assert.assertEquals(store.get("key2"), item3);
+      Assert.assertEquals(store.get("key3"), item3);
    }
 
    @Test

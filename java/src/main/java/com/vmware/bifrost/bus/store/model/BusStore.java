@@ -5,27 +5,26 @@ package com.vmware.bifrost.bus.store.model;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import io.reactivex.functions.Consumer;
 
-public interface BusStore<T> {
+public interface BusStore<K, T> {
 
    /**
     * Place an object into the store, will broadcast to all subscribers online for state changes.
-    * @param id, the UUID of your object.
+    * @param id, the id of your object.
     * @param value, the object to be added ot the store
     * @param state, the state change event you want to broadcast with this action
     *               (created, updated etc).
     */
-   <State> void put(UUID id, T value, State state);
+   <State> void put(K id, T value, State state);
 
    /**
     * Retrieve an object from the store
-    * @param id, the UUID of the object you wish to get.
+    * @param id, the id of the object you wish to get.
     * @return the object you're looking for.
     */
-   T get(UUID id);
+   T get(K id);
 
    /**
     * Get all values from sotre.
@@ -35,17 +34,17 @@ public interface BusStore<T> {
 
    /**
     * Get the entire store as a map.
-    * @return {@link Map<UUID, T>}
+    * @return {@link Map<K, T>}
     */
-   Map<UUID, T> allValuesAsMap();
+   Map<K, T> allValuesAsMap();
 
    /**
     * Remove an object from the store.
-    * @param id, the UUID of the object to be removed.
+    * @param id, the id of the object to be removed.
     * @param state, the state to be sent to subscribers notifying store deletion.
     * @return true if the object was removed, false if not.
     */
-    <State> boolean remove(UUID id , State state);
+    <State> boolean remove(K id , State state);
 
    /**
     * Send a mutation command to any subscribers handling mutations.
@@ -61,10 +60,10 @@ public interface BusStore<T> {
 
    /**
     * Populate the store with a collection of objects and their ID's.
-    * @param items, a Map of your UUID's mapped to your Objects.
+    * @param items, a Map of your ids mapped to your Objects.
     * @return false if the store has already been populated (has objects).
     */
-   boolean populate(Map<UUID, T> items);
+   boolean populate(Map<K, T> items);
 
    /**
     * Returns {@link BusStoreInitializer} instance which can be used to add
@@ -72,15 +71,15 @@ public interface BusStore<T> {
     * alternative to the populate() API.
     * @return null if the store was already initialized.
     */
-   BusStoreInitializer<T> getBusStoreInitializer();
+   BusStoreInitializer<K, T> getBusStoreInitializer();
 
    /**
     * Subscribe to state changes for a specific object.
-    * @param id, the UUID of the object you wish to receive updates.
+    * @param id, the id of the object you wish to receive updates.
     * @param stateChangeType, optional state change types you wish to listen to
     * @return {@link StoreStream<T>} stream that will tick the object you're online for.
     */
-   <State> StoreStream<T> onChange(UUID id, State... stateChangeType);
+   <State> StoreStream<T> onChange(K id, State... stateChangeType);
 
    /**
     * Subscribe to state changes for all objects in the store.
@@ -101,7 +100,7 @@ public interface BusStore<T> {
     * Notify when the store has been initialized (via populate() or initialize(), etc.)
     * @param readyFunction, handler that accepts the entire store as a map.
     */
-   void whenReady(Consumer<Map<UUID, T>> readyFunction);
+   void whenReady(Consumer<Map<K, T>> readyFunction);
 
    /**
     * Flip an internal bit to set the store to ready, notify all watchers.
