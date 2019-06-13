@@ -137,8 +137,8 @@ publish:bifrost-message-fabric:
   - cd ./java/message-fabric
   - ./gradlew publish -PbuildType=snapshot
   when: on_success
-#  only:
-#  - master
+  only:
+  - master
 
 publish:appfabric:
   stage: publish
