@@ -3,6 +3,7 @@ logging.level:
   messageFabricSamples: DEBUG
   root: WARN
   org.springframework.web: INFO
+  com.vmware.atlas: DEBUG
 
 spring:
   output.ansi.enabled: always
