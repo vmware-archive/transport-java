@@ -190,8 +190,6 @@ dependencies {
     implementation "org.springframework.security:spring-security-config:4.2.2.RELEASE"
     runtime "org.springframework.security:spring-security-config:4.2.2.RELEASE"
 
-    implementation "org.springframework.security:spring-security-test:4.2.2.RELEASE"
-
     runtime "io.reactivex.rxjava2:rxjava:2.1.9"
     implementation "io.reactivex.rxjava2:rxjava:2.1.9"
 
@@ -229,6 +227,7 @@ dependencies {
 //    implementation group: 'io.netty', name: 'netty-all', version: '4.0.33.Final'
 //    runtime group: 'io.netty', name: 'netty-all', version: '4.0.33.Final'
 
+    testImplementation "org.springframework.security:spring-security-test:4.2.2.RELEASE"
     testImplementation group: 'org.springframework', name: 'spring-web', version: "4.3.21.RELEASE"
     testImplementation 'org.mockito:mockito-core:2.+'
     testImplementation 'org.powermock:powermock-module-junit4:1.7.1'
