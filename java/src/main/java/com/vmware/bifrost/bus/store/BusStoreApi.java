@@ -16,13 +16,13 @@ public interface BusStoreApi {
     * @param storeType, the string ID of the store you want to create (i.e. "UserStore")
     * @return reference to the BusStore you have just created.
     */
-    <T> BusStore<T> createStore(String storeType);
+    <K, T> BusStore<K, T> createStore(String storeType);
 
    /**
     * Get a reference to the existing store. If the store does not exist, nothing will be returned.
     * @param storeType the string ID of the store you want a reference to (i.e. "UserStore")
     */
-    <T> BusStore<T> getStore(String storeType);
+    <K, T> BusStore<K, T> getStore(String storeType);
 
    /**
     * Removes a store from the stores collection but doesn't reset its content.

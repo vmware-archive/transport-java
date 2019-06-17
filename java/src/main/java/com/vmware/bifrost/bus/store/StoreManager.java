@@ -32,25 +32,25 @@ public class StoreManager extends Loggable implements BusStoreApi {
    }
 
    @Override
-   public <T> BusStore<T> createStore(String storeType) {
+   public <K, T> BusStore<K, T> createStore(String storeType) {
       if (storeType == null) {
          return null;
       }
       if (storeMap.containsKey(storeType)) {
-         return (BusStore<T>) storeMap.get(storeType);
+         return (BusStore<K, T>) storeMap.get(storeType);
       }
 
-      BusStore<T> busStore = new BusStoreImpl<>(this.eventBus, storeType);
+      BusStore<K, T> busStore = new BusStoreImpl<>(this.eventBus, storeType);
       storeMap.put(storeType, busStore);
       return busStore;
    }
 
    @Override
-   public <T> BusStore<T> getStore(String storeType) {
+   public <K, T> BusStore<K, T> getStore(String storeType) {
       if (storeType == null) {
          return null;
       }
-      return (BusStore<T>) storeMap.get(storeType);
+      return (BusStore<K, T>) storeMap.get(storeType);
    }
 
    @Override
@@ -85,7 +85,7 @@ public class StoreManager extends Loggable implements BusStoreApi {
    public void wipeAllStores() {
       this.logInfoMessage("\uD83D\uDDC4", getName(), "Stores: All data has been wiped out and reset.");
       for (Object storeObj : storeMap.values()) {
-         ((BusStore<Object>) storeObj).reset();
+         ((BusStore<Object, Object>) storeObj).reset();
       }
    }
 }

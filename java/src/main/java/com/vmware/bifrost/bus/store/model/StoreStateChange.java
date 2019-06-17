@@ -5,14 +5,12 @@ package com.vmware.bifrost.bus.store.model;
 
 import lombok.Getter;
 
-import java.util.UUID;
-
-public class StoreStateChange<T, V> extends BaseStoreState<T,V > {
+public class StoreStateChange<T, V, K> extends BaseStoreState<T,V> {
 
    @Getter
-   private final UUID objectId;
+   private final K objectId;
 
-   public StoreStateChange(UUID objectId, T changeType, V objectValue) {
+   public StoreStateChange(K objectId, T changeType, V objectValue) {
       super(changeType, objectValue);
       this.objectId = objectId;
    }

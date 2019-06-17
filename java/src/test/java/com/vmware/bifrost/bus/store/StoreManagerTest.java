@@ -29,7 +29,7 @@ public class StoreManagerTest {
 
    @Test
    public void testCreateStore() {
-      BusStore<String> userNamesStore = storeManager.createStore("userNames");
+      BusStore<UUID, String> userNamesStore = storeManager.createStore("userNames");
       Assert.assertNotNull(userNamesStore);
       UUID uuid1 = UUID.randomUUID();
       userNamesStore.getBusStoreInitializer()
@@ -44,7 +44,7 @@ public class StoreManagerTest {
 
    @Test
    public void testGetStore() {
-      BusStore<String> userNamesStore = storeManager.createStore("userNames");
+      BusStore<UUID, String> userNamesStore = storeManager.createStore("userNames");
       Assert.assertEquals(storeManager.getStore("userNames"), userNamesStore);
       Assert.assertNull(storeManager.getStore("missingStore"));
       Assert.assertNull(storeManager.getStore(null));
@@ -52,7 +52,7 @@ public class StoreManagerTest {
 
    @Test
    public void testDestroyStore() {
-      BusStore<TestStoreItem> testStore = storeManager.createStore("testStore");
+      BusStore<UUID, TestStoreItem> testStore = storeManager.createStore("testStore");
       testStore.getBusStoreInitializer()
             .add(storeItem.uuid, storeItem)
             .done();
@@ -68,11 +68,11 @@ public class StoreManagerTest {
 
    @Test
    public void testWipeAllStores() {
-      BusStore<TestStoreItem> testStore = storeManager.createStore("testStore");
+      BusStore<UUID, TestStoreItem> testStore = storeManager.createStore("testStore");
       testStore.getBusStoreInitializer()
             .add(storeItem.uuid, storeItem)
             .done();
-      BusStore<String> userNamesStore = storeManager.createStore("userNames");
+      BusStore<UUID, String> userNamesStore = storeManager.createStore("userNames");
       userNamesStore.getBusStoreInitializer()
             .add(UUID.randomUUID(), "user1")
             .done();
