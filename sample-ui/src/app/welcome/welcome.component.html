@@ -2,35 +2,74 @@
     <appfab-header></appfab-header>
     <div class="content-container">
         <div class="content-area">
-            <section id="fabric-intro">
-                <div id="fabric-bg-image">
-                </div>
-                <div id="fabric-bg">
-                </div>
-                <div id="fabric-banner">
+            <section class="fabric-hero">
+                <div class="fabric-hero-content">
+
                     <h1>
-                        <img src="/assets/fabric-icon-white.svg" alt="Application Fabric Logo" class="fabric-logo">
                         <span class="white">Application</span><span class="bold">Fabric</span>
                     </h1>
-                    <h3>Enabling hybrid user experiences across any VMware service.</h3>
+                    <h2>UI engineering made simple.</h2>
+
+                    <button class="btn btn-primary">
+                        Get Started
+                    </button>
+
+                    <button class="btn btn-primary-outline">
+                        Documentation
+                    </button>
+
+                    <div class="fabric-hero-logo">
+                    </div>
+
                 </div>
             </section>
             <section id="welcome-content">
-                <iframe src="https://video.eng.vmware.com/videos_embed/application-fabric-developer-experience" width="854px" height="480px" style="border: none" allowfullscreen="allowfullscreen"></iframe>
+                <div class="welcome-content-container">
+                    <div class="welcome-content-cols">
+                        <h1>
+                            No more spaghetti code and technical debt
+                        </h1>
+                        <div class="clr-row home-cards-wrapper">
+                            <div class="clr-col-4 home-card">
 
-                <h1>Check us out at RADIO 2019.</h1>
+                                <clr-icon shape="bolt" class="hero-icons"></clr-icon>
+                                <h3>Build Really Fast</h3>
+                                <p>
+                                    Build new UIs and new features 150% faster than you
+                                    do today.
+                                </p>
 
-                <h2>
-                    Java & Sewing Machine documentation under active development.
-                </h2>
+                            </div>
+                            <div class="clr-col-4 home-card">
 
-                <br/><br/>
-                <h3>
-                    Check back daily. Docs are updated very frequently.
-                </h3>
-                <h4>Join us in #appfabric</h4>
+                                <clr-icon shape="cloud-traffic" class="hero-icons"></clr-icon>
+                                <h3>Pub-Sub Made Simple</h3>
+                                <p>
+                                    Integrate async messaging and Pub-Sub into your UIs with
+                                    little to no code.
+                                </p>
+
+                            </div>
+                            <div class="clr-col-4 home-card">
+
+                                <clr-icon shape="world" class="hero-icons"></clr-icon>
+                                <h3>Universal Design</h3>
+                                <p>
+                                    Works in any browser, using any UI technology stack or framework.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="video-content">
+                <h1>Get started with a few easy steps</h1>
+
+                <iframe src="https://video.eng.vmware.com/videos_embed/application-fabric-getting-started"
+                        allowfullscreen="allowfullscreen" class="video"></iframe>
 
             </section>
+
         </div>
     </div>
     <footer-component></footer-component>

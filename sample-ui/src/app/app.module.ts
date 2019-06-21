@@ -10,6 +10,7 @@ import { DocumentationModule } from './documentation/documentation.module';
 import { WelcomeComponent } from './welcome/welcome.component';
 import { SharedModule } from './shared/shared.module';
 import { ChattyChatComponent } from './documentation/bifrost/sample-code/ts/chatty-chat/chatty-chat.component';
+import { VideosModule } from './videos/videos.module';
 
 @NgModule({
     declarations: [
@@ -24,6 +25,7 @@ import { ChattyChatComponent } from './documentation/bifrost/sample-code/ts/chat
         ClarityModule,
         BrowserAnimationsModule,
         DocumentationModule,
+        VideosModule,
         SharedModule
     ],
     providers: [],

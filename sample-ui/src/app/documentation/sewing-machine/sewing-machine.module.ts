@@ -5,11 +5,13 @@ import { SharedModule } from '../../shared/shared.module';
 import { ClarityModule } from '@clr/angular';
 import { SewingMachineRoutingModule } from './sewing-machine-routing.module';
 import { QuickstartComponent } from './quickstart/quickstart.component';
+import { InitializerComponent } from './initializer/initializer.component';
 
 @NgModule({
     declarations: [
         HomeComponent,
-        QuickstartComponent
+        QuickstartComponent,
+        InitializerComponent
     ],
     imports: [
         CommonModule,
