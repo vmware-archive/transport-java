@@ -290,3 +290,33 @@ blockquote p {
 .datagrid-table .datagrid-column .datagrid-column-title {
     color: #c2abff;
 }
+.main-container.open-hamburger-menu .header-nav.clr-nav-level-1 {
+    background-color: #211b31;
+}
+
+.main-container.open-hamburger-menu .header .header-nav.clr-nav-level-1 .nav-link {
+    color: #aca5bd;
+}
+
+.clr-accordion-header {
+    color: #fff;
+    border: 1px solid #453c5d;
+    box-shadow: inset 6px 0 0 #352e4a;
+    background: #2b243e;
+}
+
+.clr-accordion-panel-open .clr-accordion-header {
+    background: #4c4365;
+}
+.clr-accordion-header:hover {
+    background-color: #4c4365;
+}
+
+.clr-accordion-content {
+    background-color: #161326;
+    border-color: #453c5d;
+}
+
+.clr-accordion-panel:last-child .clr-accordion-content, .clr-accordion-panel:last-child .clr-accordion-header {
+    border-bottom: 1px solid #4c4365;
+}

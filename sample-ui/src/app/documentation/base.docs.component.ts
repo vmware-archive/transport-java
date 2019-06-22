@@ -24,6 +24,10 @@ export abstract class BaseDocsComponent extends BaseComponent implements OnInit,
         return true;
     }
 
+    public areVideoDocsActive(): boolean {
+        return true;
+    }
+
     public setBifrostTsDocsActive(state: boolean): void {
         this.storeManager.getStore<boolean>('docs').put('ts', state, null);
     }

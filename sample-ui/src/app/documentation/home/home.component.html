@@ -1,72 +1,72 @@
 <h1>Application Fabric Documentation</h1>
 
-<p>
-    If you would like to learn a lot, quickly, The watch the two videos below.
-</p>
+<h3>Latest Component Versions.</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th class="left">Component</th>
+        <th>Latest Version</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td class="left">Bifröst TypeScript</td>
+        <td><strong>{{packageJSON.default.version}}</strong></td>
 
-<h2>
-    Understanding UI applications
-</h2>
+    </tr>
+    <tr>
+        <td class="left">Bifröst Java</td>
+        <td><strong>{{javaVersion}}</strong></td>
 
-<iframe src="https://video.eng.vmware.com/videos_embed/application-fabric-understanding-ui-applications-82cd18f0-8a35-461c-b98f-b835dc5836a9" width="854px" height="480px" style="border: none" allowfullscreen="allowfullscreen"></iframe>
-
-<h2>
-    What the fabric is, what it does and how it does it.
-</h2>
-
-<iframe src="https://video.eng.vmware.com/videos_embed/application-fabric-what-does-it-do-and-how" width="854px" height="480px" style="border: none" allowfullscreen="allowfullscreen"></iframe>
-
-
-<h2>Quick Start</h2>
-
-<p>
-    If you want to get up and running really, really fast - you can check out this UI and demo fabric instance and have this entire
-    UI and fabric instance running locally on your developer machine in couple of minutes.
-</p>
-
-<hr/>
+    </tr>
+    </tbody>
+</table>
 <h3>
-    1. First, check out the source.
+    Quick Links.
 </h3>
-<p>
-    Everything is in gitlab, no Perforce here. All you need to do is check it out.
-</p>
-<pre class="code"><code class="language-shell" ngNonBindable>git clone git@gitlab.eng.vmware.com:bifrost/java.git appfabric</code></pre>
-<hr/>
-
-<h3>
-    2. Build Fabric & UI
-</h3>
-<p>
-    Once you have the source, cd into <code class="clr-code">appfabric</code> and run the <code class="clr-code">build.sh</code> script.
-</p>
-<pre class="code"><code class="language-shell" ngNonBindable>cd appfabric && ./build.sh</code></pre>
-
-<hr/>
-
-<h3>
-    3. Boot!
-</h3>
-<p>
-    Once everything has finished building, you have two choices with booting, first option is you can run the
-    UI and fabric container manually, or you can use Docker to boot ready to go containers instead.
-</p>
-
-<h4>Booting fabric manually</h4>
-<pre class="code"><code class="language-shell" ngNonBindable>cd java && ./runme.sh</code></pre>
-
-<h4>Booting UI manually</h4>
-<pre class="code"><code class="language-shell" ngNonBindable>cd sample-ui && npm start</code></pre>
-
-<p>Now you should be able hit <strong class="emphasis">http://localhost:4200</strong> and you will see this site.</p>
-<hr/>
-
-<h4>Build everything via Docker</h4>
-<pre class="code"><code class="language-shell" ngNonBindable>docker-compose -f docker-compose.local.yaml build</code></pre>
-
-<h4>Run everything via Docker</h4>
-<pre class="code"><code class="language-shell" ngNonBindable>docker-compose -f docker-compose.local.yaml up</code></pre>
-<p>
-    Once docker has booted, hit <strong class="emphasis">http://localhost</strong> (UI container comes up on port 80)
-</p>
-<hr/>
+<div class="clr-row">
+    <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+        <div class="card">
+            <div class="card-header">
+                Getting Started
+            </div>
+            <div class="card-block">
+                <ul class="list">
+                    <li><a routerLink="/documentation/getting-started">Start Here</a></li>
+                    <li><a routerLink="/documentation/bifrost">What is the Bifröst?</a></li>
+                    <li><a routerLink="/documentation/sewing-machine">What is the Sewing Machine?</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+        <div class="card">
+            <div class="card-header">
+                Bifröst: TypeScript
+            </div>
+            <div class="card-block">
+                <ul class="list">
+                    <li><a routerLink="/documentation/bifrost/ts/importing">Importing</a></li>
+                    <li><a routerLink="/documentation/bifrost/ts/configuring-angular">Configuring Angular</a></li>
+                    <li><a routerLink="/documentation/bifrost/ts/initializing">Initializing</a></li>
+                    <li><a routerLink="/documentation/bifrost/ts/helloworld">Hello World</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+        <div class="card">
+            <div class="card-header">
+               Bifröst: Java
+            </div>
+            <div class="card-block">
+                <ul class="list">
+                    <li><a routerLink="/documentation/bifrost/java/importing">Importing</a></li>
+                    <li><a routerLink="/documentation/bifrost/java/configuring">Configuring Spring</a></li>
+                    <li><a routerLink="/documentation/bifrost/java/initializing">Initializing</a></li>
+                    <li><a routerLink="/documentation/bifrost/java/helloworld">Hello World</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
