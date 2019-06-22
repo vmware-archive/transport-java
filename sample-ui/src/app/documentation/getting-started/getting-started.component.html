@@ -19,7 +19,7 @@
     <div class="alert-items">
         <div class="alert-item static">
             <span class="alert-text">
-                👉 You will <strong>need to have NodeJS 10+</strong> in order to build using the CLI 👈
+                👉 You will <strong>need to have NodeJS 10+, JDK 8 and Gradle 4+</strong> in order to build using the CLI 👈
             </span>
         </div>
     </div>
@@ -47,7 +47,7 @@ PLATFORM=darwin autogen-docker-local.artifactory.eng.vmware.com/appfabinit:lates
     <div class="alert-items">
         <div class="alert-item static">
             <span class="alert-text">
-                👉 You can replace the <strong>PLATFORM</strong> value with <strong class="emphasis">linux, darwin or windows</strong>  👈
+                👉 You can replace the <strong>PLATFORM</strong> value with <strong class="emphasis">linux, darwin or windows</strong>  (Windows binary not tested yet so proceed with caution) 👈
             </span>
         </div>
     </div>
@@ -81,12 +81,12 @@ PLATFORM=darwin autogen-docker-local.artifactory.eng.vmware.com/appfabinit:lates
 
 <h4>Build the backend</h4>
 
-<pre class="code"><code class="language-shell" ngNonBindable>scripts/build-server.sh</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>./scripts/build-server.sh</code></pre>
 
 
 <h4>Run the backend</h4>
 
-<pre class="code"><code class="language-shell" ngNonBindable>scripts/start-server-local.sh</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>./scripts/start-server-local.sh</code></pre>
 
 <hr/>
 <h2>Step 4: Build and deploy UI</h2>
