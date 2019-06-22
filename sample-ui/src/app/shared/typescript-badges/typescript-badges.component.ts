@@ -9,6 +9,8 @@ import * as packageJSON from '@vmw/bifrost/package.json';
 })
 export class TypescriptBadgesComponent implements OnInit {
 
+
+
     packageJSON: any = packageJSON;
 
     constructor() {

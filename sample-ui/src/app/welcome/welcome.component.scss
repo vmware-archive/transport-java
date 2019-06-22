@@ -202,7 +202,20 @@
         width: 375px;
         height: 240px;
         border: none;
+        margin-top: 10px;
     }
+
+    .video-content {
+        width: 100%;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .video-content h1 {
+        font-size: 1.7em;
+        color: #b5a8d6;
+    }
+
 
 }
 

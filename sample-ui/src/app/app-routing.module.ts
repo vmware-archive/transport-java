@@ -7,8 +7,8 @@ import { UnderstandingUiComponent } from './videos/understanding-ui/understandin
 import { WhatIsTheFabricComponent } from './videos/what-is-the-fabric/what-is-the-fabric.component';
 
 const routes: Routes = [
-    {path: 'documentation', loadChildren: './documentation/documentation.module#DocumentationModule'},
-    {path: 'videos',  loadChildren: './videos/videos.module#VideosModule'},
+    {path: 'documentation', loadChildren: () => import('./documentation/documentation.module').then(m => m.DocumentationModule)},
+    {path: 'videos',  loadChildren: () => import('./videos/videos.module').then(m => m.VideosModule)},
     {path: 'demos', component: DemosComponent},
     {path: '', component: WelcomeComponent},
     {path: 'chatty-chat', component: ChattyChatComponent}

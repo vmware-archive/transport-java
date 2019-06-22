@@ -15,8 +15,8 @@ const documentationRoutes: Routes = [
             { path: 'getting-started', component: GettingStartedComponent },
             { path: 'contributors', component: ContributorsComponent },
             { path: 'developers', component: DevelopersComponent },
-            { path: 'bifrost', loadChildren: './bifrost/bifrost.module#BifrostModule' },
-            { path: 'sewing-machine', loadChildren: './sewing-machine/sewing-machine.module#SewingMachineModule' }
+            { path: 'bifrost', loadChildren: () => import('./bifrost/bifrost.module').then(m => m.BifrostModule) },
+            { path: 'sewing-machine', loadChildren: () => import('./sewing-machine/sewing-machine.module').then(m => m.SewingMachineModule) }
         ]
     }
 ];

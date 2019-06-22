@@ -7,3 +7,10 @@
 label.docs-home {
     font-size: 1.3em;
 }
+
+
+@media screen and (max-width: 768px) {
+    .main-container .header-nav.clr-nav-level-2, .main-container .subnav.clr-nav-level-2, .main-container .sub-nav.clr-nav-level-2, .main-container .sidenav.clr-nav-level-2, .main-container .clr-vertical-nav.clr-nav-level-2 {
+        background:  #211b31;
+    }
+}

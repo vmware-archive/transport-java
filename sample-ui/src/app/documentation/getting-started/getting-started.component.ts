@@ -1,15 +1,30 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewChecked, Component, OnDestroy, OnInit } from '@angular/core';
+import { HighlightService } from '../../local-services/highlight.service';
+import { BaseDocsComponent } from '../base.docs.component';
 
 @Component({
   selector: 'app-getting-started',
   templateUrl: './getting-started.component.html',
   styleUrls: ['./getting-started.component.scss']
 })
-export class GettingStartedComponent implements OnInit {
+export class GettingStartedComponent extends BaseDocsComponent implements  OnInit, OnDestroy, AfterViewChecked {
 
-  constructor() { }
+    constructor(private highlightService: HighlightService) {
+        super('GettingStartedComponent');
+    }
 
-  ngOnInit() {
-  }
+    ngOnInit() {
+        this.setSewingMachineDocsActive(true);
+    }
+
+    ngOnDestroy() {
+    }
+
+    ngAfterViewChecked() {
+        if (!this.highlighted) {
+            this.highlightService.highlightAll();
+            this.highlighted = true;
+        }
+    }
 
 }
