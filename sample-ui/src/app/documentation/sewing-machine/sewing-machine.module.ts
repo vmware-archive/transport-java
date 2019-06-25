@@ -6,12 +6,14 @@ import { ClarityModule } from '@clr/angular';
 import { SewingMachineRoutingModule } from './sewing-machine-routing.module';
 import { QuickstartComponent } from './quickstart/quickstart.component';
 import { InitializerComponent } from './initializer/initializer.component';
+import { LibswaggerComponent } from './libswagger/libswagger.component';
 
 @NgModule({
     declarations: [
         HomeComponent,
         QuickstartComponent,
-        InitializerComponent
+        InitializerComponent,
+        LibswaggerComponent
     ],
     imports: [
         CommonModule,

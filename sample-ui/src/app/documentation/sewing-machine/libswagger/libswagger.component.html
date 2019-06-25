@@ -1,0 +1,508 @@
+<h1>
+    libswagger
+</h1>
+
+<h3>
+    A super simple, straight forward and fast golang library for parsing OpenAPI and Swagger.
+</h3>
+
+<p>
+    The architecture of the Sewing Machine tools embodies the modularization and abstraction of all its core components
+    and a pipelined layout of their execution such that the output of one or more of its constituent components serves
+    as the input for another, and together, the entire pipeline is the implementation of the <strong class="emphasis">Intent
+    Compiler</strong> in the AppFabric.
+</p>
+<p>
+    An important piece of the Intent Compiler is the ability to parse a variety of specification documents and render
+    them as abstractions for use by the various segments of the compiler. These specification documents currently
+    include <strong class="emphasis">Swagger 2.0</strong> as well as <strong class="emphasis">OpenAPI 3.0</strong>, and
+    undoubtedly many others in the future, perhaps including
+    Protocol Buffers as used by gRPC. The implementation of this strategy is <strong
+    class="emphasis">libswagger</strong>, which is also the first
+    stage of the compiler’s pipeline.
+</p>
+
+<hr/>
+
+<h2>
+    Where do I consume it from?
+</h2>
+<p>
+    You can pull libswagger as a part of all autogen sources from Gitlab.
+    <a href="https://gitlab.eng.vmware.com/autogen/autogen-sources" target="_blank">https://gitlab.eng.vmware.com/autogen/autogen-sources</a>
+</p>
+
+<hr/>
+
+<h2>Abstractions</h2>
+
+<p>
+    All the components of the <strong class="emphasis">Intent Compiler</strong> have been implemented using Go, which is
+    arguably the most appropriate language for writing tools that work in almost all major operating systems and
+    hardware architectures, while providing a simplicity of design and enviable performance as compared to other
+    languages, including the very convenient implementation of concurrency. Accordingly, the abstractions presented by
+    <strong class="emphasis">libswagger</strong> consist of Go data structures (structs).
+</p>
+
+<p>
+    Since the architecture of the AppFabric consists of providing a distributed application framework, comprised of
+    <strong class="emphasis">Requestors</strong> and <strong class="emphasis">Responders</strong>, and the mechanism for
+    communications between them, the role of <strong class="emphasis">libswagger</strong> is to describe
+    the heart of operations and payloads between these parties. This can be grossly broken down into the following:
+</p>
+
+
+<pre class="code"><code class="language-shell" ngNonBindable>+ Metadata
+ -> Document properties
++ Objects
+    -> Classes
+        -| Properties
+    -> Enumerators
++ Endpoints
+    -> Request parameters
+    -> Path parameters to modify the URI
+        -| Query parameters to augment requests
+        -| Body parameters as request payloads
+    -> Responses
+        -| Object payloads
+        -| Base Type payloads
+        -| Empty payloads
+        -| Error objects
+</code></pre>
+
+<p>
+    The core of <strong>libswagger</strong> is the <strong class="emphasis">Parser</strong>, which
+    consists of two pieces: a <strong class="emphasis">Document Parser</strong>
+    which converts a specification document such as a Swagger 2.0 YAML or an OpenAPI 3.0 YAML into a <strong
+    class="emphasis">JSON Schema</strong> representation, and a <strong class="emphasis">Secondary Parser</strong>
+    that converts the JSON Schema into published abstractions that can be used by the compiler. LibSwagger automatically
+    determines whether a document is Swagger 2.0 or OpenAPI 3.0 and invokes the appropriate <strong class="emphasis">Document
+    Parser.</strong>
+</p>
+
+<p>
+    To invoke the parser by loading a document, the following piece of code can be inserted into an application:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>import (
+    "autogen-sources/libswagger/model"
+    "autogen-sources/libswagger/parser"
+)
+
+func main() &#123;
+    yamlfile := "/path/to/your/own/service-api-doc.yaml"
+    loader := parser.NewLoader()
+    loader.Load(yamlfile)
+    if loader.Classes == nil &#123;
+        os.Exit(1)
+    &#125;
+
+    for _, classKey := range loader.Classes.Classes &#123;
+        class := loader.Classes.ClassMap[classKey]
+        if class.Container == "class"  &#123;
+            fmt.Printf("Class: %s\n", class.Name)
+         &#125;
+     &#125;
+ &#125;</code></pre>
+
+<p>
+    The pointer <strong class="emphasis">loader</strong> allows for all pieces of the document to be accessed using the
+    abstractions described below.
+</p>
+<hr/>
+
+<h2>
+    Document Abstractions
+</h2>
+<p>
+    The <strong class="emphasis">document loader</strong> produces an instance of the YAML object for each document
+    processed by the
+    appropriate <strong class="emphasis">Document Parser</strong> (libswagger only processes a single document at a
+    time, but downstream components in the
+    pipeline, such as <strong class="emphasis">servgen</strong> may maintain an array of these for each document
+    processed). The document abstraction has
+    the following layout:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Yaml struct &#123;
+    Name       string
+    ApiVersion string
+    ApiPlugin  ApiPlugin
+    Source     string
+    Schema     map[string]interface&#123;&#125;
+    Metadata   *Metadata
+    Classes    *model.Class
+    Paths      *model.Paths
+ &#125;</code></pre>
+
+<p>
+    <code class="clr-code">ApiVersion</code> for each document is either <code class="clr-code">2.0</code> or <code
+    class="clr-code">3.0</code> currently, referring to the type of document being either
+    Swagger 2.0 or OpenApi 3.0 (more may be added later). <code class="clr-code">Schema</code> is the JSON Schema
+    produced by each respective Document
+    Parser. This field is internally used by libswagger and should not be used by downstream components. <code
+    class="clr-code">Metadata</code>,
+    <code class="clr-code">Classes</code>, and <code class="clr-code">Path</code> are populated by each <strong
+    class="emphasis">Document Parser</strong>.
+    <code class="clr-code">Classes</code> is a collection of all models found in the
+    document, and <code class="clr-code">Paths</code> is a collection of all endpoints in the document.
+</p>
+
+<p>
+    libswagger employs a <strong class="emphasis">plugin strategy</strong> that allows for additional Document Parsers
+    to be added, while maintaining the
+    same comprehensive set of abstractions for consumers of this library. These Document Parsers are usually external
+    libraries (e.g. <a href="https://github.com/getkin/kin-openapi" target="_blank">kin-openapi</a>) with a thin wrapper
+    to integrate their output into libswagger. Currently,
+    <a href="https://github.com/go-openapi" target="_blank">go-openapi</a> is
+    used for parsing Swagger 2.0 documents, while <strong class="emphasis">kin-openapi</strong> is used to parse OpenAPI
+    3.0 documents. It appears that
+    <strong class="emphasis">go-openapi</strong> is not continuing development and it is expected that we will switch
+    over to <strong class="emphasis">kin-openapi</strong> for the Swagger
+    2.0 document parsing as well.
+</p>
+
+<p>
+    The <strong class="emphasis">Document Parser</strong> plugin defines the following functions for each low-level
+    parser library:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type ApiPlugin interface &#123;
+    Loader(yaml *Yaml, filePath string) bool
+    GetMetadata(yaml *Yaml) *Metadata
+    GetClasses(yaml *Yaml)
+    GetPaths(yaml *Yaml)
+&#125;</code></pre>
+
+<p>
+    All of the above functions constitute the <strong class="emphasis">plugin</strong> interface to the <strong
+    class="emphasis">Parser</strong>. Support for each new type of specification
+    document involves implementing the above interface for it.
+</p>
+
+<p>
+    The <strong class="emphasis">Secondary Parser</strong> defines the abstractions exported by libswagger by operating
+    on the JSON Schema structures
+    exported by the <strong class="emphasis">Document Parser</strong>.
+</p>
+
+
+<hr/>
+
+<h2>
+    Metadata Abstractions
+</h2>
+
+<p>
+    The following <code class="clr-code">struct</code> describes the <strong class="emphasis">Document Metadata</strong>
+    information exported by libswagger. Consumers should check
+    pointers for nil and not expect every field to be populated as the document may not have provided them.
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Metadata struct &#123;
+    Version         string
+    Title           string
+    Description     string
+    TermsOfService  string
+    Contact         ContactData
+    License         ContactData
+    BasePath        string
+    Extensions      map[string]string
+    Consumes        []string
+    Produces        []string
+    Schemes         []string
+    Host            string
+&#125;</code></pre>
+
+<p>
+    OpenAPI 3.0 does not provide <code class="clr-code">BasePath</code>, as there now may be several such paths. For
+    backward compatibility, we take
+    the first path from OpenAPI 3.0’s servers schema as <code class="clr-code">BasePath</code>. In future, we will need
+    to handle the fact that every
+    API call can have a different <code class="clr-code">BasePath</code> or enforce a policy where a YAML may only
+    provide a single <code class="clr-code">BasePath</code>.
+</p>
+
+<p>
+    The <code class="clr-code">Extensions</code> are for vendor extensions (<code class="clr-code">x-vmw-*</code>) as
+    they apply to the document and not to specific sections. An example of this is:
+</p>
+
+<pre class="code"><code class="language-yaml" ngNonBindable>x-vmw-vapi-codegenconfig:
+  package-name: com.vmware.vmc
+  tag-resources-by-url-path: true</code></pre>
+
+<hr/>
+
+<h2>
+    Object Abstractions
+</h2>
+
+<p>
+    An object is represented as either a <code class="clr-code">Class</code>, <code class="clr-code">Enum</code>, <code
+    class="clr-code">Map</code>,
+    <code class="clr-code">Array</code>, or <code class="clr-code">String</code>, when defined under a label. In Swagger
+    2.0, a label can be <strong class="emphasis">definition</strong> or <strong class="emphasis">parameter</strong>,
+    while in OpenAPI 3.0, it is a <strong class="emphasis">component</strong>. Irrespective of the specification
+    origin, libswagger creates abstract data structures for each of them. All of these are grouped under the collection
+    <code class="clr-code">Class</code>:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Class struct &#123;
+    Classes        []string               // Global class array dependency order
+    ClassMap       map[string]*Definition // Map of pointers to all classes
+    EnumMap        map[string]*Enum       // Map of pointers to all Enums
+    DerivedClasses map[string]string      // Reverse map to parent
+ &#125;</code></pre>
+
+<p>
+    The <code class="clr-code">Classes</code> field in the above is an array of all definitions, which are objects as
+    described above. <code class="clr-code">EnumMap</code> is a
+    collection of all <code class="clr-code">Enum</code> objects, irrespective of if they are of global scope (defined
+    under a label) or of local scope to a
+    <code class="clr-code">Class</code> and <code class="clr-code">Property</code>.
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Definition struct &#123;
+    Name              string               // Base class
+    Description       string               // Description of class
+    Container         string               // class, array, string, or map
+    ContentType       string               // Container type if not class
+    ContentFormat     string               // If this is a base type number
+    ContentNested     string               // Nested Container
+    Discriminator     string               // property name for polymorphism
+    Extends           string               // Parent class
+    Required          []string             // Required properties for this class
+    RequiredMap       map[string]bool      // Map of required properties
+    Extensions        map[string]string    // Vendor extensions for class
+    Properties        map[string]*Property // Lookup aid
+    PropertyList      []*Property          // All Properties as a sorted array
+    Enum              *Enum                // Class-scoped enums
+    PolymorphicParent bool                 // Polymorphic parent
+    PolymorphicTarget string               // Polymorphic parent name
+    Dependencies      map[string]bool      // dependency sorting aid
+ &#125;</code></pre>
+
+<p>
+    In the above, <code class="clr-code">Container</code> is the primary determinant of whether the <code
+    class="clr-code">Definition</code> is for either a Class, Enum, Map,
+    Array, or String. <code class="clr-code">ContentType</code> is either another <code
+    class="clr-code">Definition</code> or a base type. However, data structures can be more
+    complex involving containers, or even nested containers. Thus, a <code class="clr-code">Container</code> value of
+    map or an array may contain a
+    nested array or map, as described by <code class="clr-code">ContentNested</code>.
+</p>
+
+<p>
+    Only one level of nesting is supported in libswagger since such
+    complex data structures are <strong class="emphasis">strongly discouraged</strong> in API definitions, while they
+    are, of course, acceptable for code
+    implementations. Thus, the last level of nested containers has to be <code class="clr-code">ContentType</code>.
+    Additionally, when Container can
+    be further qualified by <code class="clr-code">ContentFormat</code>, which can be date-time, int64, double, etc.
+</p>
+
+<hr/>
+
+<h2>
+    Property Abstractions
+</h2>
+
+<p>
+    <code class="clr-code">Properties</code> and <code class="clr-code">PropertyList</code> are collections of
+    properties for a class when <code class="clr-code">Container</code> is <code class="clr-code">Class</code>.
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Property struct &#123;
+    Name              string               // property name in class
+    Description       string               // Description of property
+    Discriminator     bool                 // property for polymorphism
+    Type              string               // base type or class
+    Format            string               // e.g. int32, int64, double, etc.
+    Category          string               // Type qualifier (Container)
+    Nested            string               // Nested container
+    Enum              *Enum                // Enumeration for string property
+    Extensions        map[string]string    // Extensions for property
+&#125;</code></pre>
+
+<p>
+    <code class="clr-code">Category</code> is historical and is synonymous with <code class="clr-code">Container</code>
+    and will eventually be renamed as such.
+</p>
+
+<hr/>
+
+<h2>
+    Enum Abstractions
+</h2>
+
+<p>
+    Enums appear in both the global <code class="clr-code">Classes.EnumMap</code> as well as in the local scope of a
+    property as <code class="clr-code">Property.Enum</code> and have the following abstract structure:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Enum struct &#123;
+    Class    string
+    Property string
+    Enum     []string
+    EnumName string
+&#125;</code></pre>
+
+<p>
+    <code class="clr-code">Class</code> and <code class="clr-code">Property</code> above are only populated when the
+    Enum is locally-scoped to a class and property, in which case
+    <code class="clr-code">EnumName</code> is synthetically created by concatenating the class name and the property
+    name in PascalCase. Otherwise,
+    <code class="clr-code">EnumName</code> is the definition label.
+</p>
+
+<p>
+    All enums are converted to string enums with string values in the Enum array, and it is up to the consumer to
+    convert them back to the original type if desired. The field names in the enums are derived from the RHS values,
+    thus <strong class="emphasis">XYZ_A-BC</strong> => <strong class="emphasis">XyzABc</strong>. When a value is
+    numeric, it is prepended with <strong class="emphasis">Numeric</strong> when constructing the LHS. Thus 1234
+    => Numeric1234 in the LHS.
+</p>
+
+<hr/>
+
+<h2>
+    Endpoint Abstractions
+</h2>
+
+<p>
+    An Endpoint collection is represented by a <code class="clr-code">Paths</code> structure which contains all the
+    endpoints (URI or Message channels) described in a document:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Paths struct &#123;
+    PathArray         []*Path
+    PathMap           map[string]*Path
+    PathEnumMap       map[string]*Enum
+    ApiClassMap       map[string]*Path     // map API class name to path
+ &#125;</code></pre>
+
+<p>
+    Both <code class="clr-code">PathMap</code> and <code class="clr-code">PathArray</code> are collections of all the
+    <code class="clr-code">Path</code> structures with one being optimized for sorted sequential
+    access, while the other is for direct access to all <code class="clr-code">Path</code> objects in the document. It
+    is possible to enumerate the
+    values for a query parameter to a <code class="clr-code">Path</code> Operation, and all the enumerations for these
+    are collected in <code class="clr-code">PathEnumMap</code>.
+</p>
+
+<p>
+    Each <code class="clr-code">Path</code> structure has the following composition:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Path struct &#123;
+    Uri               string
+    Description       string
+    BasePath          string
+    Schemes           []string
+    PathParameters    []string
+    ParameterRefs     map[string]string
+    Operation         map[string]*PathOperation
+    ApiClassName      string
+    Dependencies      map[string]bool
+&#125;</code></pre>
+
+<p>
+    The <code class="clr-code">Dependencies</code> in the above is a map of <code class="clr-code">Definitions</code>
+    the are referred to in the parameters and responses, useful
+    for constructing imports in downstream Sewing Machine components. <code class="clr-code">PathParameters</code> are
+    used to programmatically
+    construct the endpoint (URI) in downstream code generators, and are not the same as parameters used by each
+    <code class="clr-code">Operation</code> in the class. <code class="clr-code">ApiClassName</code> is a mangled URI
+    that is used by various pieces of Sewing Machine as a handle
+    to the URI as a legal variable in all supported programming languages.
+</p>
+
+<p>
+    Each <code class="clr-code">Path</code> description also contains a map of <code class="clr-code">Operation</code>
+    structs with the operation name as key. The supported operations
+    are: <strong class="emphasis">Get</strong>, <strong class="emphasis">Post</strong>, <strong
+    class="emphasis">Put</strong>, <strong class="emphasis">Patch</strong>, and <strong
+    class="emphasis">Delete</strong>.
+</p>
+
+<hr/>
+
+<h2>
+    Operations Abstractions
+</h2>
+
+<p>
+    An <code class="clr-code">Operation</code> contains all the information associated with an API request (independent
+    of transport), including method, request parameters, and response objects. The data structure for this is:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type PathOperation struct &#123;
+    Summary           string
+    ServiceName       string
+    MethodName        string
+    OpName            string
+    Sequence          []string
+    Tags              []string
+    Parameters        map[string]string    // parameter/type
+    IsArray           map[string]bool
+    IsMap             map[string]bool
+    IsNested          map[string]string
+    IsRequired        map[string]bool
+    Description       map[string]string
+    In                map[string]string
+    Response          Responses
+&#125;</code></pre>
+
+<p>
+    <code class="clr-code">ServiceName</code> and <code class="clr-code">MethodName</code> are optionally present if the
+    extensions <code class="clr-code">x-vmw-appfabric-servicename</code> and
+    <code class="clr-code">x-vmw-vapi-methodname</code> in the document under this operation. <code class="clr-code">OpName</code>
+    is one of <strong
+    class="emphasis">Get</strong>, <strong class="emphasis">Post</strong>, <strong class="emphasis">Put</strong>,
+    <strong class="emphasis">Patch</strong>, and <strong class="emphasis">Delete</strong>.
+</p>
+
+<p>
+    <code class="clr-code">Sequence</code> is an array of parameter names for this operation that is used to enforce a
+    strict sequencing of provided parameters from downstream components, irrespective of programming language, to help
+    with type checking. In the current implementation they are lexically sorted.
+</p>
+
+<p>
+    <code class="clr-code">Parameters</code> is a map of all parameters (except path parameters) that are used in this
+    operation, keyed by parameter
+    name. <code class="clr-code">IsArray</code>, <code class="clr-code">IsMap</code>, and <code class="clr-code">IsNested</code>
+    are used to describe the containers and nesting for responses to the operation,
+    keyed by parameter name. In future, they may all be extracted into a separate <code
+    class="clr-code">Parameter</code> data structure.
+</p>
+
+<hr/>
+
+<h2>
+    Response Abstractions
+</h2>
+
+<p>
+    All successful responses from a Responder are described by a <code class="clr-code">Response</code> data structure:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Responses struct &#123;
+    Category          string
+    IsArray           bool
+    IsMap             bool
+    Nested            string
+    Type              string
+    Format            string
+    Description       string
+&#125;</code></pre>
+
+<p>
+    Consistent with all other data structures, <code class="clr-code">Type/Format</code> along with <code class="clr-code">Category</code> (Container) and Nested define the
+    <code class="clr-code">Response</code> payload. <code class="clr-code">IsArray</code> and <code class="clr-code">IsMap</code> are leftover legacy fields from an earlier implementation and their use is
+    deprecated.
+</p>
+
+<hr/>
+<h3>That's it.</h3>
