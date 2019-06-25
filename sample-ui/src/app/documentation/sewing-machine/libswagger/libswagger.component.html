@@ -359,6 +359,150 @@ func main() &#123;
 <p>
     All enums are converted to string enums with string values in the Enum array, and it is up to the consumer to
     convert them back to the original type if desired. The field names in the enums are derived from the RHS values,
-    thus <strong class="emphasis">XYZ_A-BC</strong> => <strong class="emphasis">XyzABc</strong>. When a value is numeric, it is prepended with <strong class="emphasis">Numeric</strong> when constructing the LHS. Thus 1234
+    thus <strong class="emphasis">XYZ_A-BC</strong> => <strong class="emphasis">XyzABc</strong>. When a value is
+    numeric, it is prepended with <strong class="emphasis">Numeric</strong> when constructing the LHS. Thus 1234
     => Numeric1234 in the LHS.
 </p>
+
+<hr/>
+
+<h2>
+    Endpoint Abstractions
+</h2>
+
+<p>
+    An Endpoint collection is represented by a <code class="clr-code">Paths</code> structure which contains all the
+    endpoints (URI or Message channels) described in a document:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Paths struct &#123;
+    PathArray         []*Path
+    PathMap           map[string]*Path
+    PathEnumMap       map[string]*Enum
+    ApiClassMap       map[string]*Path     // map API class name to path
+ &#125;</code></pre>
+
+<p>
+    Both <code class="clr-code">PathMap</code> and <code class="clr-code">PathArray</code> are collections of all the
+    <code class="clr-code">Path</code> structures with one being optimized for sorted sequential
+    access, while the other is for direct access to all <code class="clr-code">Path</code> objects in the document. It
+    is possible to enumerate the
+    values for a query parameter to a <code class="clr-code">Path</code> Operation, and all the enumerations for these
+    are collected in <code class="clr-code">PathEnumMap</code>.
+</p>
+
+<p>
+    Each <code class="clr-code">Path</code> structure has the following composition:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Path struct &#123;
+    Uri               string
+    Description       string
+    BasePath          string
+    Schemes           []string
+    PathParameters    []string
+    ParameterRefs     map[string]string
+    Operation         map[string]*PathOperation
+    ApiClassName      string
+    Dependencies      map[string]bool
+&#125;</code></pre>
+
+<p>
+    The <code class="clr-code">Dependencies</code> in the above is a map of <code class="clr-code">Definitions</code>
+    the are referred to in the parameters and responses, useful
+    for constructing imports in downstream Sewing Machine components. <code class="clr-code">PathParameters</code> are
+    used to programmatically
+    construct the endpoint (URI) in downstream code generators, and are not the same as parameters used by each
+    <code class="clr-code">Operation</code> in the class. <code class="clr-code">ApiClassName</code> is a mangled URI
+    that is used by various pieces of Sewing Machine as a handle
+    to the URI as a legal variable in all supported programming languages.
+</p>
+
+<p>
+    Each <code class="clr-code">Path</code> description also contains a map of <code class="clr-code">Operation</code>
+    structs with the operation name as key. The supported operations
+    are: <strong class="emphasis">Get</strong>, <strong class="emphasis">Post</strong>, <strong
+    class="emphasis">Put</strong>, <strong class="emphasis">Patch</strong>, and <strong
+    class="emphasis">Delete</strong>.
+</p>
+
+<hr/>
+
+<h2>
+    Operations Abstractions
+</h2>
+
+<p>
+    An <code class="clr-code">Operation</code> contains all the information associated with an API request (independent
+    of transport), including method, request parameters, and response objects. The data structure for this is:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type PathOperation struct &#123;
+    Summary           string
+    ServiceName       string
+    MethodName        string
+    OpName            string
+    Sequence          []string
+    Tags              []string
+    Parameters        map[string]string    // parameter/type
+    IsArray           map[string]bool
+    IsMap             map[string]bool
+    IsNested          map[string]string
+    IsRequired        map[string]bool
+    Description       map[string]string
+    In                map[string]string
+    Response          Responses
+&#125;</code></pre>
+
+<p>
+    <code class="clr-code">ServiceName</code> and <code class="clr-code">MethodName</code> are optionally present if the
+    extensions <code class="clr-code">x-vmw-appfabric-servicename</code> and
+    <code class="clr-code">x-vmw-vapi-methodname</code> in the document under this operation. <code class="clr-code">OpName</code>
+    is one of <strong
+    class="emphasis">Get</strong>, <strong class="emphasis">Post</strong>, <strong class="emphasis">Put</strong>,
+    <strong class="emphasis">Patch</strong>, and <strong class="emphasis">Delete</strong>.
+</p>
+
+<p>
+    <code class="clr-code">Sequence</code> is an array of parameter names for this operation that is used to enforce a
+    strict sequencing of provided parameters from downstream components, irrespective of programming language, to help
+    with type checking. In the current implementation they are lexically sorted.
+</p>
+
+<p>
+    <code class="clr-code">Parameters</code> is a map of all parameters (except path parameters) that are used in this
+    operation, keyed by parameter
+    name. <code class="clr-code">IsArray</code>, <code class="clr-code">IsMap</code>, and <code class="clr-code">IsNested</code>
+    are used to describe the containers and nesting for responses to the operation,
+    keyed by parameter name. In future, they may all be extracted into a separate <code
+    class="clr-code">Parameter</code> data structure.
+</p>
+
+<hr/>
+
+<h2>
+    Response Abstractions
+</h2>
+
+<p>
+    All successful responses from a Responder are described by a <code class="clr-code">Response</code> data structure:
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>type Responses struct &#123;
+    Category          string
+    IsArray           bool
+    IsMap             bool
+    Nested            string
+    Type              string
+    Format            string
+    Description       string
+&#125;</code></pre>
+
+<p>
+    Consistent with all other data structures, <code class="clr-code">Type/Format</code> along with <code class="clr-code">Category</code> (Container) and Nested define the
+    <code class="clr-code">Response</code> payload. <code class="clr-code">IsArray</code> and <code class="clr-code">IsMap</code> are leftover legacy fields from an earlier implementation and their use is
+    deprecated.
+</p>
+
+<hr/>
+<h3>That's it.</h3>
