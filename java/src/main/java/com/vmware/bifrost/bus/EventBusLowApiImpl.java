@@ -5,11 +5,13 @@ package com.vmware.bifrost.bus;
 
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageHeaders;
 import com.vmware.bifrost.bus.model.MessageObject;
 import com.vmware.bifrost.bus.model.MessageType;
 import com.vmware.bifrost.bus.model.MonitorChannel;
 import com.vmware.bifrost.bus.model.MonitorObject;
 import com.vmware.bifrost.bus.model.MonitorType;
+import com.vmware.bifrost.bus.model.SystemChannels;
 import com.vmware.bifrost.core.util.Loggable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.Subject;
@@ -26,6 +28,7 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
     private final Map<String, Map<String, Object>> channelAttributesMap;
 
     private Channel monitorStream;
+    private Channel extMsgBrStream;
     private String monitorChannel;
 
     private boolean dumpMonitor;
@@ -37,6 +40,10 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
 
         this.monitorChannel = MonitorChannel.stream;
         this.monitorStream = new Channel(this.monitorChannel);
+        this.internalChannelMap.put(this.monitorChannel, this.monitorStream);
+
+        this.extMsgBrStream = getChannelObject(
+              SystemChannels.EXTERNAL_MESSAGE_BROKER, "EventBusLowApiImpl");
     }
 
     @Override
@@ -232,6 +239,16 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
         }
 
         if (channelObj == null) {
+
+            // If the channel is missing but the message has EXTERNAL_MESSAGE_BROKER_DESTINATION
+            // header, instead of dropping the message, try sending it to
+            // the external message broker system channel.
+            if (messageObject.getHeader(
+                  MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION) != null) {
+                extMsgBrStream.send(messageObject);
+                return;
+            }
+
             this.logWarnMessage(String.format("Failed to send message. Cannot find channel: %s", channel));
             mo = new MonitorObject(MonitorType.MonitorDropped, channel, from, messageObject);
             this.monitorStream.send(new MessageObject<>(MessageType.MessageTypeRequest, mo));
