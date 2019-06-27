@@ -17,7 +17,7 @@ import { VideosModule } from './videos/videos.module';
         AppComponent,
         DemosComponent,
         WelcomeComponent,
-        ChattyChatComponent
+        ChattyChatComponent,
     ],
     imports: [
         BrowserModule,

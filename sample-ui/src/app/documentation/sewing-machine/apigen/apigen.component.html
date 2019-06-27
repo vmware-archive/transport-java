@@ -1,0 +1,226 @@
+<h1>APIGen</h1>
+
+<h3>The Translation Engine for API Specifications.</h3>
+
+<p>
+    In the suite of components that make up the <strong class="emphasis">Intent Compiler</strong> we call <strong
+    class="emphasis">Sewing Machine</strong>, the role of <strong class="emphasis">APIGen</strong> is to translate
+    supported
+    specification documents into Application Fabric specific bindings in a number of supported programming languages to
+    be
+    manifest as models and operations. This component is also the 2nd stage of the compiler’s pipeline.
+</p>
+
+<hr/>
+
+<h2>
+    Specifications and Languages
+</h2>
+
+<p>
+    APIGen is agnostic to the type of specification documents it indirectly consumes, and depends on <strong
+    class="emphasis">libswagger</strong> for
+    parsing them and transforming them into a set of abstractions that it can build on. This allows new types of
+    specification documents to be added, or the existing ones modified, or document parsing libraries changed, without
+    affecting APIGen.
+</p>
+<p>
+    At the time of writing this, <strong class="emphasis">libswagger</strong> understands <strong
+    class="emphasis">Swagger 2.0</strong> and <strong class="emphasis">OpenAPI 3.0</strong> documents. The
+    inclusion of Protocol Buffers as used by gRPC is envisioned in the roadmap.
+</p>
+
+<p>
+    At its core, APIGen converts an abstraction of specifications as produced by <strong
+    class="emphasis">libswagger</strong>, into yet another
+    <strong class="emphasis">language-neutral</strong> set of abstractions that can then be consumed by
+    language-specific plugins to create libraries that
+    can be used by applications written in those languages. At the time of writing this, APIGen contains plugins for
+    <strong class="emphasis">Typescript</strong>, <strong class="emphasis">Java</strong>, and a prototypical plugin for
+    <strong class="emphasis">Go</strong>. A plugin for <strong class="emphasis">C++</strong> is envisioned in the
+    roadmap.
+</p>
+
+<hr/>
+
+<h2>
+    Using APIGen
+</h2>
+
+<p>
+    The following is a detailed description of how to invoke APIGen (obsolete and deprecated options have been
+    excluded):
+</p>
+
+<pre class="code"><code class="language-go" ngNonBindable>Usage: apigen &lt;options&gt; &lt;YAML prefix&gt;
+
+-b, --root=$&#123;HOME&#125;/xxx                         Project Root path
+-d, --debug                                    Debug Output
+-e, --extern="vmc"                             Authoritative YAML
+-F, --force                                    Force overwrite (ignored)
+-h, --help                                     Display Help
+-l, --language=&lt;typescript | java | go&gt;        Codegen language plugin
+-L, --lombok                                   Use lombok annotations (java only)
+-m, --models-only                              Models only (no API classes)
+-n, --namespace=Base                           Namespace prefix
+-N, --no-hasRequiredProperty                   Suppress hasRequiredProperties
+-O, --optional-flag                            Flag optional properties in classes
+-o, --output=xxx-api.ts                        APIGen Output Folder or filename
+-p, --apiDir=&lt;YAML folder&gt;                     YAML folder relative to project root
+-P, --package=com.vmware.api.vmc               Package (for java)
+-R, --rename-yaml=yaml:prefix                  Prepend definitions per YAML file
+-S, --single-file                              Single file output
+-s, --suffix="&lt;yaml suffix string&gt;"            Suffix to recognize YAML files
+-t, --trace                                    Trace Output
+-v, --verbose                                  Verbose Output
+-V, --version                                  Show APIGen Version
+-w, --no-warnings                              Suppress warnings
+-x, --no-null-object                           Don't create an empty object for a
+                                               property if the property is passed as
+                                               null to the constructor</code></pre>
+
+<table class="table table-noborder flag-table">
+    <thead>
+    <tr>
+        <th class="left flag-header">Flag</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td class="left flag">-b&lt;path&gt; | --root=&lt;path&gt;</td>
+        <td class="flag-value">This option declares the absolute path to the root of the Project directory. All
+            subsequent location
+            specifications are relative to this root path. If this option is skipped, APIGen defaults to <strong
+                class="emphasis">$&#123;HOME&#125;/ui</strong> for
+            historical reasons. Path specifications may include the ~ character which will be replaced by the <strong
+                class="emphasis">HOME</strong>
+            folder of the invoking user, or <strong class="emphasis">~&lt;user&gt;</strong>, which will be replaced by
+            the <strong class="emphasis">HOME</strong> folder of the specified
+            <strong class="emphasis">&lt;user&gt;.</strong>
+        </td>
+
+    </tr>
+    <tr>
+        <td class="left flag">-d | --debug</td>
+        <td class="flag-value">
+            Used by APIGen developers to emit debug output.
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">--b &lt;YAML prefix&gt; | --extern=&lt;YAML prefix&gt;</td>
+        <td class="flag-value">
+            Many of the YAML specifications prevalent at VMware use partial object definitions with the intent that a
+            more authoritative definition is to be obtained from another YAML. Examples of this behavior include the
+            definition of the <strong class="emphasis">Task</strong> class and <strong class="emphasis">Sddc</strong>
+            class, that are both authoritatively defined in <strong class="emphasis">vmc-api-doc.yaml</strong>, but
+            has partial definitions in other YAML files (e.g. <strong class="emphasis">vmc-draas-api-doc.yaml</strong>).
+            When this option is specified.
+            <br/><br/>
+            APIGen does not emit any definition for object names that are duplicated in the authoritative YAML (in this
+            case vmc, without the suffix) and instead, issues import declarations (in the respective output language)
+            for those duplicated objects from their definition in the authoritative YAML.
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">-F | --force</td>
+        <td class="flag-value">
+            This option is ignored by APIGen and is only provided for consistency with all the other components in the
+            Intent Compiler. Usually, this flag is provided to an Intent Compiler component (e.g. <strong
+            class="emphasis">Servgen</strong>, or <strong class="emphasis">Specgen</strong>)
+            to permit them to overwrite a file that is otherwise customizable (and therefore, not normally overwritten),
+            however, since none of the output files from APIGen are customizable, they are overwritten irrespective of
+            the presence of this flag.
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">-h | --help</td>
+        <td class="flag-value">
+            Displays all the options recognized by APIGen.
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">-l &lt;typescript | java | go&gt; | --language=&lt;typescript | java | go&gt;</td>
+        <td class="flag-value">
+            This option is used to specify the language plugin to be used for the output from APIGen. Currently, the
+            valid plugins are: <strong class="emphasis">typescript</strong>, <strong class="emphasis">java</strong>, and
+            <strong class="emphasis">go</strong>.
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-m | --models-only</td>
+        <td class="flag-value">
+            Normally, APIGen generates code for Classes/Enums as well as API Classes/Methods. Specifying this option
+            suppresses the generation of API Classes/Methods and only generates Classes/Enums (definitions). This is
+            useful when testing a new language plugin before all the pieces have been implemented.
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-n | --namespace=&lt;prefix&gt;</td>
+        <td class="flag-value">
+            This option prepends a prefix to every class definition output by APIGen. If this option is not provided,
+            APIGen defaults to using Base as that prefix. The purpose of this is to rename the class names sent by a
+            responder and preserve that intact, while deriving a new class from this base class by the application, and
+            delineates the boundary of immutability of the original class.
+            <br/><br/>
+            References to this base class may only be
+            permitted from Service Adapters, and never from the application itself. The application may, however, access
+            the derived class[es] provided by <strong class="emphasis">Servgen</strong>, which automatically generates
+            the children of this parent base
+            class, while the base class output of APIGen is only accessible from within the Service Adapter and may be
+            in a language that is different from that of the application
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-n | --namespace=&lt;prefix&gt;</td>
+        <td class="flag-value">
+            This option prepends a prefix to every class definition output by APIGen. If this option is not provided,
+            APIGen defaults to using Base as that prefix. The purpose of this is to rename the class names sent by a
+            responder and preserve that intact, while deriving a new class from this base class by the application, and
+            delineates the boundary of immutability of the original class.
+            <br/><br/>
+            References to this base class may only be
+            permitted from Service Adapters, and never from the application itself. The application may, however, access
+            the derived class[es] provided by <strong class="emphasis">Servgen</strong>, which automatically generates
+            the children of this parent base class, while the base class output of APIGen is only accessible from within the Service Adapter and may be
+            in a language that is different from that of the application
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">-N | --no-hasRequiredProperty</td>
+        <td class="flag-value">
+            For historical reasons (swagger2ts), every class emitted by APIGen has a method called
+            <code class="clr-code">hasRequiredProperties()</code> which checks that a fully populated class has all the
+            properties that are marked as
+            required. There are a number of legacy components in VMC that invoke this method procedurally from
+            application space – something that will not be possible once the Service Adapter Layer is detached from the
+            application. Once VMC has been refactored to remove such references, this option will be turned on by
+            default.
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-O | --optional-flag</td>
+        <td class="flag-value">
+            Normally, APIGen does not respect whether a property is optionally present in a class, and defines all
+            properties from the YAML. This can have an undesirable side effect for consumers that check for the presence
+            of these optional properties and make decisions based on their absence. Specifying this option removes these
+            optional properties if no data is provided for them in the response to an API request.
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-o &lt;output filename or folder&gt; | --output=&lt;output filename or folder&gt;&lt;/td&gt;
+        <td class="flag-value">
+            Normally, APIGen does not respect whether a property is optionally present in a class, and defines all
+            properties from the YAML. This can have an undesirable side effect for consumers that check for the presence
+            of these optional properties and make decisions based on their absence. Specifying this option removes these
+            optional properties if no data is provided for them in the response to an API request.
+        </td>
+    </tr>
+
+    </tbody>
+</table>
