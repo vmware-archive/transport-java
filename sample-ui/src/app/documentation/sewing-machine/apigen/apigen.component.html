@@ -127,7 +127,7 @@
         <td class="flag-value">
             This option is ignored by APIGen and is only provided for consistency with all the other components in the
             Intent Compiler. Usually, this flag is provided to an Intent Compiler component (e.g. <strong
-            class="emphasis">Servgen</strong>, or <strong class="emphasis">Specgen</strong>)
+            class="emphasis">ServGen</strong>, or <strong class="emphasis">SpecGen</strong>)
             to permit them to overwrite a file that is otherwise customizable (and therefore, not normally overwritten),
             however, since none of the output files from APIGen are customizable, they are overwritten irrespective of
             the presence of this flag.
@@ -167,7 +167,7 @@
             <br/><br/>
             References to this base class may only be
             permitted from Service Adapters, and never from the application itself. The application may, however, access
-            the derived class[es] provided by <strong class="emphasis">Servgen</strong>, which automatically generates
+            the derived class[es] provided by <strong class="emphasis">ServGen</strong>, which automatically generates
             the children of this parent base
             class, while the base class output of APIGen is only accessible from within the Service Adapter and may be
             in a language that is different from that of the application
@@ -184,8 +184,9 @@
             <br/><br/>
             References to this base class may only be
             permitted from Service Adapters, and never from the application itself. The application may, however, access
-            the derived class[es] provided by <strong class="emphasis">Servgen</strong>, which automatically generates
-            the children of this parent base class, while the base class output of APIGen is only accessible from within the Service Adapter and may be
+            the derived class[es] provided by <strong class="emphasis">ServGen</strong>, which automatically generates
+            the children of this parent base class, while the base class output of APIGen is only accessible from within
+            the Service Adapter and may be
             in a language that is different from that of the application
         </td>
     </tr>
@@ -213,12 +214,91 @@
     </tr>
 
     <tr>
-        <td class="left flag">-o &lt;output filename or folder&gt; | --output=&lt;output filename or folder&gt;&lt;/td&gt;
+        <td class="left flag">-o &lt;output filename or folder&gt; | --output=&lt;output filename or folder&gt;</td>
         <td class="flag-value">
-            Normally, APIGen does not respect whether a property is optionally present in a class, and defines all
-            properties from the YAML. This can have an undesirable side effect for consumers that check for the presence
-            of these optional properties and make decisions based on their absence. Specifying this option removes these
-            optional properties if no data is provided for them in the response to an API request.
+            When the <code class="clr-code">–single-file</code> option is provided to APIGen then the <code
+            class="clr-code">–output</code> is used to
+            provide the filename where the output will reside. Alternatively, if <code
+            class="clr-code">–single-file</code> is not specified, then
+            –output specifies the full path of a folder where class files will be created. If the folder doesn’t exist,
+            it will be created. See the
+            example invocations below.
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-p &lt;relative path&gt; | --apiDir=&lt;relative path&gt;</td>
+        <td class="flag-value">
+            This option is mandatory and specifies the path of the <strong class="emphasis">api</strong> folder, <strong
+            class="emphasis">relative</strong> to the project root specified
+            using <code class="clr-code">–root</code> above. The <strong class="emphasis">api</strong> folder is the
+            location where both YAML files and default output files (e.g.
+            *-api.ts) reside.
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-P &lt;package name&gt; | --package=&lt;package name&gt;</td>
+        <td class="flag-value">
+            For languages that use packages, e.g. Java, Go, etc., this specifies the package name to insert in the
+            output file(s) as it is not always possible to infer the package name from the output folder’s path.
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-R &lt;YAML : class prefix&gt; --rename-yaml=&lt;YAML : class prefix&gt;</td>
+        <td class="flag-value">
+            Since there is no central repository for YAML files, sometimes the same name is used in more than one file,
+            causing a name collision for Intent Compiler components like <strong class="emphasis">ServGen</strong> that
+            simultaneously operate on multiple
+            YAML files within the same namespace. The <code class="clr-code">–rename-yaml</code> option. Specifies the
+            prefix of a YAML file separated
+            from a string by a colon “:” that is then prepended to every class name in the specified YAML.
+            <br/><br/>
+            As an
+            example, a class named <code class="clr-code">Message</code> exists in both vmc-api-doc.yaml as well as
+            ngw-api-doc.yaml but they are not
+            the same object. To resolve this name collision, <code class="clr-code">--rename-yaml=ngw:NGW</code>
+            prepends <code class="clr-code">NGW</code> to every class in
+            <code class="clr-code">ngw-api-doc.yaml</code>, so that <code class="clr-code">Message</code> is renamed to
+            <code class="clr-code">NGWMessage</code> in ngw-api-doc.yaml, while leaving Message
+            unchanged in vmc-api-doc.yaml, thus avoiding the name collision.
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-S | --single-file</td>
+        <td class="flag-value">
+            When this option is selected, all the output from APIGen is sent to a single file, including all models and
+            API classes with their respective methods. If this option is skipped, each Class, Enum, and API Class is
+            created in its own file, with the file name being the same as the Class/Enum it contains. Note: this latter
+            requires that the <code class="clr-code">–output</code> option above be used to specify the folder in which
+            these Class files will be
+            created.
+            <br/><br/>
+            <div class="alert alert-info" role="alert">
+                <div class="alert-items">
+                    <div class="alert-item static">
+            <span class="alert-text">
+                Currently, this option <strong class="emphasis">must</strong> be provided for Typescript, and must not be provided for Java.
+            </span>
+                    </div>
+                </div>
+            </div>
+
+
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-S | --single-file</td>
+        <td class="flag-value">
+            When this option is selected, all the output from APIGen is sent to a single file, including all models and
+            API classes with their respective methods. If this option is skipped, each Class, Enum, and API Class is
+            created in its own file, with the file name being the same as the Class/Enum it contains. Note: this latter
+            requires that the <code class="clr-code">–output</code> option above be used to specify the folder in which
+            these Class files will be
+            created.
         </td>
     </tr>
 
