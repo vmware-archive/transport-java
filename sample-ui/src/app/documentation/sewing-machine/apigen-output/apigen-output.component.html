@@ -1,0 +1,464 @@
+<h1>APIGen - Understanding Generated Output</h1>
+
+<h3>The Translation Engine for API Specifications.</h3>
+
+<h5>
+    APIGen is written in golang. <a href="https://gitlab.eng.vmware.com/autogen/autogen-sources/tree/master/apigen" target="_blank">Source code is here.</a>
+</h5>
+
+<p>
+    In the suite of components that make up the <strong class="emphasis">Intent Compiler</strong> we call <strong
+    class="emphasis">Sewing Machine</strong>, the role of <strong class="emphasis">APIGen</strong> is to translate
+    supported
+    specification documents into Application Fabric specific bindings in a number of supported programming languages to
+    be
+    manifest as models and operations. This component is also the 2nd stage of the compiler’s pipeline.
+</p>
+
+<hr/>
+
+<p>
+    The output from APIGen can grossly be described as belonging to two categories of abstractions: <strong
+    class="emphasis">Models</strong> and
+    <strong class="emphasis">Operations</strong>. Models are pure data structures, while Operations are data structures
+    and methods associated with the
+    execution of API requests and their corresponding responses. Models are categorized under <strong class="emphasis">Classes</strong>
+    below, while
+    Operations are grouped under <strong class="emphasis">API Classes</strong>.
+</p>
+<p>
+    The following describe each piece of output from APIGen. Please note that the core of APIGen only deals with
+    abstract data structures and operations, such as <strong class="emphasis">Classes</strong>, <strong
+    class="emphasis">API Classes</strong>, etc., whereas the specifics of code
+    generation and layout are completely in the purview of language plugins.
+</p>
+
+<hr/>
+<h2>
+    Classes
+</h2>
+<p>
+    A class abstraction in APIGen is the same as in most OOP languages, i.e. a blueprint for instantiating a data
+    structure and initializing its state, along with methods to access or manipulate that state (functions). In
+    Typescript and Java, APIGen creates a class object, while in Go it creates a struct with interface methods. All
+    classes constructed by APIGen contain one or more constructors, depending on the language plugin, with an optional
+    JSON object as argument to it.
+</p>
+
+<p>
+    The class constructor is responsible for serializing/deserializing the JSON object, if provided, into data types
+    that make sense for a specific language plugin. In Typescript, JSON is part of the language, whereas in Java the
+    language plugin uses GSON to perform serialization and deserialization of JSON objects.
+</p>
+
+<p>
+    A class name is constructed from the original name in the specification, prepended with the string <code
+    class="clr-code">Base</code>, unless an
+    alternate prefix was specified with the <code class="clr-code">–namespace</code> option to APIGen.
+</p>
+
+<hr/>
+<h2>
+    Properties
+</h2>
+
+<p>
+    Classes usually have properties (and APIGen warns if it doesn’t), as empty classes are only useful in rare
+    situations. It is the responsibility of the class constructor to convert the properties within the class to their
+    appropriate data types. A property may be an instance of another class, in which case, it is the responsibility of
+    the above constructor to instantiate the class specified in the property and initialize its state from the
+    appropriate segment of the optional JSON argument. Each such class that is instantiated in a property, may itself
+    have properties that are class instances, and so the initializing of the properties may require recursion to
+    arbitrary depths.
+</p>
+<p>
+    It is possible in rare cases for a bad YAML specification to cause infinite recursion, eventually crashing APIGen,
+    so it is critical that all YAML files be verified for validity before being processed by the Intent Compiler.
+</p>
+
+<hr/>
+<h2>
+    Maps, Arrays, and Nested Containers
+</h2>
+
+<p>
+    Maps and Arrays are abstract containers with arbitrary content. The abstraction allows for the content itself to be
+    a container that is either a <code class="clr-code">Map</code> or an <code class="clr-code">Array</code>. When a
+    container contains another container, of either type, the
+    contained container is termed a Nested Container. The Intent Compiler only permits a single level of nesting, i.e.
+    the content of the nested container cannot be another container – it must be a class, enum, or a base type (e.g.
+    string, int, etc.). This is inherent in the design of the Intent Compiler which strongly discourages the creation of
+    bad APIs. Using complex data structures as an API simply because that is how it is implemented in the responder is
+    extremely bad practice and the data structures used in an API have no requirement to be identical to the data
+    structures in the implementation, and should be as simple as practical.
+</p>
+
+<p>
+    The Typescript plugin converts JSON object pairs that implement an unordered dictionary into ES6 Map classes when
+    received as responses to API requests. Similarly, an ES6 Map is converted back to a simple JSON dictionary when
+    passed as a parameter to an API request. This is due to an early decision made in the implementation of the VMC UI
+    as a convenience to developers, but has far-reaching impact that is not always ideal for legacy code in other
+    projects. A forthcoming version of an Intent Compiler component: <strong class="emphasis">ModelGen</strong> will
+    offer a solution that should address
+    this issue in a backward-compatible fashion.
+</p>
+
+<hr/>
+<h2>
+    Strings and String Enums
+</h2>
+
+<p>
+    Both Swagger 2.0 and OpenAPI 3.0 allow for instances of strings in the specification to be enumerated for valid
+    values thereof. These enumerations can be defined in the Global Scope, i.e. the enumeration may be used in multiple
+    instances, including as property references, parameter references, and even specific kinds of parameters passed to
+    API requests as well as responses, that too, are strings. They may also be in the Local Scope of a property within a
+    class, which means that they are anonymous, and hence, inaccessible from outside that scope.
+</p>
+
+<p>
+    When an Enum is in the Global Scope, its name is unchanged from the one provided in the specification YAML. However,
+    since Enums in the Local Scope are anonymous, a name is synthetically created for them by concatenating the name of
+    the class with the name of the property and reformatting in <strong class="emphasis">PascalCase</strong>. For the
+    enumerated values themselves, both
+    for Enums in the Global Scope and those in the Local Scope, the LHS of each enumerated value is constructed by
+    mangling the RHS and formatting using <strong class="emphasis">PascalCase</strong>. Special characters such as
+    hyphens and underscores are removed
+    from the LHS as they are not legal in constants or variables in most modern languages. They are, of course, left
+    unchanged in the RHS.
+</p>
+<p>
+    Note: the Intent Compiler only handles String Enums. All other forms of Enums are converted to String Enums. When a
+    numeric Enum is converted to a String Enum, the LHS of each field is comprised of a PascalCase mangling of the RHS,
+    prepended with the string Numeric. For languages that do not support String Enums (rare these days), it is up to the
+    language plugin to provide an alternate mechanism as appropriate.
+</p>
+
+<hr/>
+<h2>
+    API Classes
+</h2>
+
+<p>
+    An <strong class="emphasis">API Class</strong> is an abstraction to an <strong class="emphasis">API</strong> request
+    and is agnostic of the transport for such requests. This class must
+    be instantiated before generating a request to a responder, and is usually destroyed once the request completes.
+    Applications do not have direct access to <strong class="emphasis">API</strong> calls, and as such, the API Class is
+    only accessible from a Service
+    Adapter.
+</p>
+
+<p>
+    The name of the API Class is synthetically created by mangling the endpoint of the API request. This allows for ease
+    of programmatic access from the Service Adapter. The following is a simple example of an API Class generated by the
+    TypeScript plugin with a description of the details for the API endpoint: <code class="clr-code">/auth/token</code>,
+
+</p>
+
+<pre class="code"><code class="language-typescript" ngNonBindable>// *** URI: /auth/token
+export class API_AuthToken&lt;T&gt; &#123;
+    public readonly uri: string;
+
+    constructor( private apiBridge: Function,
+                 private apiObject: T,
+                 private messageArgs: MessageArgs) &#123;
+
+        this.uri = '/vmc/api/auth/token';
+    }
+
+    // GET
+    // Get the current users auth token.
+    public httpGet(successHandler: Function, failureHandler: Function) &#123;
+        const _body = '';
+        const apiResponseHandler = (apiObject: T, responseJSON: any,
+              args?: MessageArgs) => &#123;
+        successHandler(apiObject, &#123;&#125;, args);
+        };
+
+        this.apiBridge(this.apiObject, 'GET', this.uri, _body,
+            apiResponseHandler, failureHandler, 'API_AuthToken',
+            this.messageArgs);
+    &#125;
+&#125;
+</code></pre>
+
+<hr/>
+<h2>
+    API Bridge
+</h2>
+
+<p>
+    When an API Class is instantiated, one of the arguments to the class constructor is a reference to a function
+    (lambda) called the <strong class="emphasis">API Bridge</strong> that is responsible for the transport of the
+    request to the endpoint for this API
+    Class, through the <strong class="emphasis">Bifröst</strong> messaging system that is part of the AppFabric. The
+    interface to the API Bridge in
+    TypeScript is:
+</p>
+
+<pre class="code"><code class="language-typescript" ngNonBindable>type ApiFunction = (apiObject: ApiObject&lt;any, any&gt;,
+                    method: string
+                    endpoint: string,
+                    payload: any,
+                    successHandler: SuccessHandler,
+                    failureHandler: ErrorHandler,
+                    apiClass: string) => void;</code></pre>
+
+<p>
+    It should be noted that the arguments to the API Bridge are agnostic as to whether the transport mechanism employs
+    ReST, gRPC, Bus Messages, or some other means, and the endpoint, method, and payload contain everything necessary to
+    make the API request.
+</p>
+
+<p>
+    Response from the API request are returned to the calling Service Adapter using the provided <code class="clr-code">SuccessHandler</code>
+    function (lambda) or the <code class="clr-code">ErrorHandler</code>.
+</p>
+
+<hr/>
+<h2>
+    API Object
+</h2>
+
+<p>
+    The API Object is an abstraction for attaching information to the API request that is passed through various
+    functions and lambdas in order to respond to the original caller to the Service Adapter when the request is
+    completed or fails. This includes the original Request Object and a template for the Response Object to/from the
+    Service Adapter making the API request, back to the service requestor.
+</p>
+
+<hr/>
+<h2>
+    Methods
+</h2>
+
+<p>
+    Every API Class must have one or more method to perform an operation and receive and process a response from that
+    operation, before returning a (transformed) response to the calling Service Adapter. At a minimum, each method is
+    also provided a <code class="clr-code">SuccessHandler</code> and an <code class="clr-code">ErrorHandler</code>,
+    which are created by the Service Adapter and are different from
+    the handlers that are encapsulated in the above API Object which are handlers provided by the service requestor to
+    the Service Adapter.
+</p>
+
+<p>
+    For the ReST transport, the methods <strong class="emphasis">GET</strong>, <strong class="emphasis">POST</strong>,
+    <strong class="emphasis">PUT</strong>, <strong class="emphasis">PATCH</strong>, <strong
+    class="emphasis">DELETE</strong>, each have their own method. By default, http is
+    prepended to th4e method name, irrespective of whether the transport uses ReST. So, the <strong
+    class="emphasis">GET</strong> method is named
+    <code class="clr-code">httpGet()</code>. More readable names can be ascribed to the methods with the use of
+    extensions. The above API_AuthToken
+    method <code class="clr-code">httpGet()</code> can be renamed to <code class="clr-code">getAuth()</code> by
+    providing the following two extensions:
+</p>
+
+<pre class="code"><code class="language-bash">x-vmw-vapi-methodname: <strong class="emphasis">get</strong>
+x-vmc-ui-servicename: <strong class="emphasis">auth</strong></code></pre>
+
+<p>
+    It is the responsibility of each method to transform the input parameters to it into the form expected by the
+    responder, as well as transform the response from the responder into a form that is consumable by the implementation
+    language of the requestor, as well as the implementation language of the Service Adapter. These are described below:
+</p>
+
+<hr/>
+<h2>
+    Parameters
+</h2>
+
+<p>
+    If the TypeScript language plugin is in use, with one exception, there are no conversions necessary before passing
+    the parameters to the method on to the API Bridge, as Typescript classes are merely JSON objects with some metadata.
+    The one exception is an ES6 µap object which, when provided as a parameter to the method, has to be converted to a
+    simple JSON dictionary before providing it to the API Bridge.
+</p>
+
+<p>
+    If, however, the Java language plugin is in use, no such transformation takes place, and the parameter is passed on
+    unchanged to the API Bridge. The transformation boundary for such transformations is moved up to the <strong
+    class="emphasis">Modelgen</strong>
+    component in the Intent Compiler’s pipeline for the latter case.
+</p>
+
+<hr/>
+<h2>
+    Responses
+</h2>
+
+<p>
+    Every API call has a response, including one with no payload. For legacy reasons to avoid de-referencing <code
+    class="clr-code">null</code>
+    objects, when no payload is included with a response from the responder, the method creates an empty object with no
+    properties for return to the requestor. Similarly, if an object with properties is returned, and if any of the
+    object’s properties are references to other objects, but are null in the response payload, then an empty object is
+    created in the constructor of the response object for each such property. To prevent this behavior, the
+    <code class="clr-code">--no-null-object</code> option may be provided to APIGen.
+</p>
+
+<p>
+    It is also the responsibility of the method to transform any response object into a language-specific <code
+    class="clr-code">class</code> or
+    <code class="clr-code">struct</code> as appropriate for the specific language plugin. This is done by instantiating
+    the target class and passing
+    it the JSON response as argument to its constructor. The target class is then responsible for recursively invoking
+    the constructors of each of the classes that are referred to by their properties. It is the responsibility of each
+    such class constructor to serialize/deserialize the passed JSON argument into the target language-specific classes.
+</p>
+
+<p>
+    The request to an API may result in a polymorphic response.
+</p>
+
+<hr/>
+<h2>
+    Polymorphism
+</h2>
+
+<p>
+    It is common for an API response to contain one of several object types (classes), and so a grouping of these types
+    involve a parent type (class) from which all of these various objects can be derived. Because the specific type
+    (class) of the response object is dynamic, such responses are termed <strong
+    class="emphasis">Polymorphic.</strong>
+</p>
+
+<p>
+    In order for APIGen to know which class constructor needs to be invoked to instantiate a class for the response
+    object, there are two strategies that can be employed:
+</p>
+
+<h3>
+    1. Using VMware extensions
+</h3>
+
+<p>
+    This strategy is currently in use at VMware. Basically, the parent class described above has a property named
+    <code class="clr-code">Discriminator</code> in all cases, and this property is a string containing the name of a
+    property in all of the derived
+    children classes that polymorphism can apply to. This named property, then, is a required property in the children
+    classes and is also a string.
+</p>
+
+<p>
+    The children classes each expose the discriminant for their respective type by announcing the string value that is
+    contained in that property for their respective class by using the following extension:
+</p>
+<pre class="code"><code class="language-bash">x-vmw-vapi-discriminated-by: &lt;some string value&gt;</code></pre>
+
+<p>
+    Then, the method can dynamically test the response from the API request, and depending on the value of the
+    discriminant property, instantiate the corresponding class. By default, if an appropriate child class matching the
+    provided property value is not found, then the parent class is instantiated with the response JSON to its
+    constructor.
+</p>
+
+<h3>
+    2. Using <code class="clr-code">oneOf</code> hints
+</h3>
+
+<p>
+    This is a cleaner strategy that does not require VMware extensions, however, it is not currently supported by
+    APIGen, nor is this used in any YAML specifications for cloud services.
+</p>
+
+<p>
+    Basically, the OpenAPI <code class="clr-code">oneOf</code> directive is used to specify an array of classes that can
+    be a response from an API
+    call, all of which must be derived from a similar parent class, however, no special properties are required in any
+    of those classes. At runtime, the method uses mechanisms like reflection to dynamically determine the type of the
+    response and instantiate the corresponding class.
+</p>
+
+
+<hr/>
+<h2>
+    Language Plugins
+</h2>
+
+<p>
+    A language plugin implements a set of interfaces that converts the abstract data structures provided by the core of
+    APIGen into language-specific code that can be consumed by a Service Adapter.
+</p>
+
+<p>
+    The Plugin data structure contains information sufficient to implement a language plugin, which includes the
+    abstract Spec for all models and operations, a pointer to the code generator for the specific plugin, an open file
+    pointer to the output file, and other miscellaneous data.
+</p>
+
+<pre class="code"><code class="language-go">type Plugin struct &#123;
+    Plugins  map[string]Code
+    Codegen  Code
+    Spec     *yaml.Yaml
+    Metadata *parser.Metadata
+    File     *dsp.Fileio
+    Suffix   string
+&#125;</code></pre>
+
+<p>
+    A language plugin implements a very small set of interfaces described below:
+</p>
+
+<pre class="code"><code class="language-go">type Code interface &#123;
+    MapDataTypes() map[string]string
+    FileSuffix() string
+    EmitImports(*Plugin)
+    GenerateModel(plugin *Plugin, class string)
+    GenerateEnum(*Plugin, *model.Enum, string)
+    GenerateApiClass(*Plugin, *model.Path)
+&#123;</code></pre>
+
+<h3>
+    <code class="language-go">MapDataTypes() map[string]string</code>
+</h3>
+
+<p>
+    This interface returns a mapping of OpenApi data types to data types supported by the language plugin. The
+    abstractions within the core APIGen use the OpenApi data types, while the language plugins use data types specific
+    to their respective languages.
+</p>
+
+<h3>
+    <code class="language-go">FileSuffix() string</code>
+</h3>
+
+<p>
+    This interface returns the filename suffix that is used by a language plugin. E.g. the plugin for Typescript returns
+    the string <code class="clr-code">.ts</code>, while the one for Java returns the string <code
+    class="clr-code">.java</code>, etc. These are used to construct class files by the
+    core APIGen.
+</p>
+
+<h3>
+    <code class="language-go">EmitImports(*Plugin)</code>
+</h3>
+
+<p>
+    This interface is a hook that a language plugin can use to emit a block of external imports, including other
+    language-specific preambles such as<br/>
+    <code class="clr-code">// tslint: disable</code><br/><br/> A copyright block is also automatically generated by
+    invoking this
+    interface.
+</p>
+
+<h3>
+    <code class="language-go">GenerateModel(plugin *Plugin, class string)</code>
+</h3>
+
+<p>
+    A language plugin must implement this interface in order to convert all the abstract classes from the core of APIGen
+    into classes specific to that language. The core APIGen takes care of creating, opening, and closing the appropriate
+    output file(s) and providing the plugin with an abstract handle to the file to produce output in a way that is
+    consistent with all other plugins.
+</p>
+
+<h3>
+    <code class="language-go">GenerateApiClass(*Plugin, *model.Path)</code>
+</h3>
+
+<p>
+    A language plugin must implement this interface in order to convert all the abstract  <strong class="emphasis">API Classes</strong>,
+    <strong class="emphasis">Methods</strong>,  <strong class="emphasis">Parameters</strong>, and  <strong class="emphasis">Responses</strong>, from the core of APIGen into data structures specific to that language. The core APIGen
+    takes care of creating, opening, and closing the appropriate output file(s) and providing the plugin with an
+    abstract handle to the file to produce output in a way that is consistent with all other plugins.
+</p>

@@ -7,13 +7,17 @@ import { SewingMachineRoutingModule } from './sewing-machine-routing.module';
 import { QuickstartComponent } from './quickstart/quickstart.component';
 import { InitializerComponent } from './initializer/initializer.component';
 import { LibswaggerComponent } from './libswagger/libswagger.component';
+import { ApigenComponent } from './apigen/apigen.component';
+import { ApigenOutputComponent } from './apigen-output/apigen-output.component';
 
 @NgModule({
     declarations: [
         HomeComponent,
         QuickstartComponent,
         InitializerComponent,
-        LibswaggerComponent
+        LibswaggerComponent,
+        ApigenComponent,
+        ApigenOutputComponent
     ],
     imports: [
         CommonModule,
