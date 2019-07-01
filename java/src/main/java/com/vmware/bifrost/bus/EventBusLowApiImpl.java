@@ -244,7 +244,11 @@ public class EventBusLowApiImpl extends Loggable implements EventBusLowApi {
             // header, instead of dropping the message, try sending it to
             // the external message broker system channel.
             if (messageObject.getHeader(
-                  MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION) != null) {
+                    MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION) != null) {
+                this.logDebugMessage(String.format(
+                      "Missing channel '%s', sending message to external topic: %s",
+                      channel,
+                      messageObject.getHeader(MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION)));
                 extMsgBrStream.send(messageObject);
                 return;
             }
