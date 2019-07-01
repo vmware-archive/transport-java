@@ -7,11 +7,13 @@ import com.vmware.bifrost.broker.TestGalacticChannelConfig;
 import com.vmware.bifrost.broker.TestMessageBrokerConnector;
 import com.vmware.bifrost.bus.model.Channel;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageHeaders;
 import com.vmware.bifrost.bus.model.MessageObject;
 import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
 import com.vmware.bifrost.bus.model.MessageType;
 import com.vmware.bifrost.bus.model.MonitorObject;
 import com.vmware.bifrost.bus.model.MonitorType;
+import com.vmware.bifrost.bus.model.SystemChannels;
 import com.vmware.bifrost.bus.store.BusStoreApi;
 import com.vmware.bifrost.bus.store.StoreManager;
 import io.reactivex.observers.TestObserver;
@@ -22,6 +24,7 @@ import org.junit.Test;
 import io.reactivex.Observable;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -62,9 +65,9 @@ public class EventBusImplTest {
     public void checkGetters() {
         Assert.assertNotNull(this.bus.getApi().getMonitor());
         Assert.assertNotNull(this.bus.getApi().getChannelMap());
-        Assert.assertEquals(1, this.bus.getApi().getChannelMap().size());
+        Assert.assertEquals(2, this.bus.getApi().getChannelMap().size());
         Assert.assertEquals("#fresh", this.bus.getApi().getChannelObject("#fresh", this.getClass().getName()).getName());
-        Assert.assertEquals(this.bus.getApi().getChannelMap().size(), 2);
+        Assert.assertEquals(this.bus.getApi().getChannelMap().size(), 3);
         Assert.assertNotNull(this.bus.getApi().getChannel("cats", this.getClass().getName()));
         Assert.assertTrue(this.bus.getApi().isLoggingEnabled());
         this.bus.getApi().enableMonitorDump(false);
@@ -232,6 +235,32 @@ public class EventBusImplTest {
             Assert.assertEquals("puppy!", msg.getPayload());
             Assert.assertTrue(msg.isRequest());
             Assert.assertFalse(msg.isResponse());
+            Assert.assertNull(msg.getHeaders());
+            Assert.assertNull(msg.getHeader("invalid-header"));
+        }
+    }
+
+    @Test
+    public void testSendRequestMessageWithHeaders() {
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-channel", "test");
+        TestObserver<Message> observer = chan.test();
+
+        this.bus.sendRequestMessage("#local-channel", "puppy!",
+              MessageHeaders.newInstance()
+                    .setHeader("test-header", "header-value")
+                    .setHeader("test-header2", "header-value-2"));
+
+        observer.assertSubscribed();
+
+        for (Message msg : observer.values()) {
+            Assert.assertEquals("puppy!", msg.getPayload());
+            Assert.assertNotNull(msg.getHeaders());
+            Assert.assertEquals(msg.getHeaders().getHeaderNames().size(), 2);
+            Assert.assertTrue(msg.getHeaders().getHeaderNames().containsAll(
+                  Arrays.asList("test-header", "test-header2")));
+            Assert.assertEquals(msg.getHeader("test-header"), "header-value");
+            Assert.assertEquals(msg.getHeader("test-header2"), "header-value-2");
+            Assert.assertNull(msg.getHeader("invalid-header"));
         }
     }
 
@@ -251,6 +280,23 @@ public class EventBusImplTest {
             Assert.assertEquals("kitty!", msg.getPayload());
             Assert.assertFalse(msg.isRequest());
             Assert.assertTrue(msg.isResponse());
+            Assert.assertNull(msg.getHeaders());
+        }
+    }
+
+    @Test
+    public void testSendResponseMessageWithHeaders() {
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-channel", "test");
+        TestObserver<Message> observer = chan.test();
+
+        MessageHeaders headers = MessageHeaders.newInstance("test-header", "header-value");
+        this.bus.sendResponseMessage("#local-channel", "kitty!", headers);
+
+        observer.assertSubscribed();
+
+        for (Message msg : observer.values()) {
+            Assert.assertEquals("kitty!", msg.getPayload());
+            Assert.assertEquals(msg.getHeaders(), headers);
         }
     }
 
@@ -274,6 +320,24 @@ public class EventBusImplTest {
     }
 
     @Test
+    public void testSendErrorMessageWithHeaders() {
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-channel", "test");
+        TestObserver<Message> observer = chan.test();
+
+        MessageHeaders headers = MessageHeaders.newInstance("test-header", "header-value");
+        this.bus.sendErrorMessage("#local-channel", "chickie!", headers);
+
+        observer.assertSubscribed();
+
+        for (Message msg : observer.values()) {
+
+            Assert.assertEquals("chickie!", msg.getPayload());
+            Assert.assertEquals(headers, msg.getHeaders());
+            Assert.assertEquals(msg.getHeader("test-header"), "header-value");
+        }
+    }
+
+    @Test
     public void testSendErrorMessageToTarget() {
         Observable<Message> chan = this.bus.getApi().getChannel("#local-channel", "test");
         TestObserver<Message> observer = chan.test();
@@ -291,6 +355,38 @@ public class EventBusImplTest {
             Assert.assertTrue(msg.isError());
 
         }
+    }
+
+    @Test
+    public void testSendErrorMessageToTargetWithHeaders() {
+        Observable<Message> chan = this.bus.getApi().getChannel("#local-channel", "test");
+        TestObserver<Message> observer = chan.test();
+
+        MessageHeaders headers = MessageHeaders.newInstance("test-header", "header-value");
+        this.bus.sendErrorMessageToTarget(
+              "#local-channel", "chickie!", UUID.randomUUID(), "user-id", headers);
+
+        observer.assertSubscribed();
+
+        for (Message msg : observer.values()) {
+            Assert.assertEquals("chickie!", msg.getPayload());
+            Assert.assertEquals(headers, msg.getHeaders());
+        }
+    }
+
+    @Test
+    public void testSendGalacticMessageToNonExistingChannel() {
+        this.bus.listenStream(SystemChannels.EXTERNAL_MESSAGE_BROKER, message -> {
+            this.message = message;
+            this.counter++;
+        });
+
+        this.bus.sendResponseMessage("non-existing-channel", "test-response",
+              MessageHeaders.newInstance(
+                    MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION, "/topic/channel-x"));
+
+        Assert.assertEquals(this.counter, 1);
+        Assert.assertEquals(this.message.getPayload(), "test-response");
     }
 
     @Test
@@ -886,6 +982,29 @@ public class EventBusImplTest {
     }
 
     @Test
+    public void testSendRequestMessageWithIdAndHeaders() {
+
+        UUID requestUuid = UUID.randomUUID();
+        String chan = "#local-simple-error";
+
+        this.bus.respondOnce(chan, (Message message) -> {
+            Assert.assertEquals(message.getId(), requestUuid);
+            return "response-" + message.getHeader("h1");
+        });
+
+        this.bus.listenStream(chan, (Message message) -> {
+            Assert.assertEquals(message.getId(), requestUuid);
+            Assert.assertEquals(message.getPayload(), "response-test-header-value");
+            this.counter++;
+        });
+
+        this.bus.sendRequestMessageWithId(chan, "request", requestUuid,
+              MessageHeaders.newInstance("h1", "test-header-value"));
+        Assert.assertEquals(this.counter, 1);
+    }
+
+
+    @Test
     public void testSendRequestMessageToTarget() {
 
         UUID requestUuid = UUID.randomUUID();
@@ -908,6 +1027,32 @@ public class EventBusImplTest {
     }
 
     @Test
+    public void testSendRequestMessageToTargetWithHeaders() {
+
+        UUID requestUuid = UUID.randomUUID();
+        String chan = "#local-simple-error";
+
+        this.bus.respondOnce(chan, (Message message) -> {
+            Assert.assertEquals(message.getId(), requestUuid);
+            Assert.assertEquals(message.getTargetUser(), "user-id");
+            return "response-" + message.getHeader("h1");
+        });
+
+        this.bus.listenStream(chan, (Message message) -> {
+            Assert.assertEquals(message.getId(), requestUuid);
+            Assert.assertEquals(message.getPayload(), "response-test-header-value");
+            this.counter++;
+        });
+
+        this.bus.sendRequestMessageToTarget(
+              chan, "request", requestUuid, "user-id",
+              MessageHeaders.newInstance()
+                    .setHeader("h2", "test")
+                    .setHeader("h1", "test-header-value"));
+        Assert.assertEquals(this.counter, 1);
+    }
+
+    @Test
     public void testSendResponseMessageToTarget() {
 
         UUID requestUuid = UUID.randomUUID();
@@ -920,6 +1065,24 @@ public class EventBusImplTest {
         });
 
         this.bus.sendResponseMessageToTarget(chan, "request", requestUuid, "user-id");
+        Assert.assertEquals(this.counter, 1);
+    }
+
+    @Test
+    public void testSendResponseMessageToTargetWithHeaders() {
+
+        UUID requestUuid = UUID.randomUUID();
+        String chan = "#local-simple-error";
+
+        this.bus.listenStream(chan, (Message message) -> {
+            Assert.assertEquals(message.getId(), requestUuid);
+            Assert.assertEquals(message.getTargetUser(), "user-id");
+            Assert.assertEquals(message.getHeader("h1"), "test");
+            this.counter++;
+        });
+
+        this.bus.sendResponseMessageToTarget(chan, "request", requestUuid, "user-id",
+              MessageHeaders.newInstance("h1", "test"));
         Assert.assertEquals(this.counter, 1);
     }
 
@@ -1205,9 +1368,10 @@ public class EventBusImplTest {
         Assert.assertEquals(1, this.counter);
         Assert.assertEquals(this.message.getPayload(), "testMessage");
 
-        bus.sendResponseMessage(chan, "testMessage2");
+        bus.sendResponseMessage(chan, "testMessage2", MessageHeaders.newInstance("test", "h1"));
         Assert.assertEquals(2, this.counter);
         Assert.assertEquals(this.message.getPayload(), "testMessage2");
+        Assert.assertEquals(this.message.getHeader("test"), "h1");
 
         bus.sendErrorMessage(chan, "error");
         Assert.assertEquals(2, this.counter);
@@ -1282,6 +1446,7 @@ public class EventBusImplTest {
         Assert.assertEquals(1, this.counter);
         Assert.assertEquals(0, this.errors);
         Assert.assertEquals(this.message.getPayload(), "messageWithId");
+        Assert.assertNull(this.message.getHeaders());
 
         bus.sendErrorMessage(chan, "error");
         Assert.assertEquals(1, this.counter);
@@ -1292,8 +1457,13 @@ public class EventBusImplTest {
         Assert.assertEquals(1, this.errors);
         Assert.assertEquals(this.message.getPayload(), "errorWithId");
 
-        bus.sendResponseMessageWithId(chan, "messageWithId2", id);
-        bus.sendErrorMessageWithId(chan, "errorWithId2", id);
+        bus.sendResponseMessageWithId(chan, "messageWithId2", id,
+              MessageHeaders.newInstance("h1", "test"));
+        Assert.assertEquals(this.message.getHeader("h1"), "test");
+
+        bus.sendErrorMessageWithId(chan, "errorWithId2", id,
+              MessageHeaders.newInstance("h2", "h2-test"));
+        Assert.assertEquals(this.message.getHeader("h2"), "h2-test");
         Assert.assertEquals(2, this.counter);
         Assert.assertEquals(2, this.errors);
 

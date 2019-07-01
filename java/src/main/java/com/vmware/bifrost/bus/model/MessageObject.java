@@ -30,6 +30,10 @@ public class MessageObject<T> implements Message<T> {
     @Setter
     protected UUID id;
 
+    @Getter
+    @Setter
+    protected MessageHeaders headers;
+
     public MessageObject() {
     }
 
@@ -51,6 +55,13 @@ public class MessageObject<T> implements Message<T> {
 
     public boolean isError() {
         return this.type == MessageType.MessageTypeError;
+    }
+
+    public Object getHeader(String headerName) {
+        if (headers != null) {
+            return headers.getHeader(headerName);
+        }
+        return null;
     }
 
     public String toString() {

@@ -6,6 +6,7 @@ package com.vmware.bifrost.bus;
 import com.vmware.bifrost.broker.GalacticChannelConfig;
 import com.vmware.bifrost.broker.MessageBrokerConnector;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageHeaders;
 import io.reactivex.functions.Consumer;
 
 import java.util.UUID;
@@ -27,6 +28,15 @@ public interface EventBus {
     void sendRequestMessage(String channel, Object payload);
 
     /**
+     * Send command payload to channel.
+     *
+     * @param channel channel name to send payload to
+     * @param payload the payload to be sent
+     * @param payload optional message headers
+     */
+    void sendRequestMessage(String channel, Object payload, MessageHeaders headers);
+
+    /**
      * Send a command payload to a channel with a supplied ID in the command
      *
      * @param channel channel name to send payload to
@@ -34,6 +44,16 @@ public interface EventBus {
      * @parma id the UUID of the command
      */
     void sendRequestMessageWithId(String channel, Object payload, UUID id);
+
+    /**
+     * Send a command payload to a channel with a supplied ID in the command
+     *
+     * @param channel channel name to send payload to
+     * @param payload the payload to be sent
+     * @parma id the UUID of the command
+     * @param headers optional message headers
+     */
+    void sendRequestMessageWithId(String channel, Object payload, UUID id, MessageHeaders headers);
 
     /**
      * Send a command payload to a channel for the specified user.
@@ -46,12 +66,33 @@ public interface EventBus {
     void sendRequestMessageToTarget(String channel, Object payload, UUID id, String targetUser);
 
     /**
+     * Send a command payload to a channel for the specified user.
+     *
+     * @param channel channel name to send payload to
+     * @param payload the payload to be sent
+     * @parma id the UUID of the command
+     * @param targetUser target user name
+     * @param headers optional message headers
+     */
+    void sendRequestMessageToTarget(String channel, Object payload, UUID id, String targetUser,
+                                    MessageHeaders headers);
+
+    /**
      * Send response payload to a channel.
      *
      * @param channel the channel name to send payload to
      * @param payload the payload to be sent
      */
     void sendResponseMessage(String channel, Object payload);
+
+    /**
+     * Send response payload to a channel.
+     *
+     * @param channel the channel name to send payload to
+     * @param payload the payload to be sent
+     * @param headers optional message headers
+     */
+    void sendResponseMessage(String channel, Object payload, MessageHeaders headers);
 
     /**
      * Send a response payload to a channel with a supplied ID in the response.
@@ -62,6 +103,15 @@ public interface EventBus {
     void sendResponseMessageWithId(String channel, Object payload, UUID id);
 
     /**
+     * Send a response payload to a channel with a supplied ID in the response.
+     * @param channel the channel name to send payload to
+     * @param payload the payload to be sent
+     * @param id the UUID to be attached to the response
+     * @param headers optional message headers
+     */
+    void sendResponseMessageWithId(String channel, Object payload, UUID id, MessageHeaders headers);
+
+    /**
      * Send a response payload to a channel for the specified user.
      *
      * @param channel the channel name to send payload to
@@ -70,6 +120,18 @@ public interface EventBus {
      * @param targetUser target user name
      */
     void sendResponseMessageToTarget(String channel, Object payload, UUID id, String targetUser);
+
+    /**
+     * Send a response payload to a channel for the specified user.
+     *
+     * @param channel the channel name to send payload to
+     * @param payload the payload to be sent
+     * @parma id the UUID to be attached to the response
+     * @param targetUser target user name
+     * @param headers optional message headers
+     */
+    void sendResponseMessageToTarget(String channel, Object payload, UUID id, String targetUser,
+                                     MessageHeaders headers);
 
     /**
      * Listen for a command on sendChannel and return a single response via the generateHandler() method.
@@ -582,6 +644,15 @@ public interface EventBus {
     void sendErrorMessage(String channel, Object payload);
 
     /**
+     * Send error payload to channel.
+     *
+     * @param channel the channel to send the payload to
+     * @param payload the payload to be send
+     * @param headers optional message headers
+     */
+    void sendErrorMessage(String channel, Object payload, MessageHeaders headers);
+
+    /**
      * Send error payload to channel, with an ID.
      *
      * @param channel the channel to send the payload to
@@ -589,6 +660,16 @@ public interface EventBus {
      * @param id the UUID for the response
      */
     void sendErrorMessageWithId(String channel, Object payload, UUID id);
+
+    /**
+     * Send error payload to channel, with an ID.
+     *
+     * @param channel the channel to send the payload to
+     * @param payload the payload to be send
+     * @param id the UUID for the response
+     * @param headers optional message headers
+     */
+    void sendErrorMessageWithId(String channel, Object payload, UUID id, MessageHeaders headers);
 
     /**
      * Send error payload to channel for the specified user.
@@ -599,6 +680,18 @@ public interface EventBus {
      * @param targetUser target user name
      */
     void sendErrorMessageToTarget(String channel, Object payload, UUID id, String targetUser);
+
+    /**
+     * Send error payload to channel for the specified user.
+     *
+     * @param channel the channel to send the payload to
+     * @param payload the payload to be send
+     * @param id the UUID for the response
+     * @param targetUser target user name
+     * @param headers optional message headers
+     */
+    void sendErrorMessageToTarget(String channel, Object payload, UUID id, String targetUser,
+                                  MessageHeaders headers);
 
     /**
      * Close a channel. If the closer is the last subscriber, then the channel is destroyed.

@@ -7,8 +7,10 @@ import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageHeaders;
 import com.vmware.bifrost.bus.model.MonitorObject;
 import com.vmware.bifrost.bus.model.MonitorType;
+import com.vmware.bifrost.bus.model.SystemChannels;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -95,12 +97,62 @@ public class BifrostSubscriptionServiceTest {
         bus.sendResponseMessage(this.channel, response);
         Mockito.verify(msgTmpl).convertAndSend(this.destinationPrefix + this.channel, response);
 
+        bus.sendResponseMessage(this.channel, response,
+              MessageHeaders.newInstance(
+                    MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION, "/topic-x/channel-y"));
+        Mockito.verify(msgTmpl).convertAndSend("/topic-x/channel-y", response);
+
+        bus.sendResponseMessage(this.channel, "test-response-2",
+              MessageHeaders.newInstance(
+                    MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION, ""));
+        Mockito.verify(msgTmpl).convertAndSend(this.destinationPrefix + this.channel, "test-response-2");
+
+        bus.sendErrorMessageToTarget(this.channel, "user-specific-response", UUID.randomUUID(),
+              "test-user",
+              MessageHeaders.newInstance(
+                    MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION, "/topic-z/channel-x"));
+        Mockito.verify(msgTmpl).convertAndSendToUser("test-user", "/topic-z/channel-x", "user-specific-response");
+
         Assert.assertNotNull(this.monitorObject);
         BifrostSubscriptionService.NewBridgeSubscriptionEvent subscriptionEvent =
               (BifrostSubscriptionService.NewBridgeSubscriptionEvent) this.monitorObject.getData();
         Assert.assertNotNull(subscriptionEvent);
         Assert.assertEquals(subscriptionEvent.bifrostSubscription.channelName, this.channel);
         Assert.assertEquals(subscriptionEvent.subscribeEvent, this.subscribeEvent1);
+    }
+
+    @Test
+    public void testExternalMessageBrokerChannel() {
+        bus.sendResponseMessage(SystemChannels.EXTERNAL_MESSAGE_BROKER, "test-message");
+        bus.sendResponseMessage(SystemChannels.EXTERNAL_MESSAGE_BROKER,
+              "test-message",
+              MessageHeaders.newInstance(MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION, ""));
+
+        Mockito.verify(msgTmpl, Mockito.never()).convertAndSend(Mockito.any(), (Object) Mockito.any());
+
+        bus.sendResponseMessage(SystemChannels.EXTERNAL_MESSAGE_BROKER,
+              "test-message",
+              MessageHeaders.newInstance(
+                    MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION, "/topic-x/channel-y"));
+        Mockito.verify(msgTmpl).convertAndSend("/topic-x/channel-y", "test-message");
+
+        bus.sendErrorMessage(SystemChannels.EXTERNAL_MESSAGE_BROKER,
+              "error-message",
+              MessageHeaders.newInstance(
+                    MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION, "/topic-x/channel-y"));
+        Mockito.verify(msgTmpl).convertAndSend("/topic-x/channel-y", "error-message");
+
+        bus.sendResponseMessage("invalid-channel",
+              "test-message",
+              MessageHeaders.newInstance(
+                    MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION, "/topic/channel-x"));
+        Mockito.verify(msgTmpl).convertAndSend("/topic/channel-x", "test-message");
+
+        bus.sendErrorMessage("invalid-channel",
+              "error-message",
+              MessageHeaders.newInstance(
+                    MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION, "/topic/channel-x"));
+        Mockito.verify(msgTmpl).convertAndSend("/topic/channel-x", "test-message");
     }
 
     @Test

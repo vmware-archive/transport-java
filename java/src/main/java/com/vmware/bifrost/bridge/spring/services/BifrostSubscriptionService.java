@@ -1,15 +1,18 @@
 package com.vmware.bifrost.bridge.spring.services;
 
-import com.vmware.bifrost.bridge.Response;
+import com.vmware.bifrost.bridge.spring.BifrostEnabled;
+import com.vmware.bifrost.bridge.spring.BifrostService;
+import com.vmware.bifrost.bus.model.MessageHeaders;
 import com.vmware.bifrost.bus.model.MessageObject;
 import com.vmware.bifrost.bus.model.MessageType;
 import com.vmware.bifrost.bus.model.MonitorObject;
 import com.vmware.bifrost.bus.model.MonitorType;
-import com.vmware.bifrost.core.error.GeneralError;
+import com.vmware.bifrost.bus.model.SystemChannels;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
+import io.reactivex.functions.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +24,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service("bifrostSubscriptionService")
-public class BifrostSubscriptionService extends Loggable implements BifrostBridgeSubscriptionRegistry {
+@BifrostService
+public class BifrostSubscriptionService extends Loggable
+      implements BifrostBridgeSubscriptionRegistry, BifrostEnabled {
 
     @Autowired
     private EventBus bus;
@@ -68,12 +73,26 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
             this.logTraceMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
         }
 
+        // Users might override the destination using the EXTERNAL_MESSAGE_BROKER_DESTINATION
+        // message header.
+        String destinationHeaderValue = (String) msg.getHeader(MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION);
+        String destination = null;
+        if (destinationHeaderValue != null && !destinationHeaderValue.isEmpty()) {
+            destination = destinationHeaderValue;
+        }
+
         // deliver the message to the target user if it is specified in the Message object.
         // otherwise, broadcast it to all subscribers.
         if (msg.getTargetUser() != null) {
-            msgTmpl.convertAndSendToUser(msg.getTargetUser(), destinationPrefix.replace("/user", "") + channelName, msg.getPayload());
+            if (destination == null) {
+                destination = destinationPrefix.replace("/user", "") + channelName;
+            }
+            msgTmpl.convertAndSendToUser(msg.getTargetUser(), destination, msg.getPayload());
         } else {
-            msgTmpl.convertAndSend(destinationPrefix + channelName, msg.getPayload());
+            if (destination == null) {
+                destination = destinationPrefix + channelName;
+            }
+            msgTmpl.convertAndSend(destination, msg.getPayload());
         }
     }
 
@@ -162,6 +181,23 @@ public class BifrostSubscriptionService extends Loggable implements BifrostBridg
 
             sessionChannels.remove(sessionId);
         }
+    }
+
+    @Override
+    public void initialize() {
+        Consumer<Message> extMsgBrokerResponseHandler = message -> {
+            String destination = (String) message.getHeader(
+                  MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION);
+            if (destination == null || destination.isEmpty()) {
+                logger.warn("Bifröst failed to send external broker message: invalid destination header");
+            } else {
+                msgTmpl.convertAndSend(destination, message.getPayload());
+            }
+        };
+
+        bus.listenStream(SystemChannels.EXTERNAL_MESSAGE_BROKER,
+              extMsgBrokerResponseHandler,
+              extMsgBrokerResponseHandler);
     }
 
     private void onUnsubscribeFromChannel(String channel) {

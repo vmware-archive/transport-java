@@ -3,23 +3,22 @@
  */
 package com.vmware.bifrost.bus;
 
-import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
+import com.vmware.bifrost.broker.GalacticChannelConfig;
 import com.vmware.bifrost.broker.GalacticMessageHandler;
+import com.vmware.bifrost.broker.MessageBrokerConnector;
+import com.vmware.bifrost.broker.MessageBrokerSubscription;
+import com.vmware.bifrost.bus.model.Channel;
+import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.model.MessageHeaders;
 import com.vmware.bifrost.bus.model.MessageObject;
+import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
+import com.vmware.bifrost.bus.model.MessageType;
 import com.vmware.bifrost.bus.model.MonitorObject;
 import com.vmware.bifrost.bus.model.MonitorType;
 import com.vmware.bifrost.bus.store.BusStoreApi;
-import com.vmware.bifrost.broker.MessageBrokerSubscription;
-import com.vmware.bifrost.broker.GalacticChannelConfig;
-import com.vmware.bifrost.broker.MessageBrokerConnector;
-import com.vmware.bifrost.core.util.ClassMapper;
 import com.vmware.bifrost.core.util.Loggable;
-import com.vmware.bifrost.bus.model.Channel;
-import com.vmware.bifrost.bus.model.Message;
-import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
-import com.vmware.bifrost.bus.model.MessageType;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +32,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-
-import static com.vmware.bifrost.bus.model.MonitorChannel.stream;
 
 @Component("eventBusImpl")
 @SuppressWarnings("unchecked")
@@ -63,17 +60,11 @@ public class EventBusImpl extends Loggable implements EventBus {
     }
 
     private Map<String, Channel> channelMap;
-    private Channel monitorStream;
-    private String monitorChannel;
 
     public EventBusImpl() {
         this.channelMap = new HashMap<>();
         this.messageBrokersMap = new ConcurrentHashMap<>();
         this.galacticChannelsMap = new ConcurrentHashMap<>();
-
-        this.monitorChannel = stream;
-        this.monitorStream = new Channel(this.monitorChannel);
-        this.channelMap.put(this.monitorChannel, this.monitorStream);
 
         this.api = new EventBusLowApiImpl(this.channelMap);
         this.api.enableMonitorDump(true);
@@ -86,90 +77,136 @@ public class EventBusImpl extends Loggable implements EventBus {
 
     @Override
     public void sendRequestMessage(String channel, Object payload) {
+       this.sendRequestMessage(channel, payload, null);
+    }
 
+    @Override
+    public void sendRequestMessage(String channel, Object payload, MessageHeaders headers) {
         MessageObjectHandlerConfig config =
-                new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
+              new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
+        config.setHeaders(headers);
         this.api.send(config.getSendChannel(), config, this.getName());
-
     }
 
     @Override
     public void sendRequestMessageWithId(String channel, Object payload, UUID id) {
+        this.sendRequestMessageWithId(channel, payload, id, null);
+    }
 
+    @Override
+    public void sendRequestMessageWithId(String channel, Object payload, UUID id,
+                                         MessageHeaders headers) {
         MessageObjectHandlerConfig config =
               new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
         config.setId(id);
+        config.setHeaders(headers);
         this.api.send(config.getSendChannel(), config, this.getName());
     }
 
     @Override
     public void sendRequestMessageToTarget(String channel, Object payload, UUID id, String targetUser) {
+        this.sendRequestMessageToTarget(channel, payload, id, targetUser, null);
+    }
+
+    @Override
+    public void sendRequestMessageToTarget(String channel, Object payload, UUID id, String targetUser,
+                                          MessageHeaders headers) {
 
         MessageObjectHandlerConfig config =
-                new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
+              new MessageObjectHandlerConfig(MessageType.MessageTypeRequest, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
         config.setTargetUser(targetUser);
         config.setId(id);
+        config.setHeaders(headers);
         this.api.send(config.getSendChannel(), config, this.getName());
     }
 
     @Override
     public void sendResponseMessage(String channel, Object payload) {
+        this.sendResponseMessage(channel, payload, null);
+    }
 
+    @Override
+    public void sendResponseMessage(String channel, Object payload, MessageHeaders headers) {
         MessageObjectHandlerConfig config =
-                new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload);
+              new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
+        config.setHeaders(headers);
         this.api.send(config.getSendChannel(), config, this.getName());
     }
 
     @Override
     public void sendResponseMessageWithId(String channel, Object payload,  UUID id) {
+        this.sendResponseMessageWithId(channel, payload, id, null);
+    }
 
+    @Override
+    public void sendResponseMessageWithId(String channel, Object payload, UUID id,
+                                          MessageHeaders headers) {
         MessageObjectHandlerConfig config =
               new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
         config.setId(id);
+        config.setHeaders(headers);
         this.api.send(config.getSendChannel(), config, this.getName());
     }
 
     @Override
     public void sendResponseMessageToTarget(String channel, Object payload, UUID id, String targetUser) {
+        this.sendResponseMessageToTarget(channel, payload, id, targetUser, null);
+    }
+
+    @Override
+    public void sendResponseMessageToTarget(String channel, Object payload, UUID id, String targetUser,
+                                            MessageHeaders headers) {
 
         MessageObjectHandlerConfig config =
-                new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload);
+              new MessageObjectHandlerConfig(MessageType.MessageTypeResponse, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
         config.setTargetUser(targetUser);
         config.setId(id);
+        config.setHeaders(headers);
         this.api.send(config.getSendChannel(), config, this.getName());
     }
 
     @Override
     public void sendErrorMessage(String channel, Object payload) {
+        this.sendErrorMessage(channel, payload, null);
+    }
+
+    @Override
+    public void sendErrorMessage(String channel, Object payload, MessageHeaders headers) {
 
         MessageObjectHandlerConfig config =
                 new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
+        config.setHeaders(headers);
         this.api.send(config.getSendChannel(), config, this.getName());
     }
 
     @Override
     public void sendErrorMessageWithId(String channel, Object payload, UUID id) {
+        this.sendErrorMessageWithId(channel, payload, id, null);
+    }
+
+    @Override
+    public void sendErrorMessageWithId(String channel, Object payload, UUID id, MessageHeaders headers) {
 
         MessageObjectHandlerConfig config =
               new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload);
@@ -177,19 +214,27 @@ public class EventBusImpl extends Loggable implements EventBus {
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
         config.setId(id);
+        config.setHeaders(headers);
         this.api.send(config.getSendChannel(), config, this.getName());
     }
 
     @Override
     public void sendErrorMessageToTarget(String channel, Object payload, UUID id, String targetUser) {
+        this.sendErrorMessageToTarget(channel, payload, id, targetUser, null);
+    }
+
+    @Override
+    public void sendErrorMessageToTarget(String channel, Object payload, UUID id, String targetUser,
+                                         MessageHeaders headers) {
 
         MessageObjectHandlerConfig config =
-                new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload);
+              new MessageObjectHandlerConfig(MessageType.MessageTypeError, payload);
         config.setSingleResponse(true);
         config.setSendChannel(channel);
         config.setReturnChannel(channel);
         config.setTargetUser(targetUser);
         config.setId(id);
+        config.setHeaders(headers);
         this.api.send(config.getSendChannel(), config, this.getName());
     }
 

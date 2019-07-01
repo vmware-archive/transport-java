@@ -28,4 +28,10 @@ public interface Message<T> {
     UUID getId();
 
     void setId(UUID id);
+
+    void setHeaders(MessageHeaders headers);
+
+    MessageHeaders getHeaders();
+
+    Object getHeader(String headerName);
 }
