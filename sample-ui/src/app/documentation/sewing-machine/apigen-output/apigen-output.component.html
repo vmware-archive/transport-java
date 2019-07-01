@@ -172,7 +172,7 @@ export class API_AuthToken&lt;T&gt; &#123;
         const _body = '';
         const apiResponseHandler = (apiObject: T, responseJSON: any,
               args?: MessageArgs) => &#123;
-        successHandler(apiObject, &#123;&#125;, args);
+            successHandler(apiObject, new BaseAuthToken(responseJSON), args);
         };
 
         this.apiBridge(this.apiObject, 'GET', this.uri, _body,
