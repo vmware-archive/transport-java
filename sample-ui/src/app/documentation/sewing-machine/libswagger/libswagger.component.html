@@ -266,21 +266,21 @@ func main() &#123;
 <pre class="code"><code class="language-go" ngNonBindable>type Definition struct &#123;
     Name              string               // Base class
     Description       string               // Description of class
-    Container         string               // class, array, string, or map
+    Container         string               // not class, array, or map
     ContentType       string               // Container type if not class
     ContentFormat     string               // If this is a base type number
     ContentNested     string               // Nested Container
-    Discriminator     string               // property name for polymorphism
+    Discriminator     string               // Name of property to discriminate polymorphic children
     Extends           string               // Parent class
     Required          []string             // Required properties for this class
     RequiredMap       map[string]bool      // Map of required properties
     Extensions        map[string]string    // Vendor extensions for class
-    Properties        map[string]*Property // Lookup aid
+    Properties        map[string]*Property // All properties for this class as a map
     PropertyList      []*Property          // All Properties as a sorted array
-    Enum              *Enum                // Class-scoped enums
-    PolymorphicParent bool                 // Polymorphic parent
-    PolymorphicTarget string               // Polymorphic parent name
-    Dependencies      map[string]bool      // dependency sorting aid
+    Enum              *Enum                // Enumeration if this class is a string
+    PolymorphicParent bool                 // This class is a polymorphic parent
+    PolymorphicTarget string               // This class is derived from a polymorphic parent
+    Dependencies      map[string]bool      // Set of classes that this class depends on (parents and properties)
  &#125;</code></pre>
 
 <p>
@@ -438,20 +438,14 @@ func main() &#123;
 </p>
 
 <pre class="code"><code class="language-go" ngNonBindable>type PathOperation struct &#123;
-    Summary           string
-    ServiceName       string
-    MethodName        string
-    OpName            string
-    Sequence          []string
-    Tags              []string
-    Parameters        map[string]string    // parameter/type
-    IsArray           map[string]bool
-    IsMap             map[string]bool
-    IsNested          map[string]string
-    IsRequired        map[string]bool
-    Description       map[string]string
-    In                map[string]string
-    Response          Responses
+	ServiceName   string                // service name from extension
+	MethodName    string                // method name from extension
+	OpName        string                // e.g. Get, Put, ...
+	Tags          []string              // operation tags (not currently used)
+	Summary       string                // description if present
+	ParamSequence []*Parameter          // lexically sorted parameter sequence
+	ParamMap      map[string]*Parameter // parameter map
+	Response      CommonType            // fully articulated response type
 &#125;</code></pre>
 
 <p>
