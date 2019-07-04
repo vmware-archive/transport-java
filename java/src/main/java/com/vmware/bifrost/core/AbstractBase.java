@@ -136,8 +136,8 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
                 operation.getBody(),
                 operation.getHeaders(),
                 operation.getApiClass(),
-                operation.getSuccessHandler(),
-                operation.getErrorHandler()
+                response -> operation.getSuccessHandler().accept(response.getPayload()),
+                restErrorResponse -> operation.getErrorHandler().accept(restErrorResponse.getPayload())
         );
     }
 
