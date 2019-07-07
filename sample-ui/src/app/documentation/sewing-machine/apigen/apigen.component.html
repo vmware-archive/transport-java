@@ -54,30 +54,33 @@
 
 <pre class="code"><code class="language-go" ngNonBindable>Usage: apigen &lt;options&gt; &lt;YAML prefix&gt;
 
--b, --root=$&#123;HOME&#125;/xxx                         Project Root path
--d, --debug                                    Debug Output
--e, --extern="vmc"                             Authoritative YAML
--F, --force                                    Force overwrite (ignored)
--h, --help                                     Display Help
--l, --language=&lt;typescript | java | go&gt;        Codegen language plugin
--L, --lombok                                   Use lombok annotations (java only)
--m, --models-only                              Models only (no API classes)
--n, --namespace=Base                           Namespace prefix
--N, --no-hasRequiredProperty                   Suppress hasRequiredProperties
--O, --optional-flag                            Flag optional properties in classes
--o, --output=xxx-api.ts                        APIGen Output Folder or filename
--p, --apiDir=&lt;YAML folder&gt;                     YAML folder relative to project root
--P, --package=com.vmware.api.vmc               Package (for java)
--R, --rename-yaml=yaml:prefix                  Prepend definitions per YAML file
--S, --single-file                              Single file output
--s, --suffix="&lt;yaml suffix string&gt;"            Suffix to recognize YAML files
--t, --trace                                    Trace Output
--v, --verbose                                  Verbose Output
--V, --version                                  Show APIGen Version
--w, --no-warnings                              Suppress warnings
--x, --no-null-object                           Don't create an empty object for a
-                                               property if the property is passed as
-                                               null to the constructor</code></pre>
+ -b, --root=$&#123;HOME&#125;/xxx                         Project Root path
+ -c, --compatibility                            Compatibility Mode
+ -d, --debug                                    Debug Output
+ -e, --extern="vmc"                             Extern YAML
+ -F, --force                                    Force overwrite
+ -h, --help                                     Display Help
+ -H, --host=localhost                           Override host specification in YAML API methods
+ -j, --no-javadocs                              Suppress generatation of javadocs for API methods
+ -l, --language=&lt;typescript | java | c++ | go&gt;  Codegen Language
+ -L, --lombok                                   Use lombok getters/setters (java only)
+ -m, --models-only                              Models only (no API classes)
+ -n, --namespace=Base                           Namespace prefix hasRequiredProperties() function (typescript)
+ -O, --optional-flag                            In typescript, flag optional properties in models
+ -o, --output=./java | xxx-api.ts               Apigen Output Folder or filename when --singel-file specified
+ -p, --apiDir=&lt;YAML folder&gt;                     YAML folder  (relative to project root)
+ -P, --package=com.vmware.api.vmc               Package (for java)
+ -R, --rename-yaml=ngw:NGW                      Prepend all objects in specified YAML with prefix
+ -S, --single-file                              Single file output
+ -s, --suffix="-api-doc.yaml"                   Suffix to convert YAML file names to api.[ts | java | cpp | go]
+ -t, --trace                                    Trace Output
+ -u, --full-uri                                 Generate full URI from 'host' and 'scheme'
+ -v, --verbose                                  Verbose Output
+ -V, --version                                  Show Version
+ -w, --no-warnings                              Turn off warnings
+ -x, --no-null-object                           Don't create an empty object for a
+                                                property if the property is passed as
+                                                null to the constructor</code></pre>
 
 <table class="table table-noborder flag-table">
     <thead>
@@ -108,7 +111,7 @@
         </td>
     </tr>
     <tr>
-        <td class="left flag">--b &lt;YAML prefix&gt; | --extern=&lt;YAML prefix&gt;</td>
+        <td class="left flag">-e &lt;YAML prefix&gt; | --extern=&lt;YAML prefix&gt;</td>
         <td class="flag-value">
             Many of the YAML specifications prevalent at VMware use partial object definitions with the intent that a
             more authoritative definition is to be obtained from another YAML. Examples of this behavior include the
@@ -137,6 +140,14 @@
         <td class="left flag">-h | --help</td>
         <td class="flag-value">
             Displays all the options recognized by APIGen.
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">-H localhost | --host=localhost</td>
+        <td class="flag-value">
+            This option is used to override the host specification in the API specification document with an alternate
+            one, typically during development. An alternate (preferred) strategy is to use a proxy configuration file.
+            This option also requires the code class="clr-code">–single-file&lt;/code&gt;--full-uri option to obtain the desired result.
         </td>
     </tr>
     <tr>
@@ -174,22 +185,6 @@
         </td>
     </tr>
 
-    <tr>
-        <td class="left flag">-n | --namespace=&lt;prefix&gt;</td>
-        <td class="flag-value">
-            This option prepends a prefix to every class definition output by APIGen. If this option is not provided,
-            APIGen defaults to using Base as that prefix. The purpose of this is to rename the class names sent by a
-            responder and preserve that intact, while deriving a new class from this base class by the application, and
-            delineates the boundary of immutability of the original class.
-            <br/><br/>
-            References to this base class may only be
-            permitted from Service Adapters, and never from the application itself. The application may, however, access
-            the derived class[es] provided by <strong class="emphasis">ServGen</strong>, which automatically generates
-            the children of this parent base class, while the base class output of APIGen is only accessible from within
-            the Service Adapter and may be
-            in a language that is different from that of the application
-        </td>
-    </tr>
     <tr>
         <td class="left flag">-N | --no-hasRequiredProperty</td>
         <td class="flag-value">
@@ -307,6 +302,15 @@
         <td class="left flag">-t | --trace</td>
         <td class="flag-value">
             Used by APIGen developers to emit trace level output.
+        </td>
+    </tr>
+
+    <tr>
+        <td class="left flag">-u | --full-uri</td>
+        <td class="flag-value">
+            Without this option, APIGen will only present the path portion of the API endpoint to the apiBridge.
+            This is a required option for the Java version since the Java apiBridge requires a fully formed
+            URI including the scheme and host obtained from the API specification document.
         </td>
     </tr>
 

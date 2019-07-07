@@ -5,6 +5,7 @@ import { QuickstartComponent } from './quickstart/quickstart.component';
 import { LibswaggerComponent } from './libswagger/libswagger.component';
 import { ApigenComponent } from './apigen/apigen.component';
 import { ApigenOutputComponent } from './apigen-output/apigen-output.component';
+import { ServGenComponent } from './servgen/servgen.component';
 
 
 const sewingMachineRoutes: Routes = [
@@ -12,7 +13,8 @@ const sewingMachineRoutes: Routes = [
     {path: 'quickstart', component: QuickstartComponent, pathMatch: 'true'},
     {path: 'libswagger', component: LibswaggerComponent, pathMatch: 'true'},
     {path: 'apigen', component: ApigenComponent, pathMatch: 'true'},
-    {path: 'apigen-output', component: ApigenOutputComponent, pathMatch: 'true'}
+    {path: 'apigen-output', component: ApigenOutputComponent, pathMatch: 'true'},
+    {path: 'servgen', component: ServGenComponent, pathMatch: 'true'}
 ];
 
 @NgModule({

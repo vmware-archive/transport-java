@@ -9,6 +9,7 @@ import { InitializerComponent } from './initializer/initializer.component';
 import { LibswaggerComponent } from './libswagger/libswagger.component';
 import { ApigenComponent } from './apigen/apigen.component';
 import { ApigenOutputComponent } from './apigen-output/apigen-output.component';
+import { ServGenComponent } from './servgen/servgen.component';
 
 @NgModule({
     declarations: [
@@ -17,7 +18,8 @@ import { ApigenOutputComponent } from './apigen-output/apigen-output.component';
         InitializerComponent,
         LibswaggerComponent,
         ApigenComponent,
-        ApigenOutputComponent
+        ApigenOutputComponent,
+        ServGenComponent
     ],
     imports: [
         CommonModule,
