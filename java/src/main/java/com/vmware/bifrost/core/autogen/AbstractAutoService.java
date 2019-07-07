@@ -77,7 +77,7 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
             );
 
             RestOperation restOp = new RestOperation();
-            restOp.setApiClass(apiClassName);
+            restOp.setApiClass("java.lang.Object");
             restOp.setMethod(method);
             restOp.setUri(URI.create(uri));
             restOp.setBody(jsonBody);
