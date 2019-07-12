@@ -195,12 +195,10 @@
                         </li>
                     </ul>
                 </section>
-
                 <section class="nav-group collapsible">
                     <input id="sm" type="checkbox" [checked]="!this.areSewingMachineDocsActive()">
                     <label for="sm">Sewing Machine</label>
                     <ul class="nav-list">
-
                         <li class="nav-link" routerLinkActive="active">
                             <a routerLink="/documentation/sewing-machine/quickstart">
                                 Quick Start
@@ -221,9 +219,21 @@
                                 APIGen - Understanding
                             </a>
                         </li>
+
                         <li class="nav-link" routerLinkActive="active">
                             <a routerLink="/documentation/sewing-machine/servgen">
                                 ServGen - CLI
+                            </a>
+                        </li>
+                    </ul>
+                </section>
+                <section class="nav-group collapsible">
+                    <input id="svgn" type="checkbox" [checked]="!this.areSewingMachineDocsActive()">
+                    <label for="svgn">ServGen - Understanding</label>
+                    <ul class="nav-list">
+                        <li class="nav-link" routerLinkActive="active">
+                            <a routerLink="/documentation/sewing-machine/servgen-overview">
+                                Overview
                             </a>
                         </li>
                     </ul>
