@@ -16,6 +16,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -116,13 +118,19 @@ public class CspTokenValidationInterceptorTest {
                 ArgumentMatchers.anyInt());
 
         Request<String> originalRequest = new Request<>(UUID.randomUUID(), "req", "test");
-        GenericMessage<Request> msg = new GenericMessage(
+        GenericMessage<Request> originalMsg = new GenericMessage(
                 mapper.writer().withDefaultPrettyPrinter().writeValueAsString(originalRequest).getBytes());
+        GenericMessage<Request> msg = spy(originalMsg);
+        MessageHeaders messageHeaders = mock(MessageHeaders.class);
+        when(messageHeaders.containsKey(eq("stompCommand"))).thenReturn(true);
+        when(messageHeaders.get(eq("stompCommand"), any())).thenReturn(StompCommand.SEND);
+        when(msg.getHeaders()).thenReturn(messageHeaders);
+
         Message results = cspTokenValidationInterceptor.preSend(msg);
 
         Request request = mapper.readValue((byte[]) results.getPayload(), Request.class);
         GeneralError generalError = mapper.readValue((String) request.getPayload(), GeneralError.class);
-        assertEquals("No token is found", generalError.message);
+        assertEquals("No token found", generalError.message);
         assertTrue(generalError.errorCode == 401);
     }
 
