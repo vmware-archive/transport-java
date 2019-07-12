@@ -73,12 +73,27 @@ public class VmServiceTest {
 
    @Test
    public void testListVms() throws Exception {
-
       Map<String, VirtualMachine> vmsByName = getVms();
       Assert.assertEquals(responseCount, 1);
       Assert.assertEquals(errorCount, 0);
 
       assertLastBaseVmResponseIsNotError();
+      Assert.assertTrue(vmsByName.containsKey("sample-vm-1"));
+      Assert.assertEquals(vmsByName.get("sample-vm-1").getHardware().getDevices().length, 3);
+      Assert.assertEquals(vmsByName.get("sample-vm-1").getRuntimeInfo().getPowerState(),
+            RuntimeInfo.PowerState.poweredOff);
+      Assert.assertTrue(vmsByName.containsKey("sample-vm-2"));
+      Assert.assertTrue(vmsByName.containsKey("sample-vm-3"));
+   }
+
+   @Test
+   public void testRestListVms() {
+      VmListResponse response = vmService.restListVms();
+      Map<String, VirtualMachine> vmsByName = new HashMap<>();
+      for (VirtualMachine vm : response.getVirtualMachines()) {
+         vmsByName.put(vm.getName(), vm);
+      }
+
       Assert.assertTrue(vmsByName.containsKey("sample-vm-1"));
       Assert.assertEquals(vmsByName.get("sample-vm-1").getHardware().getDevices().length, 3);
       Assert.assertEquals(vmsByName.get("sample-vm-1").getRuntimeInfo().getPowerState(),
@@ -135,6 +150,18 @@ public class VmServiceTest {
    }
 
    @Test
+   public void testRestDeleteVm() throws Exception {
+      Map<String, VirtualMachine> vmsByName = getVms();
+      VmDeleteRequest vmDeleteRequest = new VmDeleteRequest();
+      vmDeleteRequest.setVm(vmsByName.get("sample-vm-1").getVmRef());
+      BaseVmResponse response = vmService.restDeleteVm(vmDeleteRequest);
+      Assert.assertFalse(response.isError());
+      vmsByName = getVms();
+      Assert.assertFalse(vmsByName.containsKey("sample-vm-1"));
+      Assert.assertEquals(vmsByName.size(), 2);
+   }
+
+   @Test
    public void testCreateVm() throws Exception {
       Request<BaseVmRequest> req = new Request<>();
       req.setId(UUID.randomUUID());
@@ -182,6 +209,20 @@ public class VmServiceTest {
 
       Assert.assertEquals(vmsByName.get("test-vm").getRuntimeInfo().getPowerState(),
             RuntimeInfo.PowerState.poweredOn);
+   }
+
+   @Test
+   public void testRestCreateVm() {
+      VmCreateRequest createVmRequest = new VmCreateRequest();
+      createVmRequest.setName("test-vm");
+      createVmRequest.setVirtualHardware(VirtualHardware.newInstance(
+            1, 64, VirtualUSB.newInstance(1, true, VirtualUSB.UsbSpeed.full)));
+
+      VmCreateResponse resp = vmService.restCreateVm(createVmRequest);
+      Assert.assertFalse(resp.isError());
+      Assert.assertNotNull(resp.getVm());
+      Assert.assertEquals(resp.getVm().getRuntimeInfo().getPowerState(),
+            RuntimeInfo.PowerState.poweredOff);
    }
 
    private void assertLastBaseVmResponseIsNotError() {

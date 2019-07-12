@@ -19,6 +19,7 @@ public class VirtualUSB extends VirtualDevice {
       usb.setKey(key);
       usb.setConnected(connected);
       usb.setSpeed(speed);
+      usb.setDeviceName("VirtualUSB-" + key);
       return usb;
    }
 

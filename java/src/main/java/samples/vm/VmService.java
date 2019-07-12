@@ -8,6 +8,12 @@ import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
 import org.apache.commons.lang3.RandomUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import samples.vm.model.BaseVmRequest;
 import samples.vm.model.BaseVmResponse;
 import samples.vm.model.RuntimeInfo;
@@ -27,6 +33,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@RestController
+@RequestMapping("/vm")
+@Service("VmService")
 public class VmService extends AbstractService<Request<BaseVmRequest>, Response<BaseVmResponse>> {
 
    // define the channel the service operates on,.
@@ -62,10 +71,37 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
       }
    }
 
+   @PostMapping(VmOperations.CHANGE_VM_POWER_STATE)
+   public VmPowerOperationResponse restChangePowerState(
+         @RequestBody VmPowerOperationRequest vmPowerOperationRequest) {
+      return getVmPowerOperationResponse(vmPowerOperationRequest);
+   }
+
+   @GetMapping(VmOperations.LIST_VMS)
+   public VmListResponse restListVms() {
+      return getVmListResponse();
+   }
+
+   @PostMapping(VmOperations.CREATE_VM)
+   public VmCreateResponse restCreateVm(
+         @RequestBody VmCreateRequest vmCreateRequest) {
+      return getVmCreateResponse(vmCreateRequest);
+   }
+
+   @PostMapping(VmOperations.DELETE_VM)
+   public BaseVmResponse restDeleteVm(
+         @RequestBody VmDeleteRequest vmDeleteRequest) {
+      return getVmDeleteResponse(vmDeleteRequest);
+   }
+
    private void handleListVms(Request request) {
+      sendBaseVmResponse(request, getVmListResponse());
+   }
+
+   private VmListResponse getVmListResponse() {
       VmListResponse vmListResponse = new VmListResponse();
       vmListResponse.setVirtualMachines(vms.values().toArray(new VirtualMachine[0]));
-      sendBaseVmResponse(request, vmListResponse);
+      return vmListResponse;
    }
 
    private void handleDeleteVm(Request request) {
@@ -73,13 +109,16 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
          this.sendBaseVmErrorResponse(request, "Request payload should be VmDeleteRequest!");
          return;
       }
+      this.sendBaseVmResponse(request, getVmDeleteResponse((VmDeleteRequest)request.getPayload()));
+   }
 
-      VmRef vmToDelete = ((VmDeleteRequest) request.getPayload()).getVm();
+   private BaseVmResponse getVmDeleteResponse(VmDeleteRequest vmDeleteRequest) {
+      VmRef vmToDelete = vmDeleteRequest.getVm();
       if (!vms.containsKey(vmToDelete)) {
-         this.sendBaseVmErrorResponse(request, "Cannot find VM: " + vmToDelete);
+         return getErrorResponse("Cannot find VM: " + vmToDelete);
       } else {
          vms.remove(vmToDelete);
-         this.sendBaseVmResponse(request, new BaseVmResponse());
+         return new BaseVmResponse();
       }
    }
 
@@ -88,21 +127,25 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
          this.sendBaseVmErrorResponse(request, "Request payload should be VmCreateRequest!");
          return;
       }
-      VmCreateRequest createRequest = (VmCreateRequest) request.getPayload();
+      sendBaseVmResponse(request, getVmCreateResponse((VmCreateRequest)request.getPayload()));
+   }
 
+   private VmCreateResponse getVmCreateResponse(VmCreateRequest createRequest) {
+      VmCreateResponse vmCreateResponse = new VmCreateResponse();
       if (createRequest.getVirtualHardware() == null) {
-         this.sendBaseVmErrorResponse(request, "Invalid VmCreateRequest: null virtualHardware!");
-         return;
+         vmCreateResponse.setErrorMessage("Invalid VmCreateRequest: null virtualHardware!");
+         vmCreateResponse.setError(true);
+         return vmCreateResponse;
       }
       if (createRequest.getName() == null) {
-         this.sendBaseVmErrorResponse(request, "Invalid VmCreateRequest: null name!");
-         return;
+         vmCreateResponse.setErrorMessage("Invalid VmCreateRequest: null name!");
+         vmCreateResponse.setError(true);
+         return vmCreateResponse;
       }
 
       VirtualMachine vm = createAndAddVm(createRequest);
-      VmCreateResponse vmCreateResponse = new VmCreateResponse();
       vmCreateResponse.setVm(vm);
-      sendBaseVmResponse(request, vmCreateResponse);
+      return vmCreateResponse;
    }
 
    private VirtualMachine createAndAddVm(VmCreateRequest createRequest) {
@@ -125,21 +168,22 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
 
    private void handleChangePowerState(Request request) {
       if (!(request.getPayload() instanceof VmPowerOperationRequest)) {
-         this.sendBaseVmErrorResponse(request, "Request payload should be VmPowerOperationRequest!");
+         sendBaseVmErrorResponse(request, "Request payload should be VmPowerOperationRequest!");
          return;
       }
+      sendBaseVmResponse(request,
+            getVmPowerOperationResponse((VmPowerOperationRequest) request.getPayload()));
+   }
 
-      VmPowerOperationRequest powerReq = (VmPowerOperationRequest) request.getPayload();
-
+   private VmPowerOperationResponse getVmPowerOperationResponse(VmPowerOperationRequest powerReq) {
       VmPowerOperationResponse resp = new VmPowerOperationResponse();
-
       if (powerReq.getVmRefs() != null) {
          for (VmRef vmRef : powerReq.getVmRefs()) {
             resp.getOperationResults().put(
                   vmRef, changeVmPowerState(vmRef, powerReq.getPowerOperation()));
          }
       }
-      sendBaseVmResponse(request, resp);
+      return resp;
    }
 
    private boolean changeVmPowerState(VmRef vmRef, VmPowerOperationRequest.PowerOperation powerOperation) {
@@ -194,10 +238,14 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
    }
 
    private void sendBaseVmErrorResponse(Request request, String error) {
+      sendBaseVmResponse(request, getErrorResponse(error));
+   }
+
+   private BaseVmResponse getErrorResponse(String error) {
       BaseVmResponse errResp = new BaseVmResponse();
       errResp.setErrorMessage(error);
       errResp.setError(true);
-      sendBaseVmResponse(request, errResp);
+      return errResp;
    }
 
    private void createInitialSampleVms() {

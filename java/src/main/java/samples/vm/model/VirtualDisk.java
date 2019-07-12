@@ -20,6 +20,7 @@ public class VirtualDisk extends VirtualDevice {
       virtualDisk.setKey(key);
       virtualDisk.setDiskFormat(diskFormat);
       virtualDisk.setCapacityMB(capacityMB);
+      virtualDisk.setDeviceName("VirtualDisk-" + key);
       return virtualDisk;
    }
 
