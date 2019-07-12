@@ -11,6 +11,7 @@ import { LibswaggerComponent } from './libswagger/libswagger.component';
 import { ApigenComponent } from './apigen/apigen.component';
 import { ApigenOutputComponent } from './apigen-output/apigen-output.component';
 import { ServGenComponent } from './servgen/servgen.component';
+import { JsonSchemaComponent } from './json-schema/json-schema.component';
 
 @NgModule({
     declarations: [
@@ -21,7 +22,8 @@ import { ServGenComponent } from './servgen/servgen.component';
         ApigenComponent,
         ApigenOutputComponent,
         ServGenComponent,
-        ServGenOverviewComponent
+        ServGenOverviewComponent,
+        JsonSchemaComponent
     ],
     imports: [
         CommonModule,
