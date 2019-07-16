@@ -3,6 +3,8 @@
  */
 package com.vmware.bifrost.bridge.spring.config.interceptors.csp;
 
+import static com.vmware.bifrost.bridge.spring.config.interceptors.csp.Constants.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.vmware.bifrost.bridge.Request;
@@ -11,6 +13,7 @@ import com.vmware.bifrost.bridge.spring.config.interceptors.JwtValidator;
 import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.util.Loggable;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -22,7 +25,6 @@ import java.util.List;
  */
 @SuppressWarnings("unchecked")
 public class CspTokenValidationInterceptor extends Loggable implements BifrostStompInterceptor {
-    private static final String DEFAULT_ACCESS_TOKEN_KEY = "accessToken";
     private final String accessTokenKey;
     private final ObjectMapper objectMapper;
     private JwtValidator jwtValidator;
@@ -79,18 +81,22 @@ public class CspTokenValidationInterceptor extends Loggable implements BifrostSt
         TokenValidationResults validationResults;
         List<String> accessTokenList = headerAccessor.getNativeHeader(accessTokenKey);
 
-        if (accessTokenList != null) {
-            String accessToken = accessTokenList.get(0);
-            validationResults = jwtValidator.getValidationResults(accessToken);
-
-            if (validationResults.isValid()) {
-                return message;
+        // if token is empty
+        if (accessTokenList == null || accessTokenList.size() == 0 || accessTokenList.get(0).length() == 0) {
+            // and if this packet contains a SEND message, send an error message
+            if (message.getHeaders().containsKey(HEADER_KEY_STOMP_COMMAND) &&
+                message.getHeaders().get(HEADER_KEY_STOMP_COMMAND, StompCommand.class).equals(StompCommand.SEND)) {
+                return buildGenericErrorMsg(message, ERR_MSG_NO_TOKEN_FOUND, 401);
             }
-        } else {
-            return buildGenericErrorMsg(
-                    message,
-                    "No token is found",
-                    401);
+
+            // otherwise return null to drop the message.
+            logWarnMessage(ERR_MSG_NO_TOKEN_FOUND);
+            return null;
+        }
+
+        validationResults = jwtValidator.getValidationResults(accessTokenList.get(0));
+        if (validationResults.isValid()) {
+            return message;
         }
 
         return buildGenericErrorMsg(
