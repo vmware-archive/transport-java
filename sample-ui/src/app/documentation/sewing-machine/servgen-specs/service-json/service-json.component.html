@@ -45,5 +45,115 @@
             <strong class="emphasis">SddcCoreServiceAdapter</strong> in future).
         </td>
     </tr>
+    <tr>
+        <td class="left flag">version</td>
+        <td class="flag-value">This property specifies the version of the Service Adapter. This is a simple monotonically incrementing
+            integer value that allows for dynamic request routing between diverse versions of a Service Adapter, when some of them
+            are incompatible. In a future release, bifröst messages will be able to target a specific version of a Service Adapter.
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">service_requests</td>
+        <td class="flag-value">This property specifies an array of <code class="clr-code">Service Request</code> objects that this
+            Service Adapter understands and responds to. In the absence of any service requests, all Service Adapters will respond
+            to the <strong class="emphasis">.GetServiceVersion</strong> request.
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">service_request</td>
+        <td class="flag-value">Each object in the above array of <code class="clr-code">Service Requests</code>, concisely describes
+            the service being requested, including any input paramters. At a minimum, it specifies the name of the request, e.g.
+            (<code class="clr-code">GetSddcList</code> above).
+            <br/><br/>
+            The <code class="clr-code">Service Requests</code> can have a number of optional properties and one mandatory property:
+            <code class="clr-code">service_response</code> which describes the object(s) that is the response type for this request.
+            In the example above, the requests <code class="clr-code">GetSddcList</code> responds with an array of Sddc objects. Please
+            refer to the description of <code class="clr-code">CommonType</code> described in the overview document, which allows a
+            language-neutral type declaration using "container", "nested", and "type".
+        </td>
+    </tr>
     </tbody>
 </table>
+
+<hr/>
+
+<h3>Request Parameters</h3>
+<p>
+    A service request may, optionally require input parameters. These are categorized into two groups:
+</p>
+<ul>
+    <li>
+        <code class="clr-code">service_request_query_params</code> - Usually passed onto ReST API calls as query strings.
+    </li>
+    <li>
+        <code class="clr-code">service_request_param</code> - All other parameters, even without API calls.
+    </li>
+</ul>
+<p>
+    Let's augment our previous specification for <strong class="emphasis">sddc-core</strong> in the above service.json,
+    and add examples of input parameters. These are declared as arrays in either group and have similar format. The order
+    of specificaion (sequence) is not important:
+</p>
+<pre class="code"><code class="language-json" ngNonBindable>
+&#123;
+    "name": "sddc-core",
+    "version": "1",
+
+    "service_requests": [
+        &#123;
+            "service_request": "GetSddcList",
+            "service_response": &#123; "type": "Sddc", "container": "array" &#125;
+        &#125;,
+        &#123;
+            "service_request": "OperatorDeleteSddc",
+            "service_request_params": [
+                &#123; "service_request_param": "sddc" &#125;
+            ],
+            "service_request_query_params": [
+                &#123; "service_request_query_param": "force", "optional": true &#125;
+            ],
+            "api": &#123; "uri": "/operator/sddcs/&#123;sddc&#125;", "api_method": "deleteSddcs" &#125;,
+            "service_response": &#123; "type": "Task" &#125;
+        &#125;
+    ]
+&#125;
+</code></pre>
+<table class="table table-noborder flag-table">
+    <thead>
+    <tr>
+        <th class="left flag-header">Parameter Group</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td class="left flag">service_request_query_param</td>
+        <td class="flag-value">
+            In the above example, <code class="clr-code">force</code> is a query parameter. No type is
+            specified, because query parameters are always strings, even if the API specifications declares it as something
+            else (e.g. boolean or integer). Moreover, it is conventional to declare query parameters as
+            <code class="clr-code">optional</code> even when the API specification states that the parameter is
+            <code class="clr-code">required</code>. As with all specifications of <code class="clr-code">CommonType</code>,
+            the absence of a type specification is interpretted as being of type <strong class="emphasis">string</strong>.
+            <br/><br/>
+            If the <code class="clr-code">optional</code> property is not specified, it is still possible to prevent this
+            string from being passed to an API call by setting it to <code class="clr-code">null</code>.
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">service_request_param</td>
+        <td class="flag-value">
+            Path parameters, body parameters, and parameters local to a
+            <code class="clr-code">customized</code> Service Adapter (described later), are all included in the array of
+            <code class="clr-code">service_request_params</code>. The language-neutral type of the parameter is described
+            using <code class="clr-code">CommonType</code>, i.e. using <strong class="emphasis">container</strong>,
+            <strong class="emphasis">nested</strong>, and <strong class="emphasis">type</strong>.
+            <br/><br/>
+            In the above example, <code class="clr-code">sddc</code> is the UUID of an Sddc to be deleted. No other properties
+            are specified, indicating the <code class="clr-code">sddc</code> is of type <strong class="emphasis">string</strong>.
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<hr/>
