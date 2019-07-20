@@ -56,7 +56,7 @@
         <td class="left flag">service_requests</td>
         <td class="flag-value">This property specifies an array of <code class="clr-code">Service Request</code> objects that this
             Service Adapter understands and responds to. In the absence of any service requests, all Service Adapters will respond
-            to the <strong class="emphasis">.GetServiceVersion</strong> request.
+            to the <strong class="emphasis">GetServiceVersion</strong> request.
         </td>
     </tr>
     <tr>
@@ -64,12 +64,29 @@
         <td class="flag-value">Each object in the above array of <code class="clr-code">Service Requests</code>, concisely describes
             the service being requested, including any input paramters. At a minimum, it specifies the name of the request, e.g.
             (<code class="clr-code">GetSddcList</code> above).
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">service_response</td>
+        <td class="flag-value">All requests to a Service Adapter, <strong class="emphasis">must</strong> have a response,
+            even if it is an empty object. Do not confuse a <strong class="emphasis">
+                service_response</strong> with the
+            response from an API call (described below), even when they are the same. A service response may, at times,
+            combine the response from multiple API calls into a single response. Also, in the case of
+            <code class="clr-code">customized</code> Service Adapters, there is a response even when no API calls are
+            invoked.
             <br/><br/>
-            The <code class="clr-code">Service Requests</code> can have a number of optional properties and one mandatory property:
+            To reiterate, a requestor to a Service Adapter only knows about the service request, the input parameters,
+            and the service response. The requestor has no knowledge or the ability to access what API calls are
+            performed on its behalf, nor the responses from the API calls if any.
+            <br/><br/>
+            The <code class="clr-code">Service Requests</code> described above, can have a number of optional properties and one mandatory property:
             <code class="clr-code">service_response</code> which describes the object(s) that is the response type for this request.
             In the example above, the requests <code class="clr-code">GetSddcList</code> responds with an array of Sddc objects. Please
             refer to the description of <code class="clr-code">CommonType</code> described in the overview document, which allows a
-            language-neutral type declaration using "container", "nested", and "type".
+            language-neutral type declaration using "container", "nested", and "type". Even if the API call used to satisfy
+            the service request returns nothing, <code class="clr-code">service_response</code> will return, at a minimum,
+            an empty object.
         </td>
     </tr>
     </tbody>
@@ -157,3 +174,298 @@
 </table>
 
 <hr/>
+
+<h2>API Calls</h2>
+<p>In the above example Service Adapter Specification document, we have added
+</p>
+<pre class="code"><code class="language-json" ngNonBindable>"api": &#123; "uri": "/operator/sddcs/&#123;sddc&#125;", "api_method": "deleteSddcs" &#125;
+</code></pre>
+<p>This says that the service request <strong class="emphasis">OperatorDeleteSddc</strong> needs to make an API call to
+    a backend service in order to satisfy the request. The interface models ReST API calls, however, the same
+    specifications may be used to specify API calls using other transports.
+    The <code class="clr-code">api</code> property to the service request can have
+    many additional properties defined. while there are several other properties described later,
+    in the above example, only the following properties are specified:
+</p>
+
+<table class="table table-noborder flag-table">
+    <thead>
+    <tr>
+        <th class="left flag-header">API Property</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td class="left flag">uri</td>
+        <td class="flag-value">
+            This specifies the endpoint of the API call. In the above example specification, the ReST transport is being used,
+            hence, the endpoint is an URI path: <code class="language-json" ngNonBindable>/operator/sddcs/&#123;sddc&#125;</code>.
+        </td>
+    </tr>
+    <tr>
+        <td class="left flag">api_method</td>
+        <td class="flag-value">
+            The above specification of an <code class="clr-code">uri</code> results in the generation of an API Class object
+            in the respective language. This class contains all the methods (public class functions) that implement each of
+            the operations that constitute the API calls.
+            <br/><br/>
+            Since we model API calls to be analogous to ReST calls (even if they are not), the supported methods are
+            GET, POST, PUT, PATCH, and DELETE. If the names of these methods are not modifed by the use of extensions
+            <code class="clr-code">x-vmw-vapi-methodname</code> and <code class="clr-code">x-vmw-appfabric-servicename</code>
+            in the API Specification documents(s),
+            then the default method names corresponding to the above will be <code class="clr-code">httpGet</code>,
+            <code class="clr-code">httpPost</code>, <code class="clr-code">httpPut</code>,
+            <code class="clr-code">httpPatch</code>, and <code class="clr-code">httpDelete</code>.
+            <br/><br/>
+            As noted above, the input parameters for this method are extracted from the <code class="clr-code">service_request_params</code>
+            and <code class="clr-code">service_request_query_params</code> that were provided by the requestor to the service request.
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<hr/>
+
+<h2>Event Handlers And Broadcasts</h2>
+<p>
+    All Service Adapters respond to requests over the bifröst event bus. Additionally, some Service Adapters also listen
+    to websocket events, and such Service Adapters are called <code class="clr-code">Event Handlers</code>. Most Event Handlers
+    require <code class="clr-code">customized code</code> to be added to the Service Adapter beyond what is autogenerated, and
+    is described in later chapters. The most important of these websocket events are
+    <code class="clr-code">Task Update Events</code>, which is how asynchronous service requests are handled. These events
+    notify of the progression of asynchronous handling of requests to backend services, as well as completions and failures.
+</p>
+
+<p>
+    Just as a Service Adapter may listen for asynchronous websocket events, any Service Adapter may also emit its own
+    events, called <code class="clr-code">Broadcasts</code> over the bifröst event bus that applications may listen
+    to asynchronously. A Service Adapter does not have to be an <strong class="emphasis">Event Handler</strong>
+    in order to emit events via the <code class="clr-code">Broadcast</code> specification, however, as you will see below, a
+    <code class="clr-code">Broadcast</code> specification is required if the Service Adapter is required to automatically
+    generate code for updating <code class="clr-code">stores</code>.
+</p>
+
+<p>
+    To illustrate the specification of <strong class="emphasis">Event Handlers</strong> and
+    <strong class="emphasis">Broadcasts</strong>, let's augment our example specification from above:
+</p>
+
+<pre class="code"><code class="language-json" ngNonBindable>
+&#123;
+    "name": "sddc-core",
+    "version": "1",
+
+    "event_handler": true,
+    "broadcast": &#123; "class":  "Sddc", "type": "SddcStateChangeType" &#125;,
+
+    "service_requests": [
+        &#123;
+            "service_request": "GetSddcList",
+            "service_response": &#123; "type": "Sddc", "container": "array" &#125;
+        &#125;,
+        &#123;
+            "service_request": "OperatorDeleteSddc",
+            "service_request_params": [
+                &#123; "service_request_param": "sddc" &#125;
+            ],
+            "service_request_query_params": [
+                &#123; "service_request_query_param": "force", "optional": true &#125;
+            ],
+            "api": &#123; "uri": "/operator/sddcs/&#123;sddc&#125;", "api_method": "deleteSddcs" &#125;,
+            "service_response": &#123; "type": "Task" &#125;
+        &#125;
+    ]
+&#125;
+</code></pre>
+<p>In the above augmented example, all we had to do was to set the boolean <code class="clr-code">event_handler</code> to
+    <code class="clr-code">true</code>. That's it! <strong class="emphasis">ServGen</strong> takes care of
+    autogenerating the Service Adapter with all the listeners and hooks, and all that is required is a small
+    amount of customized logic to make it all work! We will cover that in a later chapter.
+</p>
+
+<p>
+    The <code class="clr-code">broadcast</code> property above is how consumers know what to expect in broadcast payloads
+    from the Service Adapter. While this property uses <code class="clr-code">CommonType</code> to specify
+    the payload of the broadcast, which means using <code class="clr-code">container</code> and
+    <code class="clr-code">nested</code>, <code class="clr-code">type</code> has been replaced by <code class="clr-code">class</code>.
+    This is an unfortunate piece of legacy implementation that will be changed in the near future to be consistent with
+    <code class="clr-code">CommonType</code>, and <code class="clr-code">class</code> will be replaced with <code class="clr-code">type</code>.
+</p>
+
+<p>
+    Meanwhile, the <code class="clr-code">type</code> property specified above should be renamed to <code class="clr-code">change_type</code>
+    as it is meant to provide a clue as to whether the broadcast is associated with a CUD event of the payload,
+    i.e. <strong class="emphasis">Created</strong>, <strong class="emphasis">Updated</strong>, or
+    <strong class="emphasis">Deleted</strong>. Note that the <code class="clr-code">type</code> property is optional,
+    and its absence results in the autogeneration of an enumeration that contains values for these three kinds of notifications.
+    The use of <code class="clr-code">type</code>, however, allows for customized enumeration of additional values that
+    the Service Adapter developer may wish to provide as hints to consuming applications providing more flexibility.
+</p>
+
+<p>
+    In the above example, <code class="clr-code">type</code> is specified to be <code class="clr-code">SddcStateChangeType</code>,
+    which requires the developer to provide an enumeration with that name, that at a minimum, enumerates values for
+    <code class="clr-code">Created</code>, <code class="clr-code">Updated</code>, and <code class="clr-code">Deleted</code>.
+    The developer can now add additonal enumerations as shown in the excerpt below:
+</p>
+<pre class="code"><code class="language-typescript" ngNonBindable>
+export enum SddcStateChangeType &#123;
+    Created = 'SddcCreated',
+    Updated = 'SddcUpdated',
+    Deleted = 'SddcDeleted',
+    SddcUpdated = 'SddcUpdated',
+    SddcCreating = 'SddcCreating',
+    SddcDeleting = 'SddcDeleting',
+    SddcAddingHosts = 'SddcAddingHosts',
+    SddcDeletingHosts = 'SddcDeletingHosts',
+    :
+    :
+&#125;
+</code></pre>
+
+<p>
+    If <code class="clr-code">type</code> had not been specified, <strong class="emphasis">ServGen</strong> would have
+    autogenerated the above enumeration with values for <strong class="emphasis">Created</strong>,
+    <strong class="emphasis">Updated</strong>, and
+    <strong class="emphasis">Deleted</strong> only.
+</p>
+<hr/>
+
+<h2>Managing Stores Automatically</h2>
+
+<p>
+    <strong class="emphasis">ServGen</strong> allows for specifications that result in the creation of bifröst stores,
+    and adding, updating, and deleting items within it, triggered by responses to service requests automatically.
+    To illustrate these capabilities, let us enhance our example Service Adapter Specification thus:
+</p>
+
+<pre class="code"><code class="language-json" ngNonBindable>
+&#123;
+    "name": "sddc-core",
+    "version": "1",
+    "event_handler": true,
+    "broadcast": &#123; "class":  "Sddc", "type": "SddcStateChangeType" &#125;,
+
+    "stores": [
+        &#123;
+            "store": "SddcStore",
+            "store_id": "stores::vmc::sddc",
+            "type": "Sddc"
+        &#125;,
+        &#123;
+            "store": "ReservationStore",
+            "store_id": "stores::vmc::reservation",
+            "type": "ReservationWindow",
+            "container": "array"
+        &#125;
+    ],
+
+    "service_requests": [
+        &#123;
+            "service_request": "GetUncachedSddcList",
+            "api": &#123; "uri": "/orgs/&#123;org&#125;/sddcs", "api_method": "listSddcs" &#125;,
+            "update_store": &#123; "update": "SddcStore", "property": "id" &#125;,
+            "service_response": &#123; "type": "Sddc", "container": "array" &#125;
+        &#125;,
+        &#123;
+            "service_request": "GetUncachedSddc",
+            "service_request_params": [
+                &#123; "service_request_param": "sddc" &#125;
+            ],
+            "api": &#123; "uri": "/orgs/&#123;org&#125;/sddcs/&#123;sddc&#125;", "api_method": "getSddcs" &#125;,
+            "update_store": &#123; "update": "SddcStore", "param": "sddc" &#125;,
+            "service_response": &#123; "type": "Sddc" &#125;
+        &#125;,
+        &#123;
+          "service_request": "GetAllTbrsReservations",
+            "service_request_params": [
+                &#123; "service_request_param": "sddcState", "type": "SddcStateRequest" &#125;
+            ],
+          "api": &#123; "uri": "/orgs/&#123;org&#125;/tbrs/reservation", "api_method": "postTbrs" &#125;,
+          "service_response": &#123; "type": "ReservationWindow", "container": "map", "nested": "array" &#125;,
+          "update_store": &#123; "update": "ReservationStore" &#125;
+        &#125;
+    ]
+&#125;
+</code></pre>
+
+<p>
+    Above, we have added a new property for the Service Adapter: <code class="clr-code">stores</code>, which is
+    an array of one more bifröst stores that will be created and owned by this Service adapter. Each such
+    autogenerated <code class="clr-code">store</code> specifies a readable name for it, as well as a UUID
+    specified usin <code class="clr-code">store_id</code>, and a <code class="clr-code">CommonType</code>
+    which specifies the usual <code class="clr-code">container</code>, <code class="clr-code">nested</code>,
+    and <code class="clr-code">type</code> for each element in the store. Conceptually, a bifröst store is
+    a <code class="clr-code">Map</code> of key/value pairs, where each <strong class="emphasis">value</strong>
+    has a type that is specified by <code class="clr-code">CommonType</code>.
+</p>
+
+<p>
+    Note: there must be one, and only one <code class="clr-code">broadcast</code> property specified,
+    irrespective of how many stores are specified. Stores have their own notification mechanism using
+    bifröst, and <code class="clr-code">broadcast</code> is used for manual broadcasts on the broadcast
+    channel for the Service Adapter.
+</p>
+
+<p>
+    In the above example, two stores are specified: <code class="clr-code">SddcStore</code>, which contains elements
+    which are of the type <code class="clr-code">Sddc</code> class, and <code class="clr-code">ReservationStore</code>,
+    whose elements are arrays of type <code class="clr-code">ReservationWindow</code> class. On instantiation of the
+    Service Adapter, these stores are created if they do not already exist.
+</p>
+
+<p>
+    In the three service requests in the above example, <strong class="emphasis">GetUncachedSddcList</strong>,
+    <strong class="emphasis">GetUncachedSddc</strong>, <strong class="emphasis">GetAllTbrsReservations</strong>,
+    we have added a property <code class="clr-code">update_store</code>. Each of these <code class="clr-code">update_store</code>
+    specifications contain additional specifiers, either <code class="clr-code">update</code>, or
+    <code class="clr-code">delete</code>, as well as optional key retrieval qualifiers <code class="clr-code">property</code>,
+    <code class="clr-code">param</code>, and the deprecated <code class="clr-code">uuid</code>. The actual operation on
+    the respective stores is very dependent on the <code class="clr-code">service_response</code> from each service request.
+</p>
+
+<p>
+    In the first of the service requests above, <strong class="emphasis">GetUncachedSddcList</strong> makes an API call
+    to the backend service and returns an array of <strong class="emphasis">Sddc</strong> classes. The
+    <code class="clr-code">update_store</code> specifies that the entirety of the store named <strong class="emphasis">SddcStore</strong>
+    should be updated from the array of <strong class="emphasis">Sddc</strong> class, and the <code class="clr-code">key</code>
+    to that store for each element of the array should be obtaining by the specified
+    <code class="clr-code">property</code>: <strong class="emphasis">id</strong>. So, as we iterate through the array of Sddc classes,
+    we would update the store with each of the Sddc classes, using each <code class="clr-code">Sddc.id</code> as the key to the
+    store.
+</p>
+
+<p>
+    The second service request above, <strong class="emphasis">GetUncachedSddc</strong> returns a single instance of an Sddc class by providing its
+    UUID using the input parameter <code class="clr-code">sddc</code> which is a string with the requested UUID. Since the
+    <code class="clr-code">service_response</code> is a single Sddc, the <code class="clr-code">update</code> property
+    also specifies a qualifier <code class="clr-code">param</code>. This essentially says that we should scan the input
+    parameters to the service request, looking for a parameter named <code class="clr-code">sddc</code>, and use its
+    value as the key into <strong class="emphasis">SddcStore</strong> to update the Sddc there.
+</p>
+
+<p>
+    The third and most complex service request above, <strong class="emphasis">GetAllTbrsReservations</strong> has a service response
+    which is a map of an array of type ReservationWindow class. This is represented in Typescript as
+    <code class="clr-code">Map&lt;string,Array&lt;ReservationWindow&gt;&gt;</code>. Moreover, the <code class="clr-code">update</code>
+    property has neither the <code class="clr-code">property</code> nor <code class="clr-code">param</code> qualifier. In order to
+    update the specified <code class="clr-code">ReservationStore</code>, <strong class="emphasis">Servgen</strong> infers that
+    the <code class="clr-code">service_response</code> Map needs to update the store using the Map keys as store keys. Essentially,
+    the store becomes a reflection of the response Map.
+</p>
+
+<p>
+    We won't describe the <code class="clr-code">uuid</code> qualifier for <code class="clr-code">update</code> in detail because
+    it is deprecated, but briefly, it is used to stuff the entirety of a <code class="clr-code">service_response</code>,
+    into a single store element using the key specified by <code class="clr-code">uuid</code>. Code using this will continue
+    to work for a while, but should be changed to use one of the methods described in the example specification.
+</p>
+
+<hr/>
+
+<p>
+    That's it! This is all you need to specify a complex Service Adapter! There are more things associated with Service
+    Adapters that can be specified, each in its own specification document in subsequent chapters,
+    but this is the most that is required to populate a <code class="clr-code">service.json</code> for any Service Adapter.
+</p>
