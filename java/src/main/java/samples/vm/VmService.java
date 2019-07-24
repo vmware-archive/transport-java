@@ -27,6 +27,7 @@ import samples.vm.model.VmDeleteRequest;
 import samples.vm.model.VmListResponse;
 import samples.vm.model.VmPowerOperationRequest;
 import samples.vm.model.VmPowerOperationResponse;
+import samples.vm.model.VmPowerOperationResponseItem;
 import samples.vm.model.VmRef;
 
 import java.util.HashMap;
@@ -34,7 +35,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/vm")
+@RequestMapping("/rest/samples/vm")
 @Service("VmService")
 public class VmService extends AbstractService<Request<BaseVmRequest>, Response<BaseVmResponse>> {
 
@@ -178,10 +179,15 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
    private VmPowerOperationResponse getVmPowerOperationResponse(VmPowerOperationRequest powerReq) {
       VmPowerOperationResponse resp = new VmPowerOperationResponse();
       if (powerReq.getVmRefs() != null) {
-         for (VmRef vmRef : powerReq.getVmRefs()) {
-            resp.getOperationResults().put(
-                  vmRef, changeVmPowerState(vmRef, powerReq.getPowerOperation()));
+         VmPowerOperationResponseItem[] opResults =
+               new VmPowerOperationResponseItem[powerReq.getVmRefs().length];
+         for (int i = 0; i < opResults.length; i++) {
+            VmRef vmRef = powerReq.getVmRefs()[i];
+            opResults[i] = new VmPowerOperationResponseItem();
+            opResults[i].setVmRef(vmRef);
+            opResults[i].setOperationResult(changeVmPowerState(vmRef, powerReq.getPowerOperation()));
          }
+         resp.setOpResults(opResults);
       }
       return resp;
    }

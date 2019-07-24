@@ -1,0 +1,370 @@
+swagger: '2.0'
+info:
+    description: |
+        Sample VM Service REST Endpoints
+    version: '1.0'
+    title: Sample VM Service Endpoints
+    termsOfService: 'http://appfabric.vmware.com'
+    contact:
+        name: VMware
+    license:
+        name: 'Copyright (c) 2019 VMware, Inc. All rights reserved.'
+    x-vmw-vapi-codegenconfig:
+        packagename: com.vmware.fabric.samples
+        tag-resources-by-url-path: true
+host: appfabric.vmware.com
+basePath: /rest/samples
+schemes:
+    - http
+consumes:
+    - application/json
+produces:
+    - application/json
+
+paths:
+    /vm/listVms:
+        get:
+            tags:
+                - VmService
+            summary: Get current list of virtual machines
+            x-vmw-vapi-methodname: listVms
+            x-vmw-vapi-servicename: vmService
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/VmListResponse'
+                '400':
+                    description: Bad Request, missing something
+                    schema:
+                        $ref: '#/definitions/VmListResponse'
+                '500':
+                    description: Unexpected error.
+                    schema:
+                        $ref: '#/definitions/VmListResponse'
+
+    /vm/changeVmPowerState:
+        post:
+            tags:
+                - VmService
+            summary: Change the current power state of the VM
+            x-vmw-vapi-methodname: changeVmPowerState
+            x-vmw-vapi-servicename: vmService
+            parameters:
+                - name: vmPowerOperationRequest
+                  in: body
+                  description: Contains VmRef instances and their desired power state.
+                  required: true
+                  schema:
+                      $ref: '#/definitions/VmPowerOperationRequest'
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/VmPowerOperationResponse'
+                '400':
+                    description: Bad Request, missing something
+                    schema:
+                        $ref: '#/definitions/VmPowerOperationResponse'
+                '500':
+                    description: Unexpected error.
+                    schema:
+                        $ref: '#/definitions/VmPowerOperationResponse'
+
+    /vm/createVm:
+        post:
+            tags:
+                - VmService
+            summary: Create a new VM
+            x-vmw-vapi-methodname: createVm
+            x-vmw-vapi-servicename: vmService
+            parameters:
+                - name: vmCreateRequest
+                  in: body
+                  description: Contains VM specification of the VM to be created
+                  required: true
+                  schema:
+                      $ref: '#/definitions/VmCreateRequest'
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/VmCreateResponse'
+                '400':
+                    description: Bad Request, missing something
+                    schema:
+                        $ref: '#/definitions/VmCreateResponse'
+                '500':
+                    description: Unexpected error.
+                    schema:
+                        $ref: '#/definitions/VmCreateResponse'
+
+    /vm/deleteVm:
+        post:
+            tags:
+                - VmService
+            summary: Delete existing VM
+            x-vmw-vapi-methodname: deleteVm
+            x-vmw-vapi-servicename: vmService
+            parameters:
+                - name: vmDeleteRequest
+                  in: body
+                  description: Contains the VmRef of the VM to be deleted
+                  required: true
+                  schema:
+                      $ref: '#/definitions/VmDeleteRequest'
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/BaseVmResponse'
+                '400':
+                    description: Bad Request, missing something
+                    schema:
+                        $ref: '#/definitions/BaseVmResponse'
+                '500':
+                    description: Unexpected error.
+                    schema:
+                        $ref: '#/definitions/BaseVmResponse'
+
+
+definitions:
+
+    BaseVmRequest:
+        type: object
+
+    VmPowerOperationRequest:
+        type: object
+        required:
+            - vmRefs
+            - powerOperation
+        properties:
+            vmRefs:
+                type: array
+                items:
+                    description: VmRef of the VMs which state should be changed
+                    $ref: '#/definitions/VmRef'
+            powerOperation:
+                type: string
+                enum:
+                    - powerOn
+                    - powerOff
+                    - reset
+                    - suspend
+        allOf:
+            - $ref: '#/definitions/BaseVmRequest'
+
+    VmCreateRequest:
+        type: object
+        required:
+            - name
+            - virtualHardware
+        properties:
+            name:
+                description: The name of the VM
+                type: string
+            virtualHardware:
+                $ref: '#/definitions/VirtualHardware'
+        allOf:
+            - $ref: '#/definitions/BaseVmRequest'
+
+    VmDeleteRequest:
+        type: object
+        required:
+            - vm
+        properties:
+            vm:
+                description: Reference to the VM that should be deleted.
+                $ref: '#/definitions/VmRef'
+        allOf:
+            - $ref: '#/definitions/BaseVmRequest'
+
+    BaseVmResponse:
+        type: object
+        properties:
+            error:
+                description: Is the response an error (defaults to true)
+                type: boolean
+            errorMessage:
+                description: error message if available
+                type: string
+
+    VmRef:
+        type: object
+        required:
+            - vcGuid
+            - vmId
+        properties:
+            vcGuid:
+                description: The guid of the VM's Virtual Center
+                type: string
+            vmId:
+                description: The id of the VM
+                type: string
+
+    VirtualDevice:
+        type: object
+        required:
+            - key
+            - deviceName
+            - deviceType
+        discriminator: deviceType
+        properties:
+            key:
+                description: Unique key for the device
+                type: integer
+                format: int32
+            deviceName:
+                description: The name of the device
+                type: string
+            deviceType:
+                type: string
+                description: Identifies the specific device type
+
+
+    VirtualDisk:
+        x-vmw-vapi-discriminated-by: "VirtualDisk"
+        type: object
+        required:
+            - capacityMB
+            - diskFormat
+        properties:
+            capacityMB:
+                description: The capacity of the disk
+                type: integer
+                format: int64
+            diskFormat:
+                description: The underlying disk format
+                type: string
+                enum:
+                    - native_512
+                    - emulated_512
+                    - native_4k
+        allOf:
+            - $ref: '#/definitions/VirtualDevice'
+
+    VirtualUSB:
+        x-vmw-vapi-discriminated-by: "VirtualUSB"
+        type: object
+        required:
+            - connected
+            - speed
+        properties:
+            connected:
+                description: Flag indicating whether the device is currently connected.
+                type: boolean
+            speed:
+                type: array
+                items:
+                    description: Device speeds supported by the device
+                    type: string
+                    enum:
+                        - low
+                        - full
+                        - high
+                        - superSpeed
+                        - superSpeedPlus
+        allOf:
+            - $ref: '#/definitions/VirtualDevice'
+
+    VirtualHardware:
+        type: object
+        required:
+            - memoryMB
+            - numCPU
+        properties:
+            memoryMB:
+                type: integer
+                format: int32
+            numCPU:
+                type: integer
+                format: int32
+            devices:
+                type: array
+                items:
+                    $ref: '#/definitions/VirtualDevice'
+
+    RuntimeInfo:
+        type: object
+        required:
+            - powerState
+        properties:
+            host:
+                description: The current host associated with the VM
+                type: string
+            powerState:
+                description: The current power state of the VM
+                type: string
+                enum:
+                    - poweredOff
+                    - poweredOn
+                    - suspended
+
+    VirtualMachine:
+        type: object
+        required:
+            - name
+            - vmRef
+            - hardware
+        properties:
+            name:
+                description: The name of the virtual machine
+                type: string
+            vmRef:
+                description: Contains the id of the VM
+                $ref: '#/definitions/VmRef'
+            hardware:
+                description: Contains information about VM hardware
+                $ref: '#/definitions/VirtualHardware'
+            runtimeInfo:
+                description: Contains runtime information for of the VM
+                $ref: '#/definitions/RuntimeInfo'
+
+    VmListResponse:
+        type: object
+        required:
+            - virtualMachines
+        properties:
+            virtualMachines:
+                description: List of all virtual machines for all VCs
+                type: array
+                items:
+                    $ref: '#/definitions/VirtualMachine'
+        allOf:
+            - $ref: '#/definitions/BaseVmResponse'
+
+    VmPowerOperationResponseItem:
+        type: object
+        required:
+            - vmRef
+            - operationResult
+        properties:
+            vmRef:
+                description: A VM reference identifying the VM.
+                $ref: '#/definitions/VmRef'
+            operationResult:
+                description: True if the operation was successful
+                type: boolean
+
+    VmPowerOperationResponse:
+        type: object
+        required:
+            - opResults
+        properties:
+            opResults:
+                description: Contains the power operation results for all VMs passed in the VmPowerOperationRequest
+                type: array
+                items:
+                    $ref: '#/definitions/VmPowerOperationResponseItem'
+        allOf:
+            - $ref: '#/definitions/BaseVmResponse'
+
+    VmCreateResponse:
+        type: object
+        properties:
+            vm:
+                description: VirtualMachine instance if the operation was successful
+                $ref: '#/definitions/VirtualMachine'
+        allOf:
+            - $ref: '#/definitions/BaseVmResponse'
+

@@ -9,8 +9,11 @@ import lombok.Setter;
 import java.util.HashMap;
 import java.util.Map;
 
-public class VmPowerOperationResponse extends BaseVmResponse {
+public class VmPowerOperationResponseItem {
 
    @Getter @Setter
-   VmPowerOperationResponseItem[] opResults;
+   VmRef vmRef;
+
+   @Getter @Setter
+   boolean operationResult;
 }

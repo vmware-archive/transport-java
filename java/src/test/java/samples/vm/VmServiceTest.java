@@ -202,8 +202,8 @@ public class VmServiceTest {
 
       VmPowerOperationResponse powerOperationResponse =
             (VmPowerOperationResponse) lastResponse.getPayload();
-      Assert.assertTrue(powerOperationResponse.getOperationResults().get(
-            createVmResponse.getVm().getVmRef()));
+      Assert.assertTrue(powerOperationResponse.getOpResults()[0].isOperationResult());
+      Assert.assertEquals(powerOperationResponse.getOpResults()[0].getVmRef(), createVmResponse.getVm().getVmRef());
 
       Map<String, VirtualMachine> vmsByName = getVms();
 
