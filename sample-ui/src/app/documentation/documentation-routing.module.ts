@@ -11,18 +11,18 @@ const documentationRoutes: Routes = [
         path: '',
         component: DocumentationComponent,
         children: [
-            { path: '', component: HomeComponent },
-            { path: 'getting-started', component: GettingStartedComponent },
-            { path: 'contributors', component: ContributorsComponent },
-            { path: 'developers', component: DevelopersComponent },
-            { path: 'bifrost', loadChildren: () => import('./bifrost/bifrost.module').then(m => m.BifrostModule) },
-            { path: 'sewing-machine', loadChildren: () => import('./sewing-machine/sewing-machine.module').then(m => m.SewingMachineModule) }
+            {path: '', component: HomeComponent},
+            {path: 'getting-started', component: GettingStartedComponent},
+            {path: 'contributors', component: ContributorsComponent},
+            {path: 'developers', component: DevelopersComponent},
+            {path: 'bifrost', loadChildren: () => import('./bifrost/bifrost.module').then(m => m.BifrostModule)},
+            {path: 'sewing-machine', loadChildren: () => import('./sewing-machine/sewing-machine.module').then(m => m.SewingMachineModule)}
         ]
     }
 ];
 
 @NgModule({
-    imports: [RouterModule.forChild(documentationRoutes)],
-    exports: [RouterModule]
-})
+              imports: [RouterModule.forChild(documentationRoutes)],
+              exports: [RouterModule]
+          })
 export class DocumentationRoutingModule {}
