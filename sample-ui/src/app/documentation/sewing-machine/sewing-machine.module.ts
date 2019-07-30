@@ -5,6 +5,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { ClarityModule } from '@clr/angular';
 import { ServGenOverviewComponent } from './servgen-overview/servgen-overview.component';
 import { ServGenServiceComponent } from './servgen-service/servgen-service.component';
+import { ClassJsonComponent } from './servgen-specs/class-json/class-json.component';
 import { ServiceJsonComponent } from './servgen-specs/service-json/service-json.component';
 import { SewingMachineRoutingModule } from './sewing-machine-routing.module';
 import { QuickstartComponent } from './quickstart/quickstart.component';
@@ -28,6 +29,7 @@ import { JsonSchemaComponent } from './json-schema/json-schema.component';
         JsonSchemaComponent,
         ServGenServiceComponent,
         ServiceJsonComponent,
+        ClassJsonComponent,
     ],
     imports: [
         CommonModule,
