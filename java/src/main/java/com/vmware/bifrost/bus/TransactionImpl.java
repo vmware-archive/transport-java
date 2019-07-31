@@ -152,7 +152,7 @@ public class TransactionImpl extends Loggable implements Transaction {
 
     private void sendRequestAndListen(TransactionRequest request, Consumer<Message> onSuccess) {
 
-        this.logDebugMessage(String.format("➡️ Transaction: Sending '%s' Request to channel: %s",
+        this.logDebugMessage(String.format("-->️ Transaction: Sending '%s' Request to channel: %s",
               this.transactionType.toString(), request.channel), this.transactionName);
         this.transactionReceipt.requestsSent++;
         UUID requestId;
@@ -174,7 +174,7 @@ public class TransactionImpl extends Loggable implements Transaction {
                       return;
                   }
 
-                  logDebugMessage(String.format("⬅️ Transaction: Received '%s' Response on channel: %s - %s",
+                  logDebugMessage(String.format("<-- Transaction: Received '%s' Response on channel: %s - %s",
                         this.transactionType,
                         request.channel,
                         response.toString()),
@@ -187,7 +187,7 @@ public class TransactionImpl extends Loggable implements Transaction {
                       // Ignore the error if the transaction is in aborted state.
                       return;
                   }
-                  logDebugMessage(String.format("⬅️ Transaction: Received '%s' Error response on channel: %s - %s",
+                  logDebugMessage(String.format("<-- Transaction: Received '%s' Error response on channel: %s - %s",
                         this.transactionType,
                         request.channel,
                         errMessage.toString()),

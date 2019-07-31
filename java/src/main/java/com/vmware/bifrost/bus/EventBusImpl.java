@@ -753,12 +753,16 @@ public class EventBusImpl extends Loggable implements EventBus {
     }
 
     private  void init() {
-        this.logBannerMessage("\uD83C\uDF08","Starting Bifröst");
+        if (useJazz) {
+            this.logBannerMessage("\uD83C\uDF08","Starting Bifrost");
+        } else {
+            this.logBannerMessage(">>","Starting Bifrost");
+        }
         Map<String, Object> peerBeans = context.getBeansWithAnnotation(BifrostService.class);
         for (Map.Entry<String, Object> entry : peerBeans.entrySet()) {
             Object value = entry.getValue();
             if (value instanceof BifrostEnabled) {
-                this.logDebugMessage("Initializing Bifröst Service: " + value.getClass().getSimpleName());
+                this.logDebugMessage("Initializing Bifrost Service: " + value.getClass().getSimpleName());
                 ((BifrostEnabled) value).initialize();
             }
         }
