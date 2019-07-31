@@ -68,9 +68,9 @@ public class BifrostSubscriptionService extends Loggable
 
     private void handleResponseMessage(Message msg, String destinationPrefix, String channelName) {
         if (msg.isError()) {
-            this.logWarnMessage("Bifröst sending error payload over socket: " + msg.getPayload().toString() + " to " + channelName);
+            this.logWarnMessage("Bifrost sending error payload over socket: " + msg.getPayload().toString() + " to " + channelName);
         } else {
-            this.logTraceMessage("Bifröst sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
+            this.logTraceMessage("Bifrost sending payload over socket: " + msg.getPayload().toString() + " to ", channelName);
         }
 
         // Users might override the destination using the EXTERNAL_MESSAGE_BROKER_DESTINATION
@@ -103,12 +103,12 @@ public class BifrostSubscriptionService extends Loggable
 
         BifrostSubscription subscription = new BifrostSubscription(channelName, subId, sessionId, destinationPrefix);
         if (openSubscriptions.containsKey(subscription.uniqueId)) {
-            logger.info(String.format("[!] Bifröst Bus: subscription %s for channel %s already exists, ignoring",
+            logger.info(String.format("[!] Bifrost Bus: subscription %s for channel %s already exists, ignoring",
                   subscription.uniqueId, channelName));
             return;
         }
 
-        logger.info(String.format("[+] Bifröst Bus: creating channel subscription to '%s' subId: (%s)",
+        logger.info(String.format("[+] Bifrost Bus: creating channel subscription to '%s' subId: (%s)",
               channelName, subscription.uniqueId));
 
 
@@ -146,7 +146,7 @@ public class BifrostSubscriptionService extends Loggable
 
         if (openSubscriptions.containsKey(uniqueSubId)) {
             BifrostSubscription sub = openSubscriptions.get(uniqueSubId);
-            logger.info(String.format("[-] Bifröst Bus: unsubscribing from channel '%s' (%s)",
+            logger.info(String.format("[-] Bifrost Bus: unsubscribing from channel '%s' (%s)",
                   sub.channelName, sub.uniqueId));
             openSubscriptions.remove(uniqueSubId);
             onUnsubscribeFromChannel(sub.channelName);
@@ -167,7 +167,7 @@ public class BifrostSubscriptionService extends Loggable
             for (BifrostSubscription sub : subs) {
                 if (sub.sessionId.equals(sessionId)) {
                     logger.info(String.format(
-                          "[-] Bifröst Bus: closing subscription %s to channel '%s' after disconnect",
+                          "[-] Bifrost Bus: closing subscription %s to channel '%s' after disconnect",
                           sub.uniqueId, sub.channelName));
 
                     // close subscription.
@@ -189,7 +189,7 @@ public class BifrostSubscriptionService extends Loggable
             String destination = (String) message.getHeader(
                   MessageHeaders.EXTERNAL_MESSAGE_BROKER_DESTINATION);
             if (destination == null || destination.isEmpty()) {
-                logger.warn("Bifröst failed to send external broker message: invalid destination header");
+                logger.warn("Bifrost failed to send external broker message: invalid destination header");
             } else {
                 msgTmpl.convertAndSend(destination, message.getPayload());
             }

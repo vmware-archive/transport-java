@@ -21,7 +21,7 @@ public class BifrostUnsubscriptionHandler implements ApplicationListener<Session
 
     public void onApplicationEvent(SessionUnsubscribeEvent event) {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
-        logger.info("[<] Bifröst Bridge: unsubscribing subId:" + sha.getSubscriptionId());
+        logger.info("[<] Bifrost Bridge: unsubscribing subId:" + sha.getSubscriptionId());
         subService.removeSubscription(sha.getSubscriptionId(), sha.getSessionId());
     }
 }
