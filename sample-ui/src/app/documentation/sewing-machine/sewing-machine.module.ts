@@ -6,6 +6,7 @@ import { ClarityModule } from '@clr/angular';
 import { ServGenOverviewComponent } from './servgen-overview/servgen-overview.component';
 import { ServGenServiceComponent } from './servgen-service/servgen-service.component';
 import { ClassJsonComponent } from './servgen-specs/class-json/class-json.component';
+import { MapsJsonComponent } from './servgen-specs/maps-json/maps-json.component';
 import { ServiceJsonComponent } from './servgen-specs/service-json/service-json.component';
 import { SewingMachineRoutingModule } from './sewing-machine-routing.module';
 import { QuickstartComponent } from './quickstart/quickstart.component';
@@ -30,6 +31,7 @@ import { JsonSchemaComponent } from './json-schema/json-schema.component';
         ServGenServiceComponent,
         ServiceJsonComponent,
         ClassJsonComponent,
+        MapsJsonComponent,
     ],
     imports: [
         CommonModule,
