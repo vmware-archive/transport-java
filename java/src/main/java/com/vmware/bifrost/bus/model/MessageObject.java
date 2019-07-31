@@ -3,12 +3,20 @@
  */
 package com.vmware.bifrost.bus.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.UUID;
 
 public class MessageObject<T> implements Message<T> {
+
+    private static final ObjectMapper objectMapper;
+
+    static {
+        objectMapper = new ObjectMapper();
+    }
 
     @Setter
     @Getter
@@ -62,6 +70,13 @@ public class MessageObject<T> implements Message<T> {
             return headers.getHeader(headerName);
         }
         return null;
+    }
+
+    public String getPayloadAsString() throws JsonProcessingException {
+        if (payload instanceof String) {
+            return (String) payload;
+        }
+        return MessageObject.objectMapper.writeValueAsString(payload);
     }
 
     public String toString() {

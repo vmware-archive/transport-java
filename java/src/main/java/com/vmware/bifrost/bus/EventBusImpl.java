@@ -720,7 +720,7 @@ public class EventBusImpl extends Loggable implements EventBus {
                 boolean result;
                 String errorMsg = "";
                 try {
-                    result = messageBroker.sendMessage(config, message.getPayload());
+                    result = messageBroker.sendMessage(config, message.getPayloadAsString());
                 } catch (Exception ex) {
                     errorMsg = ex.getMessage();
                     result = false;
