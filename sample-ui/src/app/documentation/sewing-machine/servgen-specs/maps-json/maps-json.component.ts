@@ -10,7 +10,7 @@ import { HighlightService } from '../../../../local-services/highlight.service';
 export class MapsJsonComponent extends BaseDocsComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     constructor(private highlightService: HighlightService) {
-        super('ServGenSpecsServiceComponent');
+        super('ServGenSpecsMapsComponent');
     }
 
     ngOnInit() {

@@ -7,8 +7,10 @@ import { ApigenComponent } from './apigen/apigen.component';
 import { ApigenOutputComponent } from './apigen-output/apigen-output.component';
 import { ServGenOverviewComponent } from './servgen-overview/servgen-overview.component';
 import { ServGenServiceComponent } from './servgen-service/servgen-service.component';
+import { ArraysJsonComponent } from './servgen-specs/arrays-json/arrays-json.component';
 import { ClassJsonComponent } from './servgen-specs/class-json/class-json.component';
 import { MapsJsonComponent } from './servgen-specs/maps-json/maps-json.component';
+import { SetsJsonComponent } from './servgen-specs/sets-json/sets-json.component';
 import { ServGenComponent } from './servgen/servgen.component';
 import { JsonSchemaComponent } from './json-schema/json-schema.component';
 import { ServiceJsonComponent } from './servgen-specs/service-json/service-json.component';
@@ -27,6 +29,8 @@ const sewingMachineRoutes: Routes = [
     {path: 'service-json', component: ServiceJsonComponent, pathMatch: 'true'},
     {path: 'class-json', component: ClassJsonComponent, pathMatch: 'true'},
     {path: 'maps-json', component: MapsJsonComponent, pathMatch: 'true'},
+    {path: 'arrays-json', component: ArraysJsonComponent, pathMatch: 'true'},
+    {path: 'sets-json', component: SetsJsonComponent, pathMatch: 'true'},
 ];
 
 @NgModule({

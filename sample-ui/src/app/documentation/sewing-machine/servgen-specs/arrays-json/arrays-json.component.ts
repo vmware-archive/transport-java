@@ -4,13 +4,13 @@ import { HighlightService } from '../../../../local-services/highlight.service';
 
 @Component({
   selector: 'appfab-servgen',
-  templateUrl: './class-json.component.html',
-  styleUrls: ['./class-json.component.scss']
+  templateUrl: './arrays-json.component.html',
+  styleUrls: ['./arrays-json.component.scss']
 })
-export class ClassJsonComponent extends BaseDocsComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class ArraysJsonComponent extends BaseDocsComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     constructor(private highlightService: HighlightService) {
-        super('ServGenSpecsClassComponent');
+        super('ServGenSpecsServiceComponent');
     }
 
     ngOnInit() {
