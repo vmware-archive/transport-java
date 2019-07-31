@@ -1968,9 +1968,9 @@ public class EventBusImplTest {
               new TestGalacticChannelConfig(mbc2.getMessageBrokerId(), "remote-channel-2");
 
         Mockito.doReturn(false)
-              .when(mbc1).sendMessage(gcc1, "message");
+              .when(mbc1).sendMessage(Mockito.eq(gcc1), Mockito.anyString());
         Mockito.doThrow(new RuntimeException("failed-to-send-message"))
-              .when(mbc2).sendMessage(gcc2, "message");
+              .when(mbc2).sendMessage(Mockito.eq(gcc2), Mockito.anyString());
 
         bus.registerMessageBroker(mbc1);
         bus.markChannelAsGalactic("channel1", gcc1);

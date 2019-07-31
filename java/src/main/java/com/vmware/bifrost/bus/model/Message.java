@@ -3,6 +3,8 @@
  */
 package com.vmware.bifrost.bus.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import java.util.UUID;
 
 public interface Message<T> {
@@ -14,6 +16,8 @@ public interface Message<T> {
     void setPayload(T payload);
 
     T getPayload();
+
+    String getPayloadAsString() throws JsonProcessingException;
 
     void setPayloadClass(Class<T> payloadClass);
 
