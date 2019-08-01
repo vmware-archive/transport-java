@@ -45,11 +45,11 @@ public class CspJwtValidator extends Loggable implements JwtValidator {
     private static final String PROPERTY_KEY_CSP_PRD_GATEWAY_URL = "csp.prd.gateway.url";
     private static final String PROPERTY_KEY_TOKEN_PUBLIC_KEY_URI = "accessTokenPublicKeyUri";
 
-    CspJwtValidator(CspEnvironment cspEnv) {
+    public CspJwtValidator(CspEnvironment cspEnv) {
         this(cspEnv, "bifrost-csp.properties");
     }
 
-    CspJwtValidator(CspEnvironment cspEnv, String cspPropertiesFilename) {
+    public CspJwtValidator(CspEnvironment cspEnv, String cspPropertiesFilename) {
         base64Decoder = Base64.getDecoder();
         objectMapper = new ObjectMapper();
         cspEnvironment = cspEnv;
