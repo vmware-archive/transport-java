@@ -100,7 +100,7 @@
 </p>
 <ul>
     <li>
-        <code class="clr-code">service_request_query_params</code> - Usually passed onto ReST API calls as query strings.
+        <code class="clr-code">service_request_query_params</code> - Usually passed onto REST API calls as query strings.
     </li>
     <li>
         <code class="clr-code">service_request_param</code> - All other parameters, even without API calls.
@@ -181,7 +181,7 @@
 <pre class="code"><code class="language-json" ngNonBindable>"api": &#123; "uri": "/operator/sddcs/&#123;sddc&#125;", "api_method": "deleteSddcs" &#125;
 </code></pre>
 <p>This says that the service request <strong class="emphasis">OperatorDeleteSddc</strong> needs to make an API call to
-    a backend service in order to satisfy the request. The interface models ReST API calls, however, the same
+    a backend service in order to satisfy the request. The interface models REST API calls, however, the same
     specifications may be used to specify API calls using other transports.
     The <code class="clr-code">api</code> property to the service request can have
     many additional properties defined. while there are several other properties described later,
@@ -199,7 +199,7 @@
     <tr>
         <td class="left flag">uri</td>
         <td class="flag-value">
-            This specifies the endpoint of the API call. In the above example specification, the ReST transport is being used,
+            This specifies the endpoint of the API call. In the above example specification, the REST transport is being used,
             hence, the endpoint is an URI path: <code class="language-json" ngNonBindable>/operator/sddcs/&#123;sddc&#125;</code>.
         </td>
     </tr>
@@ -210,7 +210,7 @@
             in the respective language. This class contains all the methods (public class functions) that implement each of
             the operations that constitute the API calls.
             <br/><br/>
-            Since we model API calls to be analogous to ReST calls (even if they are not), the supported methods are
+            Since we model API calls to be analogous to REST calls (even if they are not), the supported methods are
             GET, POST, PUT, PATCH, and DELETE. If the names of these methods are not modifed by the use of extensions
             <code class="clr-code">x-vmw-vapi-methodname</code> and <code class="clr-code">x-vmw-appfabric-servicename</code>
             in the API Specification documents(s),
@@ -235,6 +235,8 @@
     is described in later chapters. The most important of these websocket events are
     <code class="clr-code">Task Update Events</code>, which is how asynchronous service requests are handled. These events
     notify of the progression of asynchronous handling of requests to backend services, as well as completions and failures.
+    Multiple clients within the same organization are simultaneously updated so that multiple web browsers display identical
+    data.
 </p>
 
 <p>
@@ -257,7 +259,7 @@
     "version": "1",
 
     "event_handler": true,
-    "broadcast": &#123; "class":  "Sddc", "type": "SddcStateChangeType" &#125;,
+    "broadcast": &#123; "type":  "Sddc", "change_type": "SddcStateChangeType" &#125;,
 
     "service_requests": [
         &#123;
@@ -286,25 +288,23 @@
 
 <p>
     The <code class="clr-code">broadcast</code> property above is how consumers know what to expect in broadcast payloads
-    from the Service Adapter. While this property uses <code class="clr-code">CommonType</code> to specify
-    the payload of the broadcast, which means using <code class="clr-code">container</code> and
-    <code class="clr-code">nested</code>, <code class="clr-code">type</code> has been replaced by <code class="clr-code">class</code>.
-    This is an unfortunate piece of legacy implementation that will be changed in the near future to be consistent with
-    <code class="clr-code">CommonType</code>, and <code class="clr-code">class</code> will be replaced with <code class="clr-code">type</code>.
+    from the Service Adapter. This property uses <code class="clr-code">CommonType</code> to specify
+    the payload of the broadcast, which means using <code class="clr-code">container</code>,
+    <code class="clr-code">nested</code>, and <code class="clr-code">type</code>.
 </p>
 
 <p>
-    Meanwhile, the <code class="clr-code">type</code> property specified above should be renamed to <code class="clr-code">change_type</code>
-    as it is meant to provide a clue as to whether the broadcast is associated with a CUD event of the payload,
+    Meanwhile, the <code class="clr-code">change_type</code> property specified above
+    is meant to provide a clue as to whether the broadcast is associated with a <strong class="emphasis">CUD</strong> event of the payload,
     i.e. <strong class="emphasis">Created</strong>, <strong class="emphasis">Updated</strong>, or
-    <strong class="emphasis">Deleted</strong>. Note that the <code class="clr-code">type</code> property is optional,
+    <strong class="emphasis">Deleted</strong>. Note that the <code class="clr-code">change_type</code> property is optional,
     and its absence results in the autogeneration of an enumeration that contains values for these three kinds of notifications.
-    The use of <code class="clr-code">type</code>, however, allows for customized enumeration of additional values that
+    The use of <code class="clr-code">change_type</code>, however, allows for customized enumeration of additional values that
     the Service Adapter developer may wish to provide as hints to consuming applications providing more flexibility.
 </p>
 
 <p>
-    In the above example, <code class="clr-code">type</code> is specified to be <code class="clr-code">SddcStateChangeType</code>,
+    In the above example, <code class="clr-code">change_type</code> is specified to be <code class="clr-code">SddcStateChangeType</code>,
     which requires the developer to provide an enumeration with that name, that at a minimum, enumerates values for
     <code class="clr-code">Created</code>, <code class="clr-code">Updated</code>, and <code class="clr-code">Deleted</code>.
     The developer can now add additonal enumerations as shown in the excerpt below:
@@ -325,7 +325,7 @@ export enum SddcStateChangeType &#123;
 </code></pre>
 
 <p>
-    If <code class="clr-code">type</code> had not been specified, <strong class="emphasis">ServGen</strong> would have
+    If <code class="clr-code">change_type</code> had not been specified, <strong class="emphasis">ServGen</strong> would have
     autogenerated the above enumeration with values for <strong class="emphasis">Created</strong>,
     <strong class="emphasis">Updated</strong>, and
     <strong class="emphasis">Deleted</strong> only.

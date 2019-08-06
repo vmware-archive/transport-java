@@ -206,7 +206,7 @@ export class API_AuthToken&lt;T&gt; &#123;
 
 <p>
     It should be noted that the arguments to the API Bridge are agnostic as to whether the transport mechanism employs
-    ReST, gRPC, Bus Messages, or some other means, and the endpoint, method, and payload contain everything necessary to
+    REST, gRPC, Bus Messages, or some other means, and the endpoint, method, and payload contain everything necessary to
     make the API request.
 </p>
 
@@ -242,10 +242,10 @@ export class API_AuthToken&lt;T&gt; &#123;
 </p>
 
 <p>
-    For the ReST transport, the methods <strong class="emphasis">GET</strong>, <strong class="emphasis">POST</strong>,
+    For the REST transport, the methods <strong class="emphasis">GET</strong>, <strong class="emphasis">POST</strong>,
     <strong class="emphasis">PUT</strong>, <strong class="emphasis">PATCH</strong>, <strong
     class="emphasis">DELETE</strong>, each have their own method. By default, http is
-    prepended to th4e method name, irrespective of whether the transport uses ReST. So, the <strong
+    prepended to th4e method name, irrespective of whether the transport uses REST. So, the <strong
     class="emphasis">GET</strong> method is named
     <code class="clr-code">httpGet()</code>. More readable names can be ascribed to the methods with the use of
     extensions. The above API_AuthToken
