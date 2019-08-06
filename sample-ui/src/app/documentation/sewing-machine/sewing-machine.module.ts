@@ -8,8 +8,10 @@ import { ServGenServiceComponent } from './servgen-service/servgen-service.compo
 import { ArraysJsonComponent } from './servgen-specs/arrays-json/arrays-json.component';
 import { ClassJsonComponent } from './servgen-specs/class-json/class-json.component';
 import { MapsJsonComponent } from './servgen-specs/maps-json/maps-json.component';
+import { MocksJsonComponent } from './servgen-specs/mocks-json/mocks-json.component';
 import { ServiceJsonComponent } from './servgen-specs/service-json/service-json.component';
 import { SetsJsonComponent } from './servgen-specs/sets-json/sets-json.component';
+import { TestingJsonComponent } from './servgen-specs/testing-json/testing-json.component';
 import { SewingMachineRoutingModule } from './sewing-machine-routing.module';
 import { QuickstartComponent } from './quickstart/quickstart.component';
 import { InitializerComponent } from './initializer/initializer.component';
@@ -36,6 +38,8 @@ import { JsonSchemaComponent } from './json-schema/json-schema.component';
         MapsJsonComponent,
         ArraysJsonComponent,
         SetsJsonComponent,
+        MocksJsonComponent,
+        TestingJsonComponent,
     ],
     imports: [
         CommonModule,
