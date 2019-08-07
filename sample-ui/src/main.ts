@@ -40,6 +40,7 @@ function configureStores() {
 function populateStores() {
     docsStore.put('ts', false, null);
     docsStore.put('java', false, null);
+    docsStore.put('sm', false, null);
 
 }
 function loadServices() {

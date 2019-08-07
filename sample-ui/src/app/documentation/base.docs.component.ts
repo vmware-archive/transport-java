@@ -10,18 +10,20 @@ export abstract class BaseDocsComponent extends BaseComponent implements OnInit,
     public connectedStateStream: StoreStream<FabricConnectionState>;
 
     public areBifrostTsDocsActive(): boolean {
-        //return this.storeManager.getStore<boolean>('docs').get('ts');
-        return true;
+        return this.storeManager.getStore<boolean>('docs').get('ts');
+        //return true;
     }
 
     public areBifrostJavaDocsActive(): boolean {
-        //return this.storeManager.getStore<boolean>('docs').get('java');
-        return true;
+        console.log('java state is', this.storeManager.getStore<boolean>('docs').get('java'));
+        return this.storeManager.getStore<boolean>('docs').get('java');
+        //return true;
     }
 
     public areSewingMachineDocsActive(): boolean {
-        //return this.storeManager.getStore<boolean>('docs').get('sm');
-        return true;
+        console.log('sm state is', this.storeManager.getStore<boolean>('docs').get('sm'));
+        return this.storeManager.getStore<boolean>('docs').get('sm');
+        //return true;
     }
 
     public areVideoDocsActive(): boolean {

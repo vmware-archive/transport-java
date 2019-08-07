@@ -19,8 +19,8 @@ export class DocumentationComponent extends BaseDocsComponent implements OnInit 
         pongService.offline();
 
         ServiceLoader.addService(MyAPIService);
-        // this.tsDocsActive = String(this.areBifrostTsDocsActive());
-        // this.javaDocsActive = String(this.areBifrostJavaDocsActive());
-        this.setBifrostTsDocsActive(true);
+        this.setBifrostTsDocsActive(false);
+        this.setBifrostTsDocsActive(false);
+        this.setSewingMachineDocsActive(false);
     }
 }
