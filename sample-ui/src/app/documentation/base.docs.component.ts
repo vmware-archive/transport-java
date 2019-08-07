@@ -15,13 +15,11 @@ export abstract class BaseDocsComponent extends BaseComponent implements OnInit,
     }
 
     public areBifrostJavaDocsActive(): boolean {
-        console.log('java state is', this.storeManager.getStore<boolean>('docs').get('java'));
         return this.storeManager.getStore<boolean>('docs').get('java');
         //return true;
     }
 
     public areSewingMachineDocsActive(): boolean {
-        console.log('sm state is', this.storeManager.getStore<boolean>('docs').get('sm'));
         return this.storeManager.getStore<boolean>('docs').get('sm');
         //return true;
     }
