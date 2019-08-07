@@ -60,6 +60,17 @@ export class ContributorsComponent implements OnInit {
         this.authors.push(
             { name: 'Kevin Buffington', email: 'kbuffington@vmware.com', hash: Md5.init('kbuffington@vmware.com')});
 
+        this.authors.push(
+            { name: 'Sandeep Hegde', email: 'hsandeep@vmware.com', hash: Md5.init('hsandeep@vmware.com')});
+
+        this.authors.push(
+            { name: 'Emily Chen', email: 'chenemily@vmware.com', hash: Md5.init('chenemily@vmware.com')});
+
+        this.authors.push(
+            { name: 'Brian Duncan', email: 'bduncan@vmware.com', hash: Md5.init('bduncan@vmware.com')});
+
+
+
         this.authors = this.shuffle(this.authors);
 
     }

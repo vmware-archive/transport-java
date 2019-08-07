@@ -39,8 +39,8 @@ export class HomeComponent extends BaseDocsComponent implements OnInit, OnDestro
 
 
     ngOnInit() {
-        this.setBifrostTsDocsActive(true);
-        this.setBifrostJavaDocsActive(true);
+        this.setBifrostTsDocsActive(false);
+        this.setBifrostJavaDocsActive(false);
         this.javaVersion = 'fetching...';
         this.sewingMachineVersion = 'fetching...';
 
