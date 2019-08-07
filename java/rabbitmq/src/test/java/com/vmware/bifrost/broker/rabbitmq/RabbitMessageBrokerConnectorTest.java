@@ -143,4 +143,51 @@ public class RabbitMessageBrokerConnectorTest {
 
       Assert.assertFalse(rmq.unsubscribeFromChannel(null));
    }
+
+   @Test
+   public void testSubscribeToChannelSerializationError() {
+      GalacticMessageHandler handler = Mockito.spy(new GalacticMessageHandler() {
+         @Override
+         public void onMessage(Object message) {
+            galacticMessage = message;
+            counter++;
+         }
+
+         @Override
+         public void onError(Object error) {
+            errorCounter++;
+            galacticMessage = error;
+         }
+      });
+
+
+      ConnectionFactory connectionFactory = Mockito.spy(ConnectionFactory.class);
+      Connection connection = Mockito.spy(Connection.class);
+      Mockito.when(connectionFactory.createConnection()).thenReturn(connection);
+
+      MessageConverter messageConverter = new MessageConverter() {
+         @Override
+         public Message toMessage(Object object, MessageProperties messageProperties) throws MessageConversionException {
+            return null;
+         }
+
+         @Override
+         public Object fromMessage(Message message) throws MessageConversionException {
+            throw new MessageConversionException("failed-to-convert-error", new Exception("cause-error"));
+         }
+      };
+      RabbitMessageBrokerConnector rmq = new RabbitMessageBrokerConnector(connectionFactory, messageConverter);
+
+      RabbitChannelConfig conf = rmq.newGalacticChannelConfig("inbound-q");
+      RabbitSubscription sub = rmq.subscribeToChannel(conf, handler);
+
+      ((MessageListener) sub.simpleMessageListenerContainer.getMessageListener()).onMessage(
+            new Message(new byte[0], new MessageProperties()));
+
+      Assert.assertEquals(0, counter);
+      Assert.assertEquals(1, errorCounter);
+      Assert.assertEquals("failed-to-convert-error", ((Throwable) galacticMessage).getMessage());
+
+      Assert.assertTrue(sub.simpleMessageListenerContainer.isRunning());
+   }
 }

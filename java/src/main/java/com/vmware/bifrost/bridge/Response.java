@@ -26,6 +26,11 @@ public class Response<RespP> extends AbstractFrame<RespP> {
         this.error = error;
     }
 
+    public Response() {
+        // needed for deserialization
+        this(UUID.randomUUID(), false);
+    }
+
     public boolean isError() {
         return error;
     }

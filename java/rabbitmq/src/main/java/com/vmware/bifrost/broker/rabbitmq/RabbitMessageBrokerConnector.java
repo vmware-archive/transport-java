@@ -5,12 +5,14 @@ package com.vmware.bifrost.broker.rabbitmq;
 
 import com.vmware.bifrost.broker.GalacticMessageHandler;
 import com.vmware.bifrost.broker.MessageBrokerConnector;
+import com.vmware.bifrost.core.util.Loggable;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.rabbit.connection.AbstractConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.StringUtils;
@@ -24,8 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * MessageBrokerConnector that can connect to single RabbitMQ server.
  */
-public class RabbitMessageBrokerConnector implements
-      MessageBrokerConnector<RabbitChannelConfig, RabbitSubscription> {
+public class RabbitMessageBrokerConnector extends Loggable
+      implements MessageBrokerConnector<RabbitChannelConfig, RabbitSubscription> {
 
    private final String brokerId;
 
@@ -95,8 +97,23 @@ public class RabbitMessageBrokerConnector implements
          @Override
          public void onMessage(Message message) {
             try {
-               messageHandler.onMessage(
-                     rabbitTemplate.getMessageConverter().fromMessage(message));
+               Object messagePayload;
+               try {
+                  messagePayload = rabbitTemplate.getMessageConverter().fromMessage(message);
+               } catch (MessageConversionException convEx) {
+                  String errMsg = convEx.getMessage();
+                  if (convEx.getCause() != null) {
+                     errMsg += "\n" + convEx.getCause().getMessage();
+                  }
+                  logErrorMessage(
+                        String.format("Failed to deserialize incoming RabbitMQ message for queue '%s'",
+                              channelConfig.getInboundQueue()),
+                        errMsg);
+                  messageHandler.onError(convEx);
+                  return;
+               }
+
+               messageHandler.onMessage(messagePayload);
             } catch (Exception ex) {}
          }
       });
