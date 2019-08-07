@@ -27,6 +27,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * CSP JSON Web Token validator implementation.
@@ -35,6 +36,7 @@ public class CspJwtValidator extends Loggable implements JwtValidator {
     private final CspEnvironment cspEnvironment;
     private final Map<CspEnvironment, String> cspUrlsMap;
     private volatile PublicKey accessTokenPublicKey;
+    private boolean checkPublicKeyFlag = false;
     private Base64.Decoder base64Decoder;
     private ObjectMapper objectMapper;
     private RestTemplate restTemplate;
@@ -72,6 +74,15 @@ public class CspJwtValidator extends Loggable implements JwtValidator {
             }
         };
         this.cspUrlsMap = Collections.unmodifiableMap(map);
+        Timer publicKeyResetTimer = new Timer();
+        publicKeyResetTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // every 12 hours, set a flag to refresh the PublicKey cache
+                checkPublicKeyFlag = true;
+
+            }
+        }, 0, TimeUnit.HOURS.toMillis(12));
     }
 
     private String getTokenPublicKeyUrl() throws URISyntaxException {
@@ -85,8 +96,8 @@ public class CspJwtValidator extends Loggable implements JwtValidator {
      * * Fetch jwt signing key for verifying tokens.
      * */
     private PublicKey getJwtPublicKey() throws InvalidKeySpecException, NoSuchAlgorithmException, URISyntaxException {
-        // use cached public key
-        if (accessTokenPublicKey != null) {
+        // use cached public key if checkPublicKeyFlag is false
+        if (accessTokenPublicKey != null && !checkPublicKeyFlag) {
             return accessTokenPublicKey;
         }
 
@@ -106,6 +117,7 @@ public class CspJwtValidator extends Loggable implements JwtValidator {
             X509EncodedKeySpec spec = new X509EncodedKeySpec(base64Decoder.decode(publicKeyPem));
             KeyFactory kf = KeyFactory.getInstance("RSA");
             accessTokenPublicKey = kf.generatePublic(spec);
+            checkPublicKeyFlag = false;
         }
 
         return accessTokenPublicKey;
