@@ -784,4 +784,11 @@ public interface EventBus {
     * @param channel, the galactic channel to be marked as local.
     */
     boolean markChannelAsLocal(String channel);
+
+    /**
+     * Checks if a given channel is marked as galactic.
+     * @param channel, channel name to be checked
+     * @return True if the channel has been marked as galactic.
+     */
+    boolean isGalacticChannel(String channel);
 }

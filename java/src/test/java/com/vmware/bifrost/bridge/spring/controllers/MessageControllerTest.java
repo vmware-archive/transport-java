@@ -6,6 +6,8 @@ package com.vmware.bifrost.bridge.spring.controllers;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.RequestException;
 import com.vmware.bifrost.bridge.Response;
+import com.vmware.bifrost.broker.TestGalacticChannelConfig;
+import com.vmware.bifrost.broker.TestMessageBrokerConnector;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
@@ -77,6 +79,26 @@ public class MessageControllerTest {
         this.controller.bridgeMessage(bridgeRequest, "channel");
         Assert.assertEquals(this.count, 1);
         Assert.assertEquals(this.message.getPayload(), bridgeRequest);
+    }
+
+    @Test
+    public void testBridgeMessageToGalacticChannel() throws Exception {
+        TestMessageBrokerConnector mbc1 = new TestMessageBrokerConnector("mbr1");
+        TestGalacticChannelConfig galacticChannelConfig =
+              new TestGalacticChannelConfig(mbc1.getMessageBrokerId(), "remote-channel-1");
+        bus.registerMessageBroker(mbc1);
+
+        this.bus.listenRequestStream("channel", message -> {
+            this.message = message;
+            this.count++;
+        });
+        this.bus.markChannelAsGalactic("channel", galacticChannelConfig);
+
+        Request bridgeRequest = new Request(UUID.randomUUID(), "test", "request-payload");
+
+        this.controller.bridgeMessage(bridgeRequest, "channel");
+        Assert.assertEquals(this.count, 1);
+        Assert.assertEquals("request-payload", this.message.getPayload());
     }
 
     @Test
