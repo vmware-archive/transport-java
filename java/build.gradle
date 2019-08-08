@@ -116,6 +116,7 @@ jar {
                         "com.vmware.bifrost.core.util;version=$version," +
                         "com.vmware.bifrost.core.operations;version=$version," +
                         "com.vmware.bifrost.bridge;version=$version," +
+                        "com.vmware.bifrost.bridge.util;version=$version," +
                         "com.vmware.bifrost.bridge.spring;version=$version," +
                         "com.vmware.bifrost.bridge.spring.controllers;version=$version," +
                         "com.vmware.bifrost.bridge.spring.config.annotation;version=$version," +
