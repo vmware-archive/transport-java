@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AppgenComponent } from './appgen/appgen.component';
 import { HomeComponent } from './home/home.component';
 import { SharedModule } from '../../shared/shared.module';
 import { ClarityModule } from '@clr/angular';
@@ -42,6 +43,7 @@ import { JsonSchemaComponent } from './json-schema/json-schema.component';
         MocksJsonComponent,
         TestingJsonComponent,
         ModelgenComponent,
+        AppgenComponent,
     ],
     imports: [
         CommonModule,
