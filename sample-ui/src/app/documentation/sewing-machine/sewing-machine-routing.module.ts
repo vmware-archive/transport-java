@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { HomeComponent } from './home/home.component';
+import { ModelgenComponent } from './modelgen/modelgen.component';
 import { QuickstartComponent } from './quickstart/quickstart.component';
 import { LibswaggerComponent } from './libswagger/libswagger.component';
 import { ApigenComponent } from './apigen/apigen.component';
@@ -27,6 +28,7 @@ const sewingMachineRoutes: Routes = [
     {path: 'json-schema', component: JsonSchemaComponent, pathMatch: 'true'},
     {path: 'servgen-service', component: ServGenServiceComponent, pathMatch: 'true'},
     {path: 'servgen', component: ServGenComponent, pathMatch: 'true'},
+    {path: 'modelgen', component: ModelgenComponent, pathMatch: 'true'},
     {path: 'servgen-overview', component: ServGenOverviewComponent, pathMatch: 'true'},
     {path: 'service-json', component: ServiceJsonComponent, pathMatch: 'true'},
     {path: 'class-json', component: ClassJsonComponent, pathMatch: 'true'},

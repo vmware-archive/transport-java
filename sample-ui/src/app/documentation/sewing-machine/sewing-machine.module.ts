@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HomeComponent } from './home/home.component';
 import { SharedModule } from '../../shared/shared.module';
 import { ClarityModule } from '@clr/angular';
+import { ModelgenComponent } from './modelgen/modelgen.component';
 import { ServGenOverviewComponent } from './servgen-overview/servgen-overview.component';
 import { ServGenServiceComponent } from './servgen-service/servgen-service.component';
 import { ArraysJsonComponent } from './servgen-specs/arrays-json/arrays-json.component';
@@ -40,6 +41,7 @@ import { JsonSchemaComponent } from './json-schema/json-schema.component';
         SetsJsonComponent,
         MocksJsonComponent,
         TestingJsonComponent,
+        ModelgenComponent,
     ],
     imports: [
         CommonModule,
