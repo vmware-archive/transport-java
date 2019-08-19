@@ -22,6 +22,7 @@ import { ApigenComponent } from './apigen/apigen.component';
 import { ApigenOutputComponent } from './apigen-output/apigen-output.component';
 import { ServGenComponent } from './servgen/servgen.component';
 import { JsonSchemaComponent } from './json-schema/json-schema.component';
+import { SpecgenComponent } from './specgen/specgen.component';
 
 @NgModule({
     declarations: [
@@ -44,6 +45,7 @@ import { JsonSchemaComponent } from './json-schema/json-schema.component';
         TestingJsonComponent,
         ModelgenComponent,
         AppgenComponent,
+        SpecgenComponent,
     ],
     imports: [
         CommonModule,
