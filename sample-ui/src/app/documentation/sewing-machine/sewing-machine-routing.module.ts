@@ -18,6 +18,7 @@ import { TestingJsonComponent } from './servgen-specs/testing-json/testing-json.
 import { ServGenComponent } from './servgen/servgen.component';
 import { JsonSchemaComponent } from './json-schema/json-schema.component';
 import { ServiceJsonComponent } from './servgen-specs/service-json/service-json.component';
+import { SpecgenComponent } from './specgen/specgen.component';
 
 
 const sewingMachineRoutes: Routes = [
@@ -31,6 +32,7 @@ const sewingMachineRoutes: Routes = [
     {path: 'servgen', component: ServGenComponent, pathMatch: 'true'},
     {path: 'modelgen', component: ModelgenComponent, pathMatch: 'true'},
     {path: 'appgen', component: AppgenComponent, pathMatch: 'true'},
+    {path: 'specgen', component: SpecgenComponent, pathMatch: 'true'},
     {path: 'servgen-overview', component: ServGenOverviewComponent, pathMatch: 'true'},
     {path: 'service-json', component: ServiceJsonComponent, pathMatch: 'true'},
     {path: 'class-json', component: ClassJsonComponent, pathMatch: 'true'},
