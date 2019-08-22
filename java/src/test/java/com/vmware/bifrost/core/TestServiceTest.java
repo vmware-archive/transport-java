@@ -295,7 +295,7 @@ public class TestServiceTest {
         error.errorCode = 400;
 
         request.setRequest(TestCommand.COMMAND_B);
-        request.setRejected(true);
+        request.setIsRejected(true);
         request.setId(UUID.randomUUID());
         request.setPayload(ow.writeValueAsString(error));
 
@@ -322,7 +322,7 @@ public class TestServiceTest {
         GeneralError error = new GeneralError();
 
         request.setRequest(TestCommand.COMMAND_B);
-        request.setRejected(true);
+        request.setIsRejected(true);
         request.setId(UUID.randomUUID());
         request.setPayload(error);
 
@@ -349,7 +349,7 @@ public class TestServiceTest {
         GeneralError error = new GeneralError();
 
         request.setRequest(TestCommand.COMMAND_B);
-        request.setRejected(true);
+        request.setIsRejected(true);
         request.setTargetUser("user-id");
         request.setId(UUID.randomUUID());
         request.setPayload(error);
