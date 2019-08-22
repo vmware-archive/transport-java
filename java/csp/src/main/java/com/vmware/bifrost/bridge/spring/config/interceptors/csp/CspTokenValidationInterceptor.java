@@ -66,7 +66,7 @@ public class CspTokenValidationInterceptor extends Loggable implements BifrostSt
                     null,
                     errorCode);
 
-            request.setRejected(true);
+            request.setIsRejected(true);
             request.setPayload(ow.writeValueAsString(error));
             errorMessage = new GenericMessage<>(ow.writeValueAsString(request).getBytes(), message.getHeaders());
         } catch (IOException e) {
