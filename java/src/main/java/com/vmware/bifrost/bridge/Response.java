@@ -35,34 +35,6 @@ public class Response<RespP> extends AbstractFrame<RespP> {
         this.error = error;
     }
 
-<<<<<<< Updated upstream
-    public Response() {
-        // needed for deserialization
-        this(UUID.randomUUID(), false);
-    }
-
-    public boolean isError() {
-        return error;
-    }
-
-    public void setError(boolean error) {
-        this.error = error;
-    }
-
-    public int getErrorCode() {
-        return errorCode;
-    }
-
-    public void setErrorCode(int errorCode) {
-        this.errorCode = errorCode;
-    }
-
-=======
->>>>>>> Stashed changes
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
         this.message = errorMessage; // make this compatible with GeneralError in TS bifrost.
