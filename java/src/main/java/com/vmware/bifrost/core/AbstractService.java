@@ -38,7 +38,7 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
      * @return Response
      */
     private Response<GeneralError> buildErrorResponse(RequestType requestType) {
-        if (!requestType.getRejected()) {
+        if (!requestType.getIsRejected()) {
             return null;
         }
 
