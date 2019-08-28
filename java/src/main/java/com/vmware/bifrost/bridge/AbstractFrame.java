@@ -2,27 +2,27 @@ package com.vmware.bifrost.bridge;
 
 import java.util.Date;
 import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
 public abstract class AbstractFrame<ReqP> {
 
+    @Getter @Setter
     protected UUID id;
+
+    @Getter @Setter
     protected Date created;
+
+    @Getter @Setter
     protected Integer version;
+
+    @Getter @Setter
     protected ReqP payload;
 
+    @Getter @Setter
+    protected String message;
+
     public AbstractFrame() { }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public void setCreated(Date created) {
-        this.created = created;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
 
     public AbstractFrame(Integer version, UUID uuid) {
         this.id = uuid;
@@ -35,26 +35,6 @@ public abstract class AbstractFrame<ReqP> {
         this.created = new Date();
         this.version = version;
         this.payload = payload;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public ReqP getPayload() {
-        return this.payload;
-    }
-
-    public void setPayload(ReqP payload) {
-        this.payload = payload;
-    }
-
-    public Date getCreated() {
-        return created;
-    }
-
-    public Integer getVersion() {
-        return version;
     }
 
     public String toString() {

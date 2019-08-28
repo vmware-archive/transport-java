@@ -1,6 +1,8 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import { AppgenComponent } from './appgen/appgen.component';
 import { HomeComponent } from './home/home.component';
+import { ModelgenComponent } from './modelgen/modelgen.component';
 import { QuickstartComponent } from './quickstart/quickstart.component';
 import { LibswaggerComponent } from './libswagger/libswagger.component';
 import { ApigenComponent } from './apigen/apigen.component';
@@ -16,6 +18,7 @@ import { TestingJsonComponent } from './servgen-specs/testing-json/testing-json.
 import { ServGenComponent } from './servgen/servgen.component';
 import { JsonSchemaComponent } from './json-schema/json-schema.component';
 import { ServiceJsonComponent } from './servgen-specs/service-json/service-json.component';
+import { SpecgenComponent } from './specgen/specgen.component';
 
 
 const sewingMachineRoutes: Routes = [
@@ -27,6 +30,9 @@ const sewingMachineRoutes: Routes = [
     {path: 'json-schema', component: JsonSchemaComponent, pathMatch: 'true'},
     {path: 'servgen-service', component: ServGenServiceComponent, pathMatch: 'true'},
     {path: 'servgen', component: ServGenComponent, pathMatch: 'true'},
+    {path: 'modelgen', component: ModelgenComponent, pathMatch: 'true'},
+    {path: 'appgen', component: AppgenComponent, pathMatch: 'true'},
+    {path: 'specgen', component: SpecgenComponent, pathMatch: 'true'},
     {path: 'servgen-overview', component: ServGenOverviewComponent, pathMatch: 'true'},
     {path: 'service-json', component: ServiceJsonComponent, pathMatch: 'true'},
     {path: 'class-json', component: ClassJsonComponent, pathMatch: 'true'},

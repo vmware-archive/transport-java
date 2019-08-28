@@ -52,7 +52,7 @@
     excluded):
 </p>
 
-<pre class="code"><code class="language-go" ngNonBindable>Usage: apigen &lt;options&gt; &lt;YAML prefix&gt;
+<pre class="code"><code class="language-json" ngNonBindable>Usage: apigen &lt;options&gt; &lt;YAML prefix&gt;
 
  -b, --root=$&#123;HOME&#125;/xxx                         Project Root path
  -c, --compatibility                            Compatibility Mode
@@ -339,7 +339,9 @@
     <tr>
         <td class="left flag">-x | --no-null-object  </td>
         <td class="flag-value">
-
+            Normally, when an API call returns nothing, APIGen creates an empty object and returns that. Sometimes, it is preferable
+            not to have anything returned (i.e. <code class="clr-code">undefined</code>) rather than a <code class="clr-code">null</code>
+            or an empty object, and this flag specifies doing just that.
         </td>
     </tr>
 

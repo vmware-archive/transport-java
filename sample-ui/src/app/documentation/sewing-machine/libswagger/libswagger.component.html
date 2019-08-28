@@ -479,23 +479,24 @@ func main() &#123;
 </h2>
 
 <p>
-    All successful responses from a Responder are described by a <code class="clr-code">Response</code> data structure:
+    All successful responses from a Responder are described by a <code class="clr-code">CommonType</code> data structure:
 </p>
 
-<pre class="code"><code class="language-go" ngNonBindable>type Responses struct &#123;
-    Category          string
-    IsArray           bool
-    IsMap             bool
-    Nested            string
-    Type              string
-    Format            string
-    Description       string
+<pre class="code"><code class="language-go" ngNonBindable>type CommonType struct &#123;
+    Container   string
+    Reference   string
+    Description string
+    Nested      string
+    Type        string
+    Format      string
+    Enum        []interface&#123;&#125;
+	OneOf       []string
 &#125;</code></pre>
 
 <p>
-    Consistent with all other data structures, <code class="clr-code">Type/Format</code> along with <code class="clr-code">Category</code> (Container) and Nested define the
-    <code class="clr-code">Response</code> payload. <code class="clr-code">IsArray</code> and <code class="clr-code">IsMap</code> are leftover legacy fields from an earlier implementation and their use is
-    deprecated.
+    Consistent with all other data structures, <code class="clr-code">Type/Format</code> along with <code class="clr-code">Container</code>
+    and <code class="clr-code">Nested</code> define the
+    <code class="clr-code">Response</code> payload.
 </p>
 
 <hr/>

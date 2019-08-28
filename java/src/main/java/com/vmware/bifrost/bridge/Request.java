@@ -5,15 +5,19 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+@SuppressWarnings("unchecked")
 public class Request<ReqP> extends AbstractFrame {
 
     @Getter @Setter
     private String targetUser;
+
     @Getter @Setter
     private String request;
+
     @Getter @Setter
     private String channel;
 
+    @Getter @Setter
     private Boolean isRejected = false;
 
     public Request() {}
@@ -23,7 +27,7 @@ public class Request<ReqP> extends AbstractFrame {
         this.request = request;
     }
 
-    // We need to store the requestr channel because we need to respond there
+    // We need to store the request channel because we need to respond there
     public Request(Integer version, UUID id, String request, ReqP payload, String channel) {
         this(version, id, request, payload);
         this.channel = channel;
@@ -49,11 +53,4 @@ public class Request<ReqP> extends AbstractFrame {
         return "Request ID: " + this.getId();
     }
 
-    public Boolean getRejected() {
-        return isRejected;
-    }
-
-    public void setRejected(Boolean rejected) {
-        isRejected = rejected;
-    }
 }

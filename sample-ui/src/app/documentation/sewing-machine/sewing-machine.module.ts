@@ -1,8 +1,10 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AppgenComponent } from './appgen/appgen.component';
 import { HomeComponent } from './home/home.component';
 import { SharedModule } from '../../shared/shared.module';
 import { ClarityModule } from '@clr/angular';
+import { ModelgenComponent } from './modelgen/modelgen.component';
 import { ServGenOverviewComponent } from './servgen-overview/servgen-overview.component';
 import { ServGenServiceComponent } from './servgen-service/servgen-service.component';
 import { ArraysJsonComponent } from './servgen-specs/arrays-json/arrays-json.component';
@@ -20,6 +22,7 @@ import { ApigenComponent } from './apigen/apigen.component';
 import { ApigenOutputComponent } from './apigen-output/apigen-output.component';
 import { ServGenComponent } from './servgen/servgen.component';
 import { JsonSchemaComponent } from './json-schema/json-schema.component';
+import { SpecgenComponent } from './specgen/specgen.component';
 
 @NgModule({
     declarations: [
@@ -40,6 +43,9 @@ import { JsonSchemaComponent } from './json-schema/json-schema.component';
         SetsJsonComponent,
         MocksJsonComponent,
         TestingJsonComponent,
+        ModelgenComponent,
+        AppgenComponent,
+        SpecgenComponent,
     ],
     imports: [
         CommonModule,
