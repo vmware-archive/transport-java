@@ -75,7 +75,9 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
             operation.setUri(request.getUri());
             operation.setBody(request.getBody());
             operation.setMethod(request.getMethod());
-            operation.setHeaders(request.getHeaders());
+            if (request.getHeaders() != null && request.getHeaders().keySet().size() > 0) {
+                operation.setHeaders(request.getHeaders());
+            }
             operation.setApiClass(request.getApiClass());
             operation.setId(req.getId());
             operation.setSentFrom(this.getName());
@@ -173,7 +175,9 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                 headers.add(key, opHeaders.get(key));
             }
         }
-        headers.setContentType(mediaType);
+        if (headers.getContentType() == null) {
+            headers.setContentType(mediaType);
+        }
         entity = new HttpEntity<>(operation.getBody(), headers);
 
         // required because PATCH causes a freakout.

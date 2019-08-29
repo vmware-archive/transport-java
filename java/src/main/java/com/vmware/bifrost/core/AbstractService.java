@@ -143,6 +143,10 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
                             return;
                         }
 
+                        // mark message with request ID.
+                        message.setId(requestType.getId());
+
+                        // handle service request.
                         this.handleServiceRequest(requestType, message);
 
                     } catch (ClassCastException cce) {
