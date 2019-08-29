@@ -84,6 +84,7 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
             restOp.setSentFrom(this.getName());
             restOp.setSuccessHandler(restResponse);
             restOp.setErrorHandler(restError);
+            restOp.setId(message.getId());
             this.restServiceRequest(restOp);
         };
     }
@@ -163,9 +164,10 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
      * @param message Message
      */
     protected void postError(String channel, RestError err, Message message) {
-        Gson gson = new Gson();
-        String serialized = gson.toJson(err);
-        this.bus.sendErrorMessageWithId(channel, serialized, message.getId());
+        Response resp = new Response(message.getId(), true);
+        resp.setErrorMessage(err.message);
+        resp.setErrorCode(err.errorCode);
+        this.bus.sendErrorMessageWithId(channel, resp, message.getId());
     }
 
     /**
