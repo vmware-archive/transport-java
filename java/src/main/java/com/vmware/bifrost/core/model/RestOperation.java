@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.springframework.http.HttpMethod;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -19,6 +20,12 @@ import java.util.function.Consumer;
  * @param <Resp> The Response Payload Type (what we're expecting back)
  */
 public class RestOperation<Payld, Resp> {
+
+    public RestOperation() {
+        // set content type to application/json by default
+        headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+    }
 
     @Getter @Setter
     private UUID id;
