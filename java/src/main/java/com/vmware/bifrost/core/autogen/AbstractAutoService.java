@@ -153,6 +153,9 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
     protected void postResponse(String channel, ResponseType response, Message message) {
         Gson gson = new Gson();
         response.setPayload(gson.toJson(response.getPayload()));    // we stringify the object before sending to modelgen
+
+        // make sure response ID matches message ID
+        response.setId(message.getId());
         this.bus.sendResponseMessageWithId(channel, response, message.getId());
     }
 
