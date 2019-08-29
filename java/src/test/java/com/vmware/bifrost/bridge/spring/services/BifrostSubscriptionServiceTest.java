@@ -3,7 +3,9 @@
  */
 package com.vmware.bifrost.bridge.spring.services;
 
+import com.vmware.bifrost.bridge.BridgeChannelMode;
 import com.vmware.bifrost.bridge.Response;
+import com.vmware.bifrost.bridge.util.BridgeUtil;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
@@ -120,6 +122,32 @@ public class BifrostSubscriptionServiceTest {
         Assert.assertEquals(subscriptionEvent.bifrostSubscription.channelName, this.channel);
         Assert.assertEquals(subscriptionEvent.subscribeEvent, this.subscribeEvent1);
     }
+
+   @Test
+   public void testAddSubscriptionToRequestOnlyChannel() {
+
+      this.bus.getApi().getMonitor().subscribe(message -> {
+         MonitorObject mo = (MonitorObject) message.getPayload();
+         if (mo.getType() == MonitorType.MonitorNewBridgeSubscription) {
+            this.monitorObject = mo;
+         }
+      });
+
+      BridgeUtil.setBridgeChannelMode(this.bus, this.channel, BridgeChannelMode.REQUESTS_ONLY);
+      subscriptionService.addSubscription("sub1", "session1", this.channel, this.destinationPrefix, this.subscribeEvent1);
+
+      Assert.assertFalse(subscriptionService.getOpenChannels().contains(this.channel));
+      Assert.assertEquals(subscriptionService.getSubscriptions().size(), 0);
+
+
+      Response<String> response = new Response<>(Integer.valueOf(1), UUID.randomUUID(), false);
+      response.setPayload("response1");
+
+      bus.sendResponseMessage(this.channel, response);
+      Mockito.verifyZeroInteractions(msgTmpl);
+
+      Assert.assertNull(this.monitorObject);
+   }
 
     @Test
     public void testExternalMessageBrokerChannel() {

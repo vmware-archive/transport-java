@@ -10,6 +10,8 @@ public class BridgeUtil {
 
    private final static String BRIDGE_CHANNEL_MODE_ATTR = "BRIDGE_CHANNEL_MODE";
 
+   private BridgeUtil() {}
+
    public static boolean setBridgeChannelMode(
          EventBus eventBus, String channelName, BridgeChannelMode bridgeChannelMode) {
 
