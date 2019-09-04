@@ -111,6 +111,7 @@ public class BifrostSubscriptionService extends Loggable
         }
 
         if (BridgeUtil.getBridgeChannelMode(bus, channelName) == BridgeChannelMode.REQUESTS_ONLY) {
+            logger.debug("Subscribing to REQUEST_ONLY channel: " + channelName);
             return;
         }
 
