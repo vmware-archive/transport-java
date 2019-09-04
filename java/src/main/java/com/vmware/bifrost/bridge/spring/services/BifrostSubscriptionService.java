@@ -1,7 +1,9 @@
 package com.vmware.bifrost.bridge.spring.services;
 
+import com.vmware.bifrost.bridge.BridgeChannelMode;
 import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
+import com.vmware.bifrost.bridge.util.BridgeUtil;
 import com.vmware.bifrost.bus.model.MessageHeaders;
 import com.vmware.bifrost.bus.model.MessageObject;
 import com.vmware.bifrost.bus.model.MessageType;
@@ -105,6 +107,11 @@ public class BifrostSubscriptionService extends Loggable
         if (openSubscriptions.containsKey(subscription.uniqueId)) {
             logger.info(String.format("[!] Bifrost Bus: subscription %s for channel %s already exists, ignoring",
                   subscription.uniqueId, channelName));
+            return;
+        }
+
+        if (BridgeUtil.getBridgeChannelMode(bus, channelName) == BridgeChannelMode.REQUESTS_ONLY) {
+            logger.debug("Subscribing to REQUEST_ONLY channel: " + channelName);
             return;
         }
 

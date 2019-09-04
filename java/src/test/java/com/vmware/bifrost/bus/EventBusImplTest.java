@@ -1900,7 +1900,11 @@ public class EventBusImplTest {
               new TestGalacticChannelConfig(mbc2.getMessageBrokerId(), "remote-channel-2");
 
         bus.registerMessageBroker(mbc1);
+
+        Assert.assertFalse(bus.isGalacticChannel("channel1"));
         Assert.assertTrue(bus.markChannelAsGalactic("channel1", gcc1));
+        Assert.assertTrue(bus.isGalacticChannel("channel1"));
+
         bus.registerMessageBroker(mbc2);
         bus.markChannelAsGalactic("channel2", gcc2);
 
@@ -1953,6 +1957,7 @@ public class EventBusImplTest {
         Assert.assertEquals(0, mbc1.subscriptions.size());
 
         bus.markChannelAsLocal("channel1");
+        Assert.assertFalse(bus.isGalacticChannel("channel1"));
         Assert.assertEquals(1, bus.getApi().getChannelRefCount("channel1"));
     }
 

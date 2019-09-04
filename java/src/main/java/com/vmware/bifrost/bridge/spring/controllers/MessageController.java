@@ -31,10 +31,14 @@ public class MessageController extends Loggable {
 
     @MessageMapping("/{topicDestination}")
     public void bridgeMessage(Request request, @DestinationVariable String topicDestination) throws RequestException {
-
         validateRequest(request);
         this.logTraceMessage("New inbound message received for channel: ", topicDestination);
-        bus.sendRequestMessage(topicDestination, request);
+        if (bus.isGalacticChannel(topicDestination)) {
+            // unwrap the payload and forward it to the external message broker
+            bus.sendRequestMessage(topicDestination, request.getPayload());
+        } else {
+            bus.sendRequestMessage(topicDestination, request);
+        }
     }
 
     @MessageMapping("/queue/{queueDestination}")

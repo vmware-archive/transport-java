@@ -752,6 +752,11 @@ public class EventBusImpl extends Loggable implements EventBus {
         return false;
     }
 
+    @Override
+    public boolean isGalacticChannel(String channel) {
+        return this.galacticChannelsMap.containsKey(channel);
+    }
+
     private  void init() {
         if (useJazz) {
             this.logBannerMessage("\uD83C\uDF08","Starting Bifrost");
