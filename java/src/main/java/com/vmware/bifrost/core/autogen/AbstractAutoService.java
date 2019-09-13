@@ -85,6 +85,12 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
             restOp.setSuccessHandler(restResponse);
             restOp.setErrorHandler(restError);
             restOp.setId(message.getId());
+
+            // if headers are provided in the bus message, set them in RestOperation
+            if (message.getHeaders() != null) {
+                restOp.setHeaders(message.getHeaders().getHeadersMap());
+            }
+
             this.restServiceRequest(restOp);
         };
     }

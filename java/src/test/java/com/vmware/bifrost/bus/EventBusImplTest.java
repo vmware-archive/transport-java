@@ -363,6 +363,8 @@ public class EventBusImplTest {
         TestObserver<Message> observer = chan.test();
 
         MessageHeaders headers = MessageHeaders.newInstance("test-header", "header-value");
+        Assert.assertTrue(headers.getHeadersMap().containsKey("test-header"));
+        Assert.assertEquals("header-value", headers.getHeadersMap().get("test-header"));
         this.bus.sendErrorMessageToTarget(
               "#local-channel", "chickie!", UUID.randomUUID(), "user-id", headers);
 

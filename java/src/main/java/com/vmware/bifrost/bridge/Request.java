@@ -18,6 +18,9 @@ public class Request<ReqP> extends AbstractFrame {
     private String channel;
 
     @Getter @Setter
+    private Object headers;
+
+    @Getter @Setter
     private Boolean isRejected = false;
 
     public Request() {}
