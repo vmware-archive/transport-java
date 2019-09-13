@@ -4,8 +4,12 @@
 package com.vmware.bifrost.core.util;
 
 import com.vmware.bifrost.bridge.Request;
+import com.vmware.bifrost.bus.model.MessageHeaders;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class ClassMapperTest {
 
@@ -33,5 +37,15 @@ public class ClassMapperTest {
             Assert.assertTrue(exp.getMessage().contains("not a valid Integer value"));
         }
 
+    }
+
+    @Test
+    public void testCastMessageHeaders() {
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("header-key", "header-value");
+
+        MessageHeaders messageHeaders = ClassMapper.CastMessageHeaders(map);
+        Assert.assertEquals("header-value", messageHeaders.getHeader("header-key"));
+        Assert.assertNull(ClassMapper.CastMessageHeaders(null));
     }
 }

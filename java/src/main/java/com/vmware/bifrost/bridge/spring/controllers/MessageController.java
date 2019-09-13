@@ -5,6 +5,8 @@ package com.vmware.bifrost.bridge.spring.controllers;
 
 import com.vmware.bifrost.bridge.RequestException;
 import com.vmware.bifrost.bridge.Response;
+import com.vmware.bifrost.bus.model.MessageHeaders;
+import com.vmware.bifrost.core.util.ClassMapper;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.bus.EventBus;
 import io.reactivex.exceptions.OnErrorNotImplementedException;
@@ -33,11 +35,12 @@ public class MessageController extends Loggable {
     public void bridgeMessage(Request request, @DestinationVariable String topicDestination) throws RequestException {
         validateRequest(request);
         this.logTraceMessage("New inbound message received for channel: ", topicDestination);
+        MessageHeaders messageHeaders = ClassMapper.CastMessageHeaders(request.getHeaders());
         if (bus.isGalacticChannel(topicDestination)) {
             // unwrap the payload and forward it to the external message broker
-            bus.sendRequestMessage(topicDestination, request.getPayload());
+            bus.sendRequestMessage(topicDestination, request.getPayload(), messageHeaders);
         } else {
-            bus.sendRequestMessage(topicDestination, request);
+            bus.sendRequestMessage(topicDestination, request, messageHeaders);
         }
     }
 
@@ -48,8 +51,10 @@ public class MessageController extends Loggable {
 
         validateRequest(request);
         request.setTargetUser(principal.getName());
+        MessageHeaders messageHeaders = ClassMapper.CastMessageHeaders(request.getHeaders());
         this.logTraceMessage("New inbound message received for private channel: ", queueDestination);
-        bus.sendRequestMessageToTarget(queueDestination, request, request.getId(), principal.getName());
+        bus.sendRequestMessageToTarget(
+                queueDestination, request, request.getId(), principal.getName(), messageHeaders);
     }
 
     @MessageExceptionHandler
