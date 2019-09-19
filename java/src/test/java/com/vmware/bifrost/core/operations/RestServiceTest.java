@@ -21,6 +21,10 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -649,5 +653,41 @@ public class RestServiceTest {
                             "Class Not Found Exception thrown for: http://localhost:9999/throw-exception", error.message);
                 }
         );
+    }
+
+    @Test
+    public void testHeaderMerge() throws Exception {
+        stubFor(get(urlEqualTo("/header"))
+                .withHeader("X-Custom-Header", containing("Custom Value"))
+                .withHeader("Content-Type", containing("application/json"))
+                .willReturn(aResponse()
+                    .withStatus(HttpStatus.OK.value())
+                    .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                    .withBody("success")));
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("X-Custom-Header", "Custom Value");
+
+        UUID id = UUID.randomUUID();
+        RestServiceRequest req = new RestServiceRequest();
+        req.setApiClass(String.class.getName());
+        req.setMethod(HttpMethod.GET);
+        req.setUri(new URI("http://localhost:9999/header"));
+        req.setSentFrom(this.getClass().getSimpleName());
+
+        Request<RestServiceRequest> request = new Request<>();
+        request.setId(id);
+        request.setChannel(CoreChannels.RestService);
+        request.setHeaders(headers);
+        request.setPayload(req);
+
+        this.bus.requestOnceWithId(
+                id,
+                CoreChannels.RestService,
+                request,
+                (Message message) -> {},
+                (Message message) -> {
+                    Assert.fail();
+                });
     }
 }

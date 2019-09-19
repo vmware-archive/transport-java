@@ -69,14 +69,18 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
 
         try {
             RestServiceRequest request = ClassMapper.CastPayload(RestServiceRequest.class, req);
+            request.setHeaders((Map<String, String>) req.getHeaders());
             this.logDebugMessage(this.getClass().getSimpleName()
                     + " handling Rest Request for URI: " + request.getUri().toASCIIString());
 
             operation.setUri(request.getUri());
             operation.setBody(request.getBody());
             operation.setMethod(request.getMethod());
+
             if (request.getHeaders() != null && request.getHeaders().keySet().size() > 0) {
-                operation.setHeaders(request.getHeaders());
+                request.getHeaders().forEach((key, value) -> {
+                    operation.getHeaders().merge(key, value, (v, v2) -> v2);
+                });
             }
             operation.setApiClass(request.getApiClass());
             operation.setId(req.getId());

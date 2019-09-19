@@ -52,6 +52,14 @@ public class MessageHeaders {
     }
 
     /**
+     * Return a map representation of all headers.
+     * @return the map containing all header items.
+     */
+    public Map<String, Object> getHeadersMap() {
+        return Collections.unmodifiableMap(headers);
+    }
+
+    /**
      * Create new MessageHeader instance.
      */
     public static MessageHeaders newInstance() {
