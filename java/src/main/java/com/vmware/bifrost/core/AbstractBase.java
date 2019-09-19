@@ -11,7 +11,6 @@ import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.model.RestServiceRequest;
-import com.vmware.bifrost.core.operations.RestService;
 import com.vmware.bifrost.core.util.Loggable;
 import com.vmware.bifrost.core.util.ServiceMethodLookupUtil;
 import org.springframework.beans.factory.annotation.Autowired;
