@@ -3,7 +3,7 @@
  */
 package com.vmware.bifrost.bus.store.model;
 
-public class BaseStoreResponse {
+public abstract class BaseStoreResponse {
 
     public final String storeId;
 
