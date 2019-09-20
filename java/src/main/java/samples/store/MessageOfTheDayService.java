@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/rest/samples/messageOfTheDay")
+@RequestMapping("/rest/samples/motd")
 @Service("MessageOfTheDayService")
 public class MessageOfTheDayService extends AbstractService<Request<MessageItem>, Response<MessageItem>> {
 
     private static final String MESSAGE_OF_THE_DAY = "messageOfTheDay";
 
     // define the channel the service operates on,.
-    public static final String Channel = "message-of-the-day-service";
+    public static final String Channel = "motd-service";
 
     @Autowired
     protected BusStoreApi storeManager;
