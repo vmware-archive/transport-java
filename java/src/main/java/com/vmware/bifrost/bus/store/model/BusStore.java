@@ -11,6 +11,11 @@ import io.reactivex.functions.Consumer;
 public interface BusStore<K, T> {
 
    /**
+    * Return the ID of the store.
+    */
+   String getStoreType();
+
+   /**
     * Place an object into the store, will broadcast to all subscribers online for state changes.
     * @param id, the id of your object.
     * @param value, the object to be added ot the store
@@ -37,6 +42,12 @@ public interface BusStore<K, T> {
     * @return {@link Map<K, T>}
     */
    Map<K, T> allValuesAsMap();
+
+   /**
+    * Get the store content at the current time.
+    * @return {@link StoreContent <K, T>}
+    */
+   StoreContent<K, T> getStoreContent();
 
    /**
     * Remove an object from the store.
@@ -116,4 +127,36 @@ public interface BusStore<K, T> {
     * Will wipe all data out, in case you need a clean state.
     */
    void reset();
+
+   /**
+    * Returns the current version of the store. Each item change increases the
+    * store's version with 1.
+    */
+   long getCurrentVersion();
+
+   /**
+    * The type of the store's values. The type will be used at runtime
+    * to deserialize item values coming from the UI. Should be set for
+    * galactic stores with non-string values.
+    * @param valueType
+    */
+   void setValueType(Class<T> valueType);
+
+   /**
+    * Returns the class type of the store values.
+    */
+   Class<T> getValueType();
+
+   /**
+    * The type of the store's keys. The type will be used at runtime
+    * to deserialize item keys coming from the UI. Should be set for
+    * galactic stores with non-string keys.
+    * @param keyType
+    */
+   void setKeyType(Class<K> keyType);
+
+   /**
+    * Returns the class type of the store keys.
+    */
+   Class<K> getKeyType();
 }

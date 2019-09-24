@@ -5,6 +5,8 @@ package com.vmware.bifrost.bus.store.model;
 
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
+import io.reactivex.functions.BiConsumer;
+import io.reactivex.functions.Consumer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +32,7 @@ public class BusStoreImplTest {
    private TestStoreItem item4;
    private TestStoreItem lastItem;
    private TestStoreItem lastRemovedItem;
+   private StoreStateChange<?, TestStoreItem, ?> lastStoreChange;
    private BusStore<UUID, TestStoreItem> store;
 
    @Before
@@ -151,6 +154,30 @@ public class BusStoreImplTest {
    }
 
    @Test
+   public void testGetStoreContent() {
+      Assert.assertTrue(store.getStoreContent().items.isEmpty());
+      Assert.assertEquals(store.getStoreContent().storeVersion, 0);
+
+      store.getBusStoreInitializer()
+            .add(item1.uuid, item1)
+            .add(item2.uuid, item2)
+            .done();
+
+      StoreContent content = store.getStoreContent();
+      verifyTestItemMap(content.items, item1, item2);
+
+      // Verify that getStoreContent returns a copy of the internal store map
+      // and changes to the copy don't affect the internal map.
+      content.items.put(item4.uuid, item4);
+      verifyTestItemMap(store.getStoreContent().items, item1, item2);
+
+      // Also verify that changes to the internal store map don't affect
+      // already returned getStoreContent results.
+      store.put(item3.uuid, item3, TestStoreItemState.ITEM_ADDED);
+      verifyTestItemMap(content.items, item1, item2, item4);
+   }
+
+   @Test
    public void testAllValues() {
       Assert.assertTrue(store.allValues().isEmpty());
 
@@ -215,6 +242,60 @@ public class BusStoreImplTest {
       Assert.assertEquals(lastRemovedItem, modifiedItem1);
    }
 
+
+   @Test
+   public void testOnChangeWithStoreStateChangeConsumer() {
+      store.getBusStoreInitializer()
+            .add(item1.uuid, item1)
+            .add(item2.uuid, item2)
+            .done();
+
+      Assert.assertNull(store.onChange(null));
+
+      StoreStream<TestStoreItem> allChangesStream = store.onChange(item1.uuid);
+
+      allChangesStream.subscribe((testStoreItem, stateChange) -> {
+         allStoreEvents++;
+         lastItem = testStoreItem;
+         lastStoreChange = stateChange;
+      });
+
+      store.onChange(item1.uuid, TestStoreItemState.ITEM_REMOVED).subscribe((testStoreItem, stateChange) -> {
+         storeRemoveEvents++;
+         lastRemovedItem = testStoreItem;
+         lastStoreChange = stateChange;
+      });
+
+      Assert.assertEquals(store.getCurrentVersion(), 1);
+
+      TestStoreItem modifiedItem1 = new TestStoreItem("modifiedItem", 10);
+      store.put(item1.uuid, modifiedItem1, TestStoreItemState.ITEM_UPDATED);
+
+      Assert.assertEquals(allStoreEvents, 1);
+      Assert.assertEquals(lastItem, modifiedItem1);
+      Assert.assertEquals(lastStoreChange.getObjectId(), item1.uuid);
+      Assert.assertEquals(lastStoreChange.getType(), TestStoreItemState.ITEM_UPDATED);
+      Assert.assertEquals(lastStoreChange.getStoreVersion(), 2);
+      Assert.assertEquals(store.getCurrentVersion(), 2);
+
+      store.remove(item2.uuid, TestStoreItemState.ITEM_REMOVED);
+
+      Assert.assertEquals(allStoreEvents, 1);
+      Assert.assertEquals(storeRemoveEvents, 0);
+      Assert.assertEquals(store.getCurrentVersion(), 3);
+
+      allChangesStream.unsubscribe();
+      store.remove(item1.uuid, TestStoreItemState.ITEM_REMOVED);
+
+      Assert.assertEquals(storeRemoveEvents, 1);
+      Assert.assertEquals(lastRemovedItem, modifiedItem1);
+
+      Assert.assertEquals(lastStoreChange.getObjectId(), item1.uuid);
+      Assert.assertEquals(lastStoreChange.getType(), TestStoreItemState.ITEM_REMOVED);
+      Assert.assertEquals(lastStoreChange.getStoreVersion(), 4);
+      Assert.assertEquals(store.getCurrentVersion(), 4);
+   }
+
    @Test
    public void testOnAllChanges() {
       store.initialize();
@@ -225,7 +306,8 @@ public class BusStoreImplTest {
          this.lastItem = testStoreItem;
       });
 
-      StoreStream<TestStoreItem> addItemsStream = store.onAllChanges(TestStoreItemState.ITEM_ADDED);
+      StoreStream<TestStoreItem> addItemsStream =
+            store.onAllChanges(TestStoreItemState.ITEM_ADDED);
       addItemsStream.subscribe(testStoreItem -> {
          storeAddEvents++;
       });
@@ -261,7 +343,68 @@ public class BusStoreImplTest {
       Assert.assertEquals(storeUpdateEvents, 1);
 
       try {
-         store.onAllChanges().subscribe(null);
+         store.onAllChanges().subscribe((Consumer<TestStoreItem>)null);
+      } catch (Exception ex) {
+         lastException = ex;
+      }
+      Assert.assertNotNull(lastException);
+      Assert.assertEquals(lastException.getMessage(), "Invalid store stream handler.");
+   }
+
+   @Test
+   public void testOnAllChangesWithStoreStateChangeConsumer() {
+      store.initialize();
+
+      // All changes handler
+      store.onAllChanges().subscribe( (testStoreItem, storeChange)-> {
+         allStoreEvents++;
+         this.lastItem = testStoreItem;
+         this.lastStoreChange = storeChange;
+      });
+
+      StoreStream<TestStoreItem> addItemsStream =
+            store.onAllChanges(TestStoreItemState.ITEM_ADDED);
+      addItemsStream.subscribe((testStoreItem, storeChange) -> {
+         storeAddEvents++;
+         this.lastStoreChange = storeChange;
+      });
+      store.onAllChanges(TestStoreItemState.ITEM_UPDATED, TestStoreItemState.ITEM_REMOVED)
+            .subscribe((testStoreItem, storeChange) -> {
+               storeUpdateEvents++;
+               this.lastStoreChange = storeChange;
+            });
+
+      Assert.assertEquals(store.getCurrentVersion(), 1);
+
+      store.put(item1.uuid, item1, TestStoreItemState.ITEM_ADDED);
+      store.put(null, item1, TestStoreItemState.ITEM_ADDED);
+
+      Assert.assertEquals(store.getCurrentVersion(), 2);
+      Assert.assertEquals(lastStoreChange.getObjectId(), item1.uuid);
+      Assert.assertEquals(lastStoreChange.getType(), TestStoreItemState.ITEM_ADDED);
+      Assert.assertEquals(lastStoreChange.getStoreVersion(), 2);
+      Assert.assertFalse(lastStoreChange.isDeleteChange());
+
+      Assert.assertEquals(allStoreEvents, 1);
+      Assert.assertEquals(storeAddEvents, 1);
+      Assert.assertEquals(storeUpdateEvents, 0);
+      Assert.assertEquals(lastItem, item1);
+
+      store.remove(item1.uuid, TestStoreItemState.ITEM_REMOVED);
+
+      Assert.assertEquals(lastStoreChange.getObjectId(), item1.uuid);
+      Assert.assertEquals(lastStoreChange.getType(), TestStoreItemState.ITEM_REMOVED);
+      Assert.assertEquals(lastStoreChange.getStoreVersion(), 3);
+      Assert.assertTrue(lastStoreChange.isDeleteChange());
+
+      Assert.assertEquals(allStoreEvents, 2);
+      Assert.assertEquals(storeAddEvents, 1);
+      Assert.assertEquals(storeUpdateEvents, 1);
+      Assert.assertEquals(lastItem, item1);
+
+      try {
+         store.onAllChanges().subscribe(
+               (BiConsumer<TestStoreItem, StoreStateChange<?, TestStoreItem, ?>>)null);
       } catch (Exception ex) {
          lastException = ex;
       }

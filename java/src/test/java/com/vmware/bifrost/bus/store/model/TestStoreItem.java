@@ -11,7 +11,11 @@ public class TestStoreItem {
 
    public int count = 0;
 
-   public final UUID uuid;
+   public UUID uuid;
+
+   public TestStoreItem() {
+
+   }
 
    public TestStoreItem(String name, int count) {
       this.uuid = UUID.randomUUID();

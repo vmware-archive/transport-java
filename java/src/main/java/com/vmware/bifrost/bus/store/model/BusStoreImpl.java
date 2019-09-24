@@ -14,9 +14,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.reactivex.functions.Consumer;
 import io.reactivex.Observable;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
 
 public class BusStoreImpl<K, T> extends Loggable implements BusStore<K, T> {
@@ -31,6 +34,14 @@ public class BusStoreImpl<K, T> extends Loggable implements BusStore<K, T> {
    private final String cacheReadyChannelName;
 
    private final AtomicBoolean isCacheInitialized = new AtomicBoolean(false);
+
+   private final AtomicLong storeVersion = new AtomicLong(0);
+
+   @Getter @Setter
+   private Class<T> valueType;
+
+   @Getter @Setter
+   private Class<K> keyType;
 
    public BusStoreImpl(EventBus eventBus, String storeType) {
       this.eventBus = eventBus;
@@ -51,12 +62,21 @@ public class BusStoreImpl<K, T> extends Loggable implements BusStore<K, T> {
    }
 
    @Override
+   public String getStoreType() {
+      return storeType;
+   }
+
+   @Override
    public <State> void put(K id, T value, State state) {
       if (id == null) {
          return;
       }
-      this.cache.put(id, value);
-      this.sendChangeBroadcast(state, id, value);
+      long version;
+      synchronized (this.cache) {
+         this.cache.put(id, value);
+         version = this.storeVersion.incrementAndGet();
+      }
+      this.sendChangeBroadcast(state, id, value, version, false);
       this.logDebugMessage(String.format("Store: [%s] added new object with id: %s", storeType, id));
    }
 
@@ -79,13 +99,27 @@ public class BusStoreImpl<K, T> extends Loggable implements BusStore<K, T> {
    }
 
    @Override
+   public StoreContent<K, T> getStoreContent() {
+      synchronized (this.cache) {
+         return new StoreContent<>(this.getCurrentVersion(), allValuesAsMap());
+      }
+   }
+
+   @Override
    public <State> boolean remove(K id, State state) {
       if (id == null) {
          return false;
       }
-      T obj = this.cache.remove(id);
+      T obj;
+      long version = 0;
+      synchronized (this.cache) {
+         obj = this.cache.remove(id);
+         if (obj != null) {
+            version = this.storeVersion.incrementAndGet();
+         }
+      }
       if (obj != null) {
-         this.sendChangeBroadcast(state, id, obj);
+         this.sendChangeBroadcast(state, id, obj, version, true);
          this.eventBus.getApi().complete(getObjectChannelName(id), this.storeType);
          this.logDebugMessage(String.format(" Store: [%s] Remove object with id %s", this.storeType, id.toString()));
          return true;
@@ -176,9 +210,9 @@ public class BusStoreImpl<K, T> extends Loggable implements BusStore<K, T> {
       final Observable<Message> cacheErrorChannel =
             this.eventBus.getApi().getErrorChannel(getObjectChannelName(id), getName());
 
-      final Observable<StoreStateChange<State, T, K>> stream =
+      final Observable<StoreStateChange<?, T, ?>> stream =
             Observable.merge(cacheStreamChannel, cacheErrorChannel)
-                  .map( (Message msg) -> (StoreStateChange<State, T, K>) msg.getPayload());
+                  .map( (Message msg) -> (StoreStateChange<?, T, K>) msg.getPayload());
 
       return new StoreStreamImpl<>(filterByChangeType(stream, stateChangeType));
    }
@@ -190,9 +224,9 @@ public class BusStoreImpl<K, T> extends Loggable implements BusStore<K, T> {
       final Observable<Message> cacheErrorChannel =
             this.eventBus.getApi().getErrorChannel(this.cacheStreamChannelName, getName());
 
-      final Observable<StoreStateChange<State, T, K>> stream =
+      final Observable<StoreStateChange<?, T, ?>> stream =
             Observable.merge(cacheStreamChannel, cacheErrorChannel)
-                  .map( (Message msg) -> (StoreStateChange<State, T, K>) msg.getPayload());
+                  .map( (Message msg) -> (StoreStateChange<?, T, K>) msg.getPayload());
 
       return new StoreStreamImpl<>(filterByChangeType(stream, stateChangeType));
    }
@@ -218,6 +252,7 @@ public class BusStoreImpl<K, T> extends Loggable implements BusStore<K, T> {
    public synchronized void initialize() {
       if (!this.isCacheInitialized.getAndSet(true)) {
          infoMsg(String.format("Store: [%s] Initialized!", this.storeType));
+         storeVersion.incrementAndGet();
          sendResponseMessage(this.cacheReadyChannelName, this.allValuesAsMap());
       }
    }
@@ -229,18 +264,24 @@ public class BusStoreImpl<K, T> extends Loggable implements BusStore<K, T> {
       infoMsg(String.format("Store: [%s] has been reset. All data wiped", this.storeType));
    }
 
-   private <State> Observable<T> filterByChangeType(
-         Observable<StoreStateChange<State, T, K>> stream, State... stateChangeType) {
-
-      return stream.filter((StoreStateChange<State, T, K> state) ->
-            ArrayUtils.isEmpty(stateChangeType) ||
-                  ArrayUtils.indexOf(stateChangeType, state.getType()) >= 0
-      ).map((StoreStateChange<State, T, K> state) -> state.getValue());
+   @Override
+   public long getCurrentVersion() {
+      return storeVersion.get();
    }
 
-   private <C> void sendChangeBroadcast(C changeType, K id, T value) {
+   private <State> Observable<StoreStateChange<?, T, ?>> filterByChangeType(
+         Observable<StoreStateChange<?, T, ?>> stream, State... stateChangeType) {
 
-      final StoreStateChange<C, T, K> stateChange = new StoreStateChange<>(id, changeType, value);
+      return stream.filter((StoreStateChange<?, T, ?> state) ->
+            ArrayUtils.isEmpty(stateChangeType) ||
+                  ArrayUtils.indexOf(stateChangeType, state.getType()) >= 0
+      );
+   }
+
+   private <C> void sendChangeBroadcast(C changeType, K id, T value, long storeVersion, boolean isDeleteChange) {
+
+      final StoreStateChange<C, T, K> stateChange =
+            new StoreStateChange<>(id, changeType, value, storeVersion, isDeleteChange);
 
       sendResponseMessage(this.cacheStreamChannelName, stateChange);
       sendResponseMessage(this.getObjectChannelName(stateChange.getObjectId()), stateChange);
