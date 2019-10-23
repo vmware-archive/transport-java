@@ -9,7 +9,13 @@ import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.store.BusStoreApi;
 import com.vmware.bifrost.bus.store.StoreManager;
+import com.vmware.bifrost.bus.model.MessageObjectHandlerConfig;
+import com.vmware.bifrost.bus.store.model.BusStore;
+import com.vmware.bifrost.core.AbstractBase;
 import com.vmware.bifrost.core.CoreChannels;
+import com.vmware.bifrost.core.CoreStoreKeys;
+import com.vmware.bifrost.core.CoreStores;
+import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.model.RestServiceRequest;
@@ -18,6 +24,8 @@ import com.vmware.bifrost.core.util.RestControllerReflection;
 import com.vmware.bifrost.core.util.ServiceMethodLookupUtil;
 import com.vmware.bifrost.core.util.URIMatcher;
 import org.hamcrest.Matchers;
+import io.reactivex.Observable;
+import io.reactivex.observers.TestObserver;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,11 +45,30 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+// create a mock consumer of the rest service to test it operates over the bus.
+
+class FakeRestUser extends AbstractBase {
+
+    FakeRestUser(EventBus bus) {
+        this.bus = bus;
+    }
+
+    @Override
+    public void initialize() {
+        // who cares.
+    }
+
+    public void doTheRequest(RestOperation operation) {
+        this.restServiceRequest(operation);
+    }
+}
 
 
 @RunWith(SpringRunner.class)
@@ -93,6 +120,110 @@ public class RestServiceTest {
     private String mapResponseToString(Object object) throws Exception {
         return objectMapper.writeValueAsString(object);
     }
+
+    @Test
+    public void testModifyBaseHost() throws Exception {
+
+        BusStore<String, String> baseHostStore = this.bus.getStoreManager().getStore(CoreStores.RestServiceHostConfig);
+
+        // override the base host to be localhost, so the test passes, otherwise it will fail because of the bad host.
+        baseHostStore.put(CoreStoreKeys.RestServiceBaseHost, "localhost", null);
+
+        stubFor(get(urlEqualTo("/something"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody(mapResponseToString(buildMockResponseA()))));
+
+
+        RestOperation<Object, MockResponseA> operation = new RestOperation<>();
+        operation.setApiClass(MockResponseA.class.getName());
+
+        // define a bad host.
+        operation.setUri(new URI("http://guaranteed-to-fail:9999/something"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (MockResponseA response) -> {
+                    assertThat(response.getName()).isEqualTo("Prettiest Baby");
+                    assertThat(response.getValue()).isEqualTo("Melody");
+                }
+        );
+
+        restService.restServiceRequest(operation);
+
+    }
+
+
+    @Test
+    public void testModifyBasePort() throws Exception {
+
+        BusStore<String, String> baseHostStore = this.bus.getStoreManager().getStore(CoreStores.RestServiceHostConfig);
+
+        // override the port to be the correct port, so the test passes, otherwise it will fail.
+        baseHostStore.put(CoreStoreKeys.RestServiceBasePort, "9999", null);
+
+        stubFor(get(urlEqualTo("/something"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody(mapResponseToString(buildMockResponseA()))));
+
+
+        RestOperation<Object, MockResponseA> operation = new RestOperation<>();
+        operation.setApiClass(MockResponseA.class.getName());
+
+        // define a bad port
+        operation.setUri(new URI("http://localhost:91231231412/something"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (MockResponseA response) -> {
+                    assertThat(response.getName()).isEqualTo("Prettiest Baby");
+                    assertThat(response.getValue()).isEqualTo("Melody");
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
+    public void testBusRequestHandling() throws Exception {
+
+        stubFor(get(urlEqualTo("/bus-test"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody(mapResponseToString(buildMockResponseB()))));
+
+        FakeRestUser fakey = new FakeRestUser(bus);
+        Observable<Message> chan = this.bus.getApi().getChannel(CoreChannels.RestService, "rest-test");
+        TestObserver<Message> observer = chan.test();
+
+
+        RestOperation<Object, MockResponseB> operation = new RestOperation<>();
+        operation.setId(UUID.randomUUID());
+        operation.setApiClass(MockResponseB.class.getName());
+        operation.setUri(new URI("http://localhost:9999/bus-test"));
+        operation.setMethod(HttpMethod.GET);
+
+        operation.setSuccessHandler(
+                (MockResponseB response) -> {
+                    // close, so the test can complete.
+                    bus.getApi().close(CoreChannels.RestService, "rest-test");
+                }
+        );
+
+        fakey.doTheRequest(operation);
+
+        // wait for 10ms or close.
+        observer.await(10, TimeUnit.MILLISECONDS);
+        assertThat(observer.valueCount()).isEqualTo(2);
+
+        Message<Response<MockResponseB>> msg = observer.values().get(0); // LIFO
+        MockResponseB mresp = msg.getPayload().getPayload();
+        assertThat(mresp.getValue()).isEqualTo("Pizza");
+
+    }
+
 
     @Test
     public void testGet() throws Exception {
@@ -541,6 +672,26 @@ public class RestServiceTest {
     }
 
     @Test
+    public void testOperationInvalidThrowsError() throws Exception {
+
+        stubFor(get(urlEqualTo("/missing-api-class"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody("somethingFancy")));
+
+        RestOperation<Object, String> operation = new RestOperation<>();
+        operation.setUri(new URI("http://localhost:9999/bad_operation"));
+        operation.setErrorHandler(
+                (RestError e) -> {
+                    Assert.assertEquals(new Integer(500), e.errorCode);
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
+    @Test
     public void testOperatesOverBus() throws Exception {
 
         stubFor(get(urlEqualTo("/bus-uri"))
@@ -661,9 +812,9 @@ public class RestServiceTest {
                 .withHeader("X-Custom-Header", containing("Custom Value"))
                 .withHeader("Content-Type", containing("application/json"))
                 .willReturn(aResponse()
-                    .withStatus(HttpStatus.OK.value())
-                    .withHeader("Content-Type", APPLICATION_JSON_VALUE)
-                    .withBody("success")));
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody("success")));
 
         Map<String, String> headers = new HashMap<>();
         headers.put("X-Custom-Header", "Custom Value");

@@ -181,10 +181,11 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
         } catch (Exception e) {
             this.logErrorMessage("Exception when Locating & Invoking RestController ", e.toString());
             if (operation != null) {
-                operation.getErrorHandler().accept(
-                        new RestError("Exception thrown for: "
-                                + operation.getUri().toString(), 500)
-                );
+                if(operation.getErrorHandler() != null) {
+                    operation.getErrorHandler().accept(
+                            new RestError("Exception when Locating & Invoking RestController", 500)
+                    );
+                }
             }
         }
 
