@@ -7,7 +7,7 @@ import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.store.model.BusStore;
 import com.vmware.bifrost.bus.store.model.BusStoreImpl;
 import com.vmware.bifrost.bus.store.model.StoreReadyResult;
-import com.vmware.bifrost.core.util.Loggable;
+import com.vmware.bifrost.core.AbstractBase;
 import io.reactivex.functions.Consumer;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,16 +19,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Component("storeManager")
 @SuppressWarnings("unchecked")
-public class StoreManager extends Loggable implements BusStoreApi {
+public class StoreManager extends AbstractBase implements BusStoreApi {
 
    private final Map<String, Object> storeMap;
+   private EventBus bus;
 
-   private final EventBus eventBus;
 
    @Autowired
-   public StoreManager(EventBus eventBus) {
-      this.eventBus = eventBus;
+   public StoreManager(EventBus bus) {
       this.storeMap = new ConcurrentHashMap<>();
+      this.bus = bus;
+   }
+
+   @Override
+   public void initialize() {
+      // empty for now, just fulfilling contract with AbstractBase.
    }
 
    @Override
@@ -40,8 +45,9 @@ public class StoreManager extends Loggable implements BusStoreApi {
          return (BusStore<K, T>) storeMap.get(storeType);
       }
 
-      BusStore<K, T> busStore = new BusStoreImpl<>(this.eventBus, storeType);
+      BusStore<K, T> busStore = new BusStoreImpl<>(this.bus, storeType);
       storeMap.put(storeType, busStore);
+
       return busStore;
    }
 

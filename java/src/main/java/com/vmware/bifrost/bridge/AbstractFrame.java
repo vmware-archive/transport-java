@@ -8,19 +8,19 @@ import lombok.Setter;
 public abstract class AbstractFrame<ReqP> {
 
     @Getter @Setter
-    protected UUID id;
+    public UUID id;
 
     @Getter @Setter
-    protected Date created;
+    public Date created;
 
     @Getter @Setter
-    protected Integer version;
+    public Integer version;
 
     @Getter @Setter
-    protected ReqP payload;
+    public ReqP payload;
 
     @Getter @Setter
-    protected String message;
+    public String message;
 
     public AbstractFrame() { }
 
