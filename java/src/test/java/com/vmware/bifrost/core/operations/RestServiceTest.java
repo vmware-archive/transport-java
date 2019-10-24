@@ -68,6 +68,11 @@ class FakeRestUser extends AbstractBase {
     public void doTheRequest(RestOperation operation) {
         this.restServiceRequest(operation);
     }
+
+    public void overrideHostandPost() {
+        // set correct port.
+        this.setGlobalRestServiceHostOptions("localhost", "9999");
+    }
 }
 
 
@@ -184,6 +189,36 @@ public class RestServiceTest {
 
         restService.restServiceRequest(operation);
     }
+
+    @Test
+    public void testModifyBasePortAndHostViaAbstractBase() throws Exception {
+
+        FakeRestUser fu = new FakeRestUser(this.bus);
+        fu.overrideHostandPost();
+
+        stubFor(get(urlEqualTo("/something"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", APPLICATION_JSON_VALUE)
+                        .withBody(mapResponseToString(buildMockResponseA()))));
+
+
+        RestOperation<Object, MockResponseA> operation = new RestOperation<>();
+        operation.setApiClass(MockResponseA.class.getName());
+
+        // define a bad port
+        operation.setUri(new URI("http://going-to-fail:8899/something"));
+        operation.setMethod(HttpMethod.GET);
+        operation.setSuccessHandler(
+                (MockResponseA response) -> {
+                    assertThat(response.getName()).isEqualTo("Prettiest Baby");
+                    assertThat(response.getValue()).isEqualTo("Melody");
+                }
+        );
+
+        restService.restServiceRequest(operation);
+    }
+
 
     @Test
     public void testBusRequestHandling() throws Exception {
