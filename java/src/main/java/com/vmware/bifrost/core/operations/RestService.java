@@ -55,6 +55,7 @@ import java.util.function.Consumer;
 public class RestService extends AbstractService<Request<RestServiceRequest>, Response> {
     private final URIMatcher uriMatcher;
     private final RestControllerInvoker controllerInvoker;
+    private BusStore<String, String> baseHostStore;
 
     @Autowired
     public RestService(URIMatcher uriMatcher, RestControllerInvoker controllerInvoker) {
@@ -66,16 +67,22 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
     @PostConstruct
     public void setUp() {
         this.storeManager.createStore(CoreStores.ServiceWideHeaders);
+		baseHostStore = this.storeManager.createStore(CoreStores.RestServiceHostConfig);
+    
     }
 
     private String getBaseHost() {
         return baseHostStore.get(CoreStoreKeys.RestServiceBaseHost);
     }
 
+    private String getBasePort() {
+        return baseHostStore.get(CoreStoreKeys.RestServiceBasePort);
+    }
+
     /**
      * Handle bus request.
      *
-     * @param req RestServiceRequest instance sent on busœ
+     * @param req RestServiceRequest instance sent on bus
      */
     @Override
     protected void handleServiceRequest(Request req, Message message) {

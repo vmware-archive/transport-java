@@ -5,7 +5,6 @@ package com.vmware.bifrost.bus.store.model;
 
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
-import com.vmware.bifrost.core.AbstractBase;
 import com.vmware.bifrost.core.util.Loggable;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
 
-public class BusStoreImpl<K, T> extends AbstractBase implements BusStore<K, T> {
+public class BusStoreImpl<K, T> extends Loggable implements BusStore<K, T> {
 
    private final UUID uuid;
    private final String storeType;
@@ -49,7 +48,6 @@ public class BusStoreImpl<K, T> extends AbstractBase implements BusStore<K, T> {
       this.uuid = UUID.randomUUID();
       this.storeType = storeType;
       this.cache = new ConcurrentHashMap<>();
-      this.bus = eventBus;
       this.cacheStreamChannelName = "stores__store-change-" + this.uuid + "-" + this.storeType;
       this.cacheMutationChannelName = "stores__store-mutation-" + this.uuid + "-" + this.storeType;
       this.cacheReadyChannelName = "stores__store-ready-" + this.uuid + "-" + this.storeType;

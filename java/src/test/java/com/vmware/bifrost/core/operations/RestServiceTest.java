@@ -88,8 +88,8 @@ class FakeRestUser extends AbstractBase {
         URIMatcher.class,
         RestTemplate.class,
         EventBusImpl.class,
-        StoreManager.class,
-        ServiceMethodLookupUtil.class
+        ServiceMethodLookupUtil.class,
+        StoreManager.class
 })
 public class RestServiceTest {
 
