@@ -1,3 +1,6 @@
+/*
+ * Copyright(c) VMware Inc. 2019
+ */
 package com.vmware.bifrost.core;
 
 public class CoreChannels {

@@ -10,8 +10,8 @@ import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
 import com.vmware.bifrost.core.CoreChannels;
+import com.vmware.bifrost.core.CoreStores;
 import com.vmware.bifrost.core.model.RestServiceRequest;
-import com.vmware.bifrost.core.model.RestServiceResponse;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.util.ClassMapper;
@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.*;
 
+import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -44,7 +45,6 @@ import java.util.function.Consumer;
 @Service
 @SuppressWarnings("unchecked")
 public class RestService extends AbstractService<Request<RestServiceRequest>, Response> {
-
     private final URIMatcher uriMatcher;
     private final RestControllerInvoker controllerInvoker;
     JsonParser parser;
@@ -54,7 +54,11 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
         super(CoreChannels.RestService);
         this.uriMatcher = uriMatcher;
         this.controllerInvoker = controllerInvoker;
-        parser = new JsonParser();
+    }
+
+    @PostConstruct
+    public void setUp() {
+        this.storeManager.createStore(CoreStores.ServiceWideHeaders);
     }
 
     /**

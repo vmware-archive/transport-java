@@ -7,6 +7,8 @@ import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
+import com.vmware.bifrost.bus.store.BusStoreApi;
+import com.vmware.bifrost.bus.store.StoreManager;
 import com.vmware.bifrost.core.util.ServiceMethodLookupUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,6 +39,7 @@ import java.util.UUID;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {
         EventBusImpl.class,
+        StoreManager.class,
         VmService.class,
         ServiceMethodLookupUtil.class
 })
@@ -45,6 +48,9 @@ public class VmServiceTest {
 
    @Autowired
    private EventBus bus;
+
+   @Autowired
+   private BusStoreApi storeManager;
 
    private int errorCount;
    private Object lastError;
