@@ -7,6 +7,8 @@ import com.vmware.bifrost.bridge.spring.BifrostEnabled;
 import com.vmware.bifrost.bridge.spring.BifrostService;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.store.BusStoreApi;
+import com.vmware.bifrost.bus.store.model.BusStore;
 import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
@@ -21,6 +23,7 @@ import org.springframework.http.HttpMethod;
 
 import java.net.URI;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -34,6 +37,9 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
 
     @Autowired
     protected EventBus bus;
+
+    @Autowired
+    protected BusStoreApi storeManager;
 
     @Autowired
     protected ApplicationContext context;
@@ -71,6 +77,23 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
             Consumer<Response<RestError>> errorHandler
     ) {
 
+        BusStore<String, Map<String, String>> serviceWideHeadersStore =
+                storeManager.getStore(CoreStores.ServiceWideHeaders);
+        if (serviceWideHeadersStore.get(getName()) == null) {
+            serviceWideHeadersStore.put(getName(), new HashMap<>(), CoreStoreStates.ServiceHeadersUpdated);
+        }
+
+        Map serviceHeadersMap = serviceWideHeadersStore.get(getName());
+
+        // apply service-wide headers
+        if (headers == null) {
+            headers = new HashMap<>();
+        }
+
+        for (Object key : serviceHeadersMap.keySet()) {
+            headers.merge((String) key, (String) serviceHeadersMap.get(key), (v, v2) -> v2);
+        }
+
         // set defaults
         RestServiceRequest req = new RestServiceRequest();
         req.setApiClass(responseApiClass);
@@ -82,6 +105,7 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
 
         Request request = new Request<Req>();
         request.setId(id);
+        request.setHeaders(headers);
         request.setPayload(req);
         request.setRequest(method.toString());
         request.setChannel(CoreChannels.RestService);
@@ -184,5 +208,16 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
     ) {
 
        callService(UUID.randomUUID(), channelName, request, successHandler, errorHandler);
+    }
+
+    /**
+     * Set global headers for the implementation class. This means, once the class invokes
+     * a REST call through restServiceRequest, the headers set within this class will be
+     * applied to the request.
+     * @param headersMap
+     */
+    public void setHeaders(Map<String, String> headersMap) {
+        BusStore<String, Map<String, String>> busStore = storeManager.getStore(CoreStores.ServiceWideHeaders);
+        busStore.put(getName(), headersMap, CoreStoreStates.ServiceHeadersUpdated);
     }
 }

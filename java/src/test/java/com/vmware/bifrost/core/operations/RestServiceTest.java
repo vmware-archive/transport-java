@@ -4,27 +4,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
-import com.vmware.bifrost.bus.BusTransaction;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.store.BusStoreApi;
+import com.vmware.bifrost.bus.store.StoreManager;
 import com.vmware.bifrost.core.CoreChannels;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.RestOperation;
 import com.vmware.bifrost.core.model.RestServiceRequest;
-import com.vmware.bifrost.core.model.RestServiceResponse;
 import com.vmware.bifrost.core.util.RestControllerInvoker;
 import com.vmware.bifrost.core.util.RestControllerReflection;
 import com.vmware.bifrost.core.util.ServiceMethodLookupUtil;
 import com.vmware.bifrost.core.util.URIMatcher;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -59,6 +56,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
         URIMatcher.class,
         RestTemplate.class,
         EventBusImpl.class,
+        StoreManager.class,
         ServiceMethodLookupUtil.class
 })
 public class RestServiceTest {
@@ -75,6 +73,8 @@ public class RestServiceTest {
     @Autowired
     private EventBus bus;
 
+    @Autowired
+    private BusStoreApi storeManager;
 
     private MockResponseA buildMockResponseA() {
         MockResponseA mockResponseA = new MockResponseA();
@@ -689,5 +689,36 @@ public class RestServiceTest {
                 (Message message) -> {
                     Assert.fail();
                 });
+    }
+
+    @Test
+    public void testBadRequest() throws Exception {
+        stubFor(get(urlEqualTo("/bifrost"))
+                .willReturn(aResponse().withStatus(org.apache.http.HttpStatus.SC_OK)));
+
+        UUID id = UUID.randomUUID();
+        RestServiceRequest restRequest = new RestServiceRequest();
+        restRequest.setApiClass("BadApiClass");
+        restRequest.setMethod(HttpMethod.POST);
+        restRequest.setSentFrom("no-body");
+        restRequest.setUri(new URI("http://localhost:9999/bifrost"));
+
+        Request<String> request = new Request<>();
+        request.setId(id);
+        request.setPayload("I am a bad request!");
+        request.setChannel(CoreChannels.RestService);
+
+        this.bus.requestOnceWithId(
+                id,
+                CoreChannels.RestService,
+                request,
+                (Message message) -> {
+                    System.out.println(message.getPayloadClass().getName());
+                    Response response = (Response) message.getPayload();
+                    Assert.assertTrue(response.isError());
+                    Assert.assertEquals(500, response.getErrorCode());
+                    Assert.assertThat(response.getErrorMessage(), Matchers.containsString("Exception thrown"));
+                },
+                (Message message) -> {});
     }
 }

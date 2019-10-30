@@ -11,6 +11,8 @@ import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.EventBus;
 import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.store.BusStoreApi;
+import com.vmware.bifrost.bus.store.StoreManager;
 import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.*;
@@ -35,6 +37,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -55,6 +59,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
         RestTemplate.class,
         TestService.class,
         EventBusImpl.class,
+        StoreManager.class,
         RestService.class
 })
 public class TestServiceTest {
@@ -64,6 +69,9 @@ public class TestServiceTest {
 
     @Autowired
     EventBus bus;
+
+    @Autowired
+    BusStoreApi storeManager;
 
     @Autowired
     ApplicationContext context;
@@ -366,6 +374,45 @@ public class TestServiceTest {
                     Assert.assertTrue(generalError.message.contains("Failed to parse request payload into GeneralError:"));
                     Assert.assertEquals(500, (long) generalError.errorCode);
                     Assert.assertEquals("user-id", msg.getTargetUser());
+                }
+        );
+    }
+
+    @Test
+    public void testServiceWideHeaders() throws Exception {
+
+        stubFor(get(urlEqualTo("/header-2"))
+                .withHeader("X-The-Number", matching("42"))
+                .willReturn(aResponse().withStatus(org.apache.http.HttpStatus.SC_OK)));
+
+        TestService service = context.getBean(TestService.class);
+        Map<String, String> map = new HashMap<>();
+        map.put("X-The-Number", "42");
+
+        service.setHeaders(map);
+
+        String serviceChannel = "test::TestService";
+
+        TestServiceObjectRequest requestPayload = new TestServiceObjectRequest();
+        requestPayload.setRequestValue("Happy Little Melody");
+
+        TestRequest request = new TestRequest();
+        UUID id = UUID.randomUUID();
+        request.setId(id);
+        request.setRequest(TestCommand.COMMAND_C);
+        request.setPayload(requestPayload);
+        request.uri = new URI("http://localhost:9999/header-2");
+        request.method = HttpMethod.GET;
+
+        bus.requestOnceWithId(
+                id,
+                serviceChannel,
+                request,
+                (Message msg) -> {
+                    System.out.println(msg.toString());
+                },
+                (Message msg) -> {
+                    Assert.fail();
                 }
         );
     }
