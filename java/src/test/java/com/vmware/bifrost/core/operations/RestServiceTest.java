@@ -37,6 +37,8 @@ import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.stereotype.Component;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
@@ -53,11 +55,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 // create a mock consumer of the rest service to test it operates over the bus.
-
 class FakeRestUser extends AbstractBase {
 
     FakeRestUser(EventBus bus) {
         this.bus = bus;
+        this.storeManager = bus.getStoreManager();
     }
 
     @Override
@@ -160,6 +162,7 @@ public class RestServiceTest {
 
 
     @Test
+    @DirtiesContext
     public void testModifyBasePort() throws Exception {
 
         BusStore<String, String> baseHostStore = this.bus.getStoreManager().getStore(CoreStores.RestServiceHostConfig);
@@ -180,6 +183,9 @@ public class RestServiceTest {
         // define a bad port
         operation.setUri(new URI("http://localhost:91231231412/something"));
         operation.setMethod(HttpMethod.GET);
+        operation.setErrorHandler(
+                (RestError error) -> { }
+        );
         operation.setSuccessHandler(
                 (MockResponseA response) -> {
                     assertThat(response.getName()).isEqualTo("Prettiest Baby");
@@ -191,6 +197,7 @@ public class RestServiceTest {
     }
 
     @Test
+    @DirtiesContext
     public void testModifyBasePortAndHostViaAbstractBase() throws Exception {
 
         FakeRestUser fu = new FakeRestUser(this.bus);
@@ -239,7 +246,7 @@ public class RestServiceTest {
         operation.setApiClass(MockResponseB.class.getName());
         operation.setUri(new URI("http://localhost:9999/bus-test"));
         operation.setMethod(HttpMethod.GET);
-
+        operation.setErrorHandler((RestError error) -> {});
         operation.setSuccessHandler(
                 (MockResponseB response) -> {
                     // close, so the test can complete.

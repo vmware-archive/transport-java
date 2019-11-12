@@ -78,7 +78,7 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
     ) {
 
         BusStore<String, Map<String, String>> serviceWideHeadersStore =
-                storeManager.getStore(CoreStores.ServiceWideHeaders);
+                storeManager.createStore(CoreStores.ServiceWideHeaders); // createStore is safe, guarantees no NPE.
         if (serviceWideHeadersStore.get(getName()) == null) {
             serviceWideHeadersStore.put(getName(), new HashMap<>(), CoreStoreStates.ServiceHeadersUpdated);
         }

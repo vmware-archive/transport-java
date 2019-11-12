@@ -56,12 +56,14 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
     private final URIMatcher uriMatcher;
     private final RestControllerInvoker controllerInvoker;
     private BusStore<String, String> baseHostStore;
+    private JsonParser parser;
 
     @Autowired
     public RestService(URIMatcher uriMatcher, RestControllerInvoker controllerInvoker) {
         super(CoreChannels.RestService);
         this.uriMatcher = uriMatcher;
         this.controllerInvoker = controllerInvoker;
+        parser = new JsonParser();
     }
 
     @PostConstruct
