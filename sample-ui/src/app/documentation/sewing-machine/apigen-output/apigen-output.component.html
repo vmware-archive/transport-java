@@ -408,6 +408,26 @@ x-vmc-ui-servicename: <strong class="emphasis">auth</strong></code></pre>
     GenerateApiClass(*Plugin, *model.Path)
 &#123;</code></pre>
 
+<hr/>
+
+<h2>
+    Java Bean Validation
+</h2>
+
+<p>
+    JavaBeans Validation (Bean Validation) is a new validation model available as part of Java EE 6 platform.
+    The Bean Validation model is supported by constraints in the form of annotations placed on a field, method,
+    or class of a JavaBeans component, such as a managed bean.
+</p>
+
+<p>
+    It is applicable for the properties which are of integer or number datatype <a>(https://swagger.io/docs/specification/data-models/data-types/)</a>
+    and they have maximum or minimum keyword associated with the property. So for those model we annotate @Max and @Min with the respective
+    value associated with keyword maximum and minimum. This is only applicable for models generated via apigen using java plugin.
+</p>
+
+<hr/>
+
 <h3>
     <code class="language-go">MapDataTypes() map[string]string</code>
 </h3>
