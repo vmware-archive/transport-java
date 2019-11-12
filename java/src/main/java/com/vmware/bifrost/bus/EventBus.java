@@ -7,12 +7,19 @@ import com.vmware.bifrost.broker.GalacticChannelConfig;
 import com.vmware.bifrost.broker.MessageBrokerConnector;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.bus.model.MessageHeaders;
+import com.vmware.bifrost.bus.store.BusStoreApi;
 import io.reactivex.functions.Consumer;
 
 import java.util.UUID;
 import java.util.function.Function;
 
 public interface EventBus {
+
+    /**
+     * Return the UUID of this local bus.
+     * @return UUID of the bus.
+     */
+    public UUID getId();
 
     /**
      * Reference to Low Level API.
@@ -791,4 +798,10 @@ public interface EventBus {
      * @return True if the channel has been marked as galactic.
      */
     boolean isGalacticChannel(String channel);
+
+    /**
+     * Return reference to the bus store manager.
+     * @return reference to the store manager
+     */
+    public BusStoreApi getStoreManager();
 }

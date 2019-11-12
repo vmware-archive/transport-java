@@ -22,13 +22,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StoreManager extends Loggable implements BusStoreApi {
 
    private final Map<String, Object> storeMap;
+   private EventBus bus;
 
-   private final EventBus eventBus;
 
    @Autowired
-   public StoreManager(EventBus eventBus) {
-      this.eventBus = eventBus;
+   public StoreManager(EventBus bus) {
       this.storeMap = new ConcurrentHashMap<>();
+      this.bus = bus;
    }
 
    @Override
@@ -40,8 +40,9 @@ public class StoreManager extends Loggable implements BusStoreApi {
          return (BusStore<K, T>) storeMap.get(storeType);
       }
 
-      BusStore<K, T> busStore = new BusStoreImpl<>(this.eventBus, storeType);
+      BusStore<K, T> busStore = new BusStoreImpl<>(this.bus, storeType);
       storeMap.put(storeType, busStore);
+
       return busStore;
    }
 

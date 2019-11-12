@@ -7,9 +7,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
+import com.vmware.bifrost.bus.EventBus;
+import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
+import com.vmware.bifrost.bus.store.BusStoreApi;
+import com.vmware.bifrost.bus.store.StoreManager;
+import com.vmware.bifrost.bus.store.model.BusStore;
 import com.vmware.bifrost.core.AbstractService;
 import com.vmware.bifrost.core.CoreChannels;
+import com.vmware.bifrost.core.CoreStoreKeys;
 import com.vmware.bifrost.core.CoreStores;
 import com.vmware.bifrost.core.model.RestServiceRequest;
 import com.vmware.bifrost.core.error.RestError;
@@ -24,8 +30,10 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
+import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -47,18 +55,30 @@ import java.util.function.Consumer;
 public class RestService extends AbstractService<Request<RestServiceRequest>, Response> {
     private final URIMatcher uriMatcher;
     private final RestControllerInvoker controllerInvoker;
-    JsonParser parser;
+    private BusStore<String, String> baseHostStore;
+    private JsonParser parser;
 
     @Autowired
     public RestService(URIMatcher uriMatcher, RestControllerInvoker controllerInvoker) {
         super(CoreChannels.RestService);
         this.uriMatcher = uriMatcher;
         this.controllerInvoker = controllerInvoker;
+        parser = new JsonParser();
     }
 
     @PostConstruct
     public void setUp() {
         this.storeManager.createStore(CoreStores.ServiceWideHeaders);
+		baseHostStore = this.storeManager.createStore(CoreStores.RestServiceHostConfig);
+    
+    }
+
+    private String getBaseHost() {
+        return baseHostStore.get(CoreStoreKeys.RestServiceBaseHost);
+    }
+
+    private String getBasePort() {
+        return baseHostStore.get(CoreStoreKeys.RestServiceBasePort);
     }
 
     /**
@@ -71,77 +91,84 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
 
         RestOperation operation = new RestOperation();
 
-        try {
-            RestServiceRequest request = ClassMapper.CastPayload(RestServiceRequest.class, req);
-            request.setHeaders((Map<String, String>) req.getHeaders());
+        RestServiceRequest request = ClassMapper.CastPayload(RestServiceRequest.class, req);
+        request.setHeaders((Map<String, String>) req.getHeaders());
+
+        this.logDebugMessage(this.getClass().getSimpleName()
+                + " handling Rest Request for URI: " + request.getUri().toASCIIString());
+
+        // if application has over-ridden the base host, then we need to modify the URI.
+        request.setUri(modifyURI(request.getUri()));
+
+        operation.setUri(request.getUri());
+        operation.setBody(request.getBody());
+        operation.setMethod(request.getMethod());
+        if (request.getHeaders() != null && request.getHeaders().keySet().size() > 0) {
+            request.getHeaders().forEach((key, value) -> {
+                operation.getHeaders().merge(key, value, (v, v2) -> v2);
+            });
+        }
+        operation.setApiClass(request.getApiClass());
+        operation.setId(req.getId());
+        operation.setSentFrom(this.getName());
+
+        // create a success handler to respond
+        Consumer<Object> successHandler = (Object restResponseObject) -> {
             this.logDebugMessage(this.getClass().getSimpleName()
-                    + " handling Rest Request for URI: " + request.getUri().toASCIIString());
+                    + " Successful REST response " + request.getUri().toASCIIString());
 
-            operation.setUri(request.getUri());
-            operation.setBody(request.getBody());
-            operation.setMethod(request.getMethod());
-
-            if (request.getHeaders() != null && request.getHeaders().keySet().size() > 0) {
-                request.getHeaders().forEach((key, value) -> {
-                    operation.getHeaders().merge(key, value, (v, v2) -> v2);
-                });
+            // check if we got back a string / json, or an actual object.
+            if (restResponseObject instanceof String) {
+                JsonElement respJson = parser.parse(restResponseObject.toString());
+                restResponseObject = respJson.toString();
             }
-            operation.setApiClass(request.getApiClass());
-            operation.setId(req.getId());
-            operation.setSentFrom(this.getName());
 
-            // create a success handler to respond
-            Consumer<Object> successHandler = (Object restResponseObject) -> {
-                this.logDebugMessage(this.getClass().getSimpleName()
-                        + " Successful REST response " + request.getUri().toASCIIString());
+            Response response = new Response(req.getId(), restResponseObject);
+            this.sendResponse(response, req.getId());
+        };
 
-                // check if we got back a string / json, or an actual object.
-                if (restResponseObject instanceof String) {
-                    JsonElement respJson = parser.parse(restResponseObject.toString());
-                    restResponseObject = respJson.toString();
-                }
+        operation.setSuccessHandler(successHandler);
 
-                Response response = new Response(req.getId(), restResponseObject);
-                this.sendResponse(response, req.getId());
-            };
+        // create an error handler to respond in case something goes wrong.
+        Consumer<RestError> errorHandler = (RestError error) -> {
+            this.logErrorMessage(this.getClass().getSimpleName()
+                    + " Error with making REST response ", request.getUri().toASCIIString());
 
-            operation.setSuccessHandler(successHandler);
-
-            // create an error handler to respond in case something goes wrong.
-            Consumer<RestError> errorHandler = (RestError error) -> {
-                this.logErrorMessage(this.getClass().getSimpleName()
-                        + " Error with making REST response ", request.getUri().toASCIIString());
-
-                Response response = new Response(req.getId(), error);
-                response.setError(true);
-                response.setErrorCode(error.errorCode);
-                response.setErrorMessage(error.message);
-                this.sendError(response, req.getId());
-            };
-
-            operation.setErrorHandler(errorHandler);
-
-            this.restServiceRequest(operation);
-
-        } catch (ClassCastException exp) {
-            this.logErrorMessage(this.getName()
-                    + " Exception thrown when making REST response ClassCastException: ", exp.getMessage());
-
-        } catch (Exception exp) {
-
-            // something bubbled up, throw it back as a response.
-            this.logErrorMessage(this.getName()
-                    + " Exception thrown when making REST response ", exp.getMessage());
-
-            RestError error = new RestError("Exception thrown '"
-                    + exp.getClass().getSimpleName() + ": " + exp.getMessage() + "'", 500);
             Response response = new Response(req.getId(), error);
             response.setError(true);
             response.setErrorCode(error.errorCode);
             response.setErrorMessage(error.message);
-            this.sendResponse(response, req.getId());
+            this.sendError(response, req.getId());
+        };
 
+        operation.setErrorHandler(errorHandler);
+
+        this.restServiceRequest(operation);
+
+    }
+
+
+    private URI modifyURI(URI origUri) {
+        if (getBaseHost() != null && getBaseHost().length() > 0) {
+            String baseHost = getBaseHost();
+            this.logDebugMessage(this.getClass().getSimpleName() + " using over-ridden base host: " + baseHost);
+
+            String uri = origUri.toString();
+            UriComponentsBuilder b = UriComponentsBuilder.fromHttpUrl(uri);
+            b.host(baseHost);
+
+            // get the base port.
+            String port = getBasePort();
+
+            // if the port has also been changed
+            if (port != null && port.length() > 0) {
+                b.port(port);
+            }
+
+            // override the request URI, with the modified one, using over-ridden values
+            return URI.create(b.toUriString());
         }
+        return origUri;
     }
 
     /**
@@ -162,11 +189,17 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
             }
         } catch (Exception e) {
             this.logErrorMessage("Exception when Locating & Invoking RestController ", e.toString());
-            operation.getErrorHandler().accept(
-                    new RestError("Exception thrown for: "
-                            + operation.getUri().toString(), 500)
-            );
+            if (operation != null) {
+                if(operation.getErrorHandler() != null) {
+                    operation.getErrorHandler().accept(
+                            new RestError("Exception when Locating & Invoking RestController", 500)
+                    );
+                }
+            }
         }
+
+        // if application has over-ridden the base host, then we need to modify the URI.
+        operation.setUri(modifyURI(operation.getUri()));
 
 
         HttpEntity entity;
@@ -261,6 +294,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                     new RestError("Null Pointer exception thrown for: "
                             + operation.getUri().toString(), 500)
             );
+
         } catch (RuntimeException rex) {
             this.logErrorMessage("REST Client Error, unable to complete request: ", rex.toString());
             operation.getErrorHandler().accept(

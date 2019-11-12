@@ -59,8 +59,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
         RestTemplate.class,
         TestService.class,
         EventBusImpl.class,
-        StoreManager.class,
-        RestService.class
+        RestService.class,
+        StoreManager.class
 })
 public class TestServiceTest {
 
