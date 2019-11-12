@@ -1,24 +1,17 @@
 <h1>Getting Started with the Application Fabric.</h1>
 
 <p>
-    The quickest way to get a simple app up and running is to use <strong class="emphasis">appfabinit</strong> to
-    build an entire, ready to run application, that comes with a sample API contract.
+    The quickest way to get a simple app up and running is to use <strong class="emphasis">Application Fabric CLI (AF CLI)</strong> to
+    build an entire, ready to run application, that comes with a sample API contract or initializes with the OpenAPI document you provide
+    as a flag. For full documentation, head over to the <a href="https://gitlab.eng.vmware.com/autogen/appfabric-init" target="_blank">
+    README page of the AF CLI project</a>
 </p>
 <hr/>
 <div class="alert alert-info" role="alert">
     <div class="alert-items">
         <div class="alert-item static">
             <span class="alert-text">
-                👉 You will <strong>need to have Docker installed</strong> in order to pull down the appfabinit CLI 👈
-            </span>
-        </div>
-    </div>
-</div>
-<div class="alert alert-info" role="alert">
-    <div class="alert-items">
-        <div class="alert-item static">
-            <span class="alert-text">
-                👉 You will <strong>need to have NodeJS 10+, JDK 8 and Gradle 4.6+</strong> in order to build using the CLI 👈
+                👉 You will <strong>need to have NodeJS 10+, JDK 8, 10 or 11 and Gradle 4.6+</strong> in order to build using the CLI 👈
             </span>
         </div>
     </div>
@@ -31,30 +24,26 @@
 <iframe src="https://video.eng.vmware.com/videos_embed/application-fabric-getting-started" class="video"
         allowfullscreen="allowfullscreen"></iframe>
 
-<h2>Step 1: Grab the appfabinit CLI</h2>
+<h2>Step 1: Grab the AF CLI</h2>
 
 <p>
-    Don't worry, you don't need to mount anything or set up a bunch of environmental variables.
+    Don't worry, you don't need to mount anything or set up a bunch of environmental variables. Just run the following commands
+    that match your operating system.
 </p>
 
-<h4>Create a new folder called 'fabric-tools'</h4>
+<h4>macOS</h4>
 
-<pre class="code"><code class="language-shell" ngNonBindable>mkdir ~/fabric-tools</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>curl -LO https://build-artifactory.eng.vmware.com/sewing-machine-bin-dist-generic-local/appfabinit/v0.1.12/darwin/af \
+&& sudo mv af /usr/local/bin/ && sudo chmod +x /usr/local/bin/af</code></pre>
 
-<h4>Grab the appfabinit CLI binary via Docker</h4>
+<h4>Linux</h4>
 
-<pre class="code"><code class="language-shell" ngNonBindable>docker run --rm -v ~/fabric-tools/appfabinit:/tmp/appfabinit/dist -e \
-PLATFORM=darwin autogen-docker-local.artifactory.eng.vmware.com/appfabinit:latest</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>curl -LO https://build-artifactory.eng.vmware.com/sewing-machine-bin-dist-generic-local/appfabinit/v0.1.12/linux/af \
+&& sudo mv af /usr/local/bin/ && sudo chmod +x /usr/local/bin/af</code></pre>
 
-<div class="alert alert-info" role="alert">
-    <div class="alert-items">
-        <div class="alert-item static">
-            <span class="alert-text">
-                👉 You can replace the <strong>PLATFORM</strong> value with <strong class="emphasis">linux, darwin or windows</strong>  (Windows binary not tested yet so proceed with caution) 👈
-            </span>
-        </div>
-    </div>
-</div>
+<h4>Windows</h4>
+
+<a href="https://build-artifactory.eng.vmware.com/sewing-machine-bin-dist-generic-local/appfabinit/v0.1.12/windows/af.exe" target="_blank">Download</a>
 
 <hr/>
 <h2>Step 2: Create a new full stack fabric application</h2>
@@ -63,17 +52,9 @@ PLATFORM=darwin autogen-docker-local.artifactory.eng.vmware.com/appfabinit:lates
    We have everything we need to build a new front-end and backend.
 </p>
 
-<h4>Create a new folder for your app</h4>
+<h4>Build a new full stack application named MyNewApp with a sample OpenAPI document</h4>
 
-<pre class="code"><code class="language-shell" ngNonBindable>mkdir ~/MyNewApp</code></pre>
-
-<h4>Change into your ~/fabric-tools/appfabinit folder</h4>
-
-<pre class="code"><code class="language-shell" ngNonBindable>cd ~/fabric-tools/appfabinit</code></pre>
-
-<h4>Build a new full stack application</h4>
-
-<pre class="code"><code class="language-shell" ngNonBindable>./appfabinit --out-folder ~/MyNewApp build-all --ui-name MyNewApp</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>cd ~ && af build-all --ui-name MyNewApp</code></pre>
 
 <hr/>
 <h2>Step 3: Build and deploy backend</h2>
@@ -89,7 +70,7 @@ PLATFORM=darwin autogen-docker-local.artifactory.eng.vmware.com/appfabinit:lates
 
 <h4>Run the backend</h4>
 
-<pre class="code"><code class="language-shell" ngNonBindable>./scripts/start-server-local.sh</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>gradle bootRun</code></pre>
 
 <hr/>
 <h2>Step 4: Build and deploy UI</h2>
