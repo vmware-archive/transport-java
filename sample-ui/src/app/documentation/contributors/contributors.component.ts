@@ -78,9 +78,10 @@ export class ContributorsComponent implements OnInit {
         this.authors.push(
             { name: 'Colin Zhang', email: 'colinz@vmware.com', hash: Md5.init('colinz@vmware.com')});
 
+        this.authors.push(
+            { name: 'Abhishek Singh', email: 'abhisheksing@vmware.com', hash: Md5.init('abhisheksing@vmware.com')});
 
         this.authors = this.shuffle(this.authors);
-
     }
 
     // taken from https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
