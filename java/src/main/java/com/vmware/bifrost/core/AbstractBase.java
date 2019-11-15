@@ -84,14 +84,18 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
         }
 
         Map serviceHeadersMap = serviceWideHeadersStore.get(getName());
+        Map<String, String> mergedHeaders = new HashMap<>();
 
-        // apply service-wide headers
-        if (headers == null) {
-            headers = new HashMap<>();
+        // if provided headers is not empty, merge values from it into mergedHeaders
+        if (headers != null) {
+            for (String key : headers.keySet()) {
+                mergedHeaders.merge(key, headers.get(key), (v, v2) -> v2);
+            }
         }
 
+        // apply service-wide headers
         for (Object key : serviceHeadersMap.keySet()) {
-            headers.merge((String) key, (String) serviceHeadersMap.get(key), (v, v2) -> v2);
+            mergedHeaders.merge((String) key, (String) serviceHeadersMap.get(key), (v, v2) -> v2);
         }
 
         // set defaults
@@ -101,11 +105,11 @@ public abstract class AbstractBase extends Loggable implements BifrostEnabled {
         req.setUri(uri);
         req.setBody(payload);
         req.setSentFrom(this.getName());
-        req.setHeaders(headers);
+        req.setHeaders(mergedHeaders);
 
         Request request = new Request<Req>();
         request.setId(id);
-        request.setHeaders(headers);
+        request.setHeaders(mergedHeaders);
         request.setPayload(req);
         request.setRequest(method.toString());
         request.setChannel(CoreChannels.RestService);
