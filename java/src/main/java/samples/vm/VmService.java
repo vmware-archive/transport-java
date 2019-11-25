@@ -7,6 +7,7 @@ import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
 import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.AbstractService;
+import com.vmware.bifrost.core.util.ClassMapper;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -106,11 +107,13 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
    }
 
    private void handleDeleteVm(Request request) {
-      if (!(request.getPayload() instanceof VmDeleteRequest)) {
+      VmDeleteRequest deleteReq = castPayload(VmDeleteRequest.class, request);
+
+      if (deleteReq == null) {
          this.sendBaseVmErrorResponse(request, "Request payload should be VmDeleteRequest!");
-         return;
+      } else {
+         this.sendBaseVmResponse(request, getVmDeleteResponse(deleteReq));
       }
-      this.sendBaseVmResponse(request, getVmDeleteResponse((VmDeleteRequest)request.getPayload()));
    }
 
    private BaseVmResponse getVmDeleteResponse(VmDeleteRequest vmDeleteRequest) {
@@ -124,11 +127,12 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
    }
 
    private void handleCreateVm(Request request) {
-      if (!(request.getPayload() instanceof VmCreateRequest)) {
+      VmCreateRequest createReq = castPayload(VmCreateRequest.class, request);
+      if (createReq == null) {
          this.sendBaseVmErrorResponse(request, "Request payload should be VmCreateRequest!");
-         return;
+      } else {
+         sendBaseVmResponse(request, getVmCreateResponse(createReq));
       }
-      sendBaseVmResponse(request, getVmCreateResponse((VmCreateRequest)request.getPayload()));
    }
 
    private VmCreateResponse getVmCreateResponse(VmCreateRequest createRequest) {
@@ -168,12 +172,12 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
    }
 
    private void handleChangePowerState(Request request) {
-      if (!(request.getPayload() instanceof VmPowerOperationRequest)) {
-         sendBaseVmErrorResponse(request, "Request payload should be VmPowerOperationRequest!");
-         return;
+      VmPowerOperationRequest powerOpReq = castPayload(VmPowerOperationRequest.class, request);
+      if (powerOpReq != null) {
+         sendBaseVmResponse(request, getVmPowerOperationResponse(powerOpReq));
+      } else {
+         this.sendBaseVmErrorResponse(request, "Request payload should be VmPowerOperationRequest!");
       }
-      sendBaseVmResponse(request,
-            getVmPowerOperationResponse((VmPowerOperationRequest) request.getPayload()));
    }
 
    private VmPowerOperationResponse getVmPowerOperationResponse(VmPowerOperationRequest powerReq) {
@@ -277,6 +281,13 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
       createAndAddVm(vm3CreateRequest);
    }
 
+   private static <T> T castPayload(Class clazz, Request request) {
+      try {
+         return ClassMapper.CastPayload(clazz, request);
+      } catch (Exception ex) {
+         return null;
+      }
+   }
 
    public class VmOperations {
       public final static  String CHANGE_VM_POWER_STATE = "changeVmPowerState";
