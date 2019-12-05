@@ -31,19 +31,22 @@ import samples.vm.model.VmPowerOperationResponse;
 import samples.vm.model.VmPowerOperationResponseItem;
 import samples.vm.model.VmRef;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/rest/samples/vm")
 @Service("VmService")
-public class VmService extends AbstractService<Request<BaseVmRequest>, Response<BaseVmResponse>> {
+public class VmService extends AbstractService<Request<BaseVmRequest>, Response<Object>> {
 
    // define the channel the service operates on,.
    public static final String Channel = "vm-service";
 
-   private final Map<VmRef, VirtualMachine> vms = new HashMap<>();
+   private final Map<VmRef, VirtualMachine> vms = new ConcurrentHashMap<>();
 
    public VmService() {
       super(VmService.Channel);
@@ -61,6 +64,9 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
             break;
          case VmOperations.LIST_VMS:
             handleListVms(request);
+            break;
+         case VmOperations.GET_VMS_BY_HOST:
+            handleGetVmsByHost(request);
             break;
          case VmOperations.DELETE_VM:
             handleDeleteVm(request);
@@ -84,6 +90,11 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
       return getVmListResponse();
    }
 
+   @GetMapping(VmOperations.GET_VMS_BY_HOST)
+   public Map<String, List<VirtualMachine>> restGetVmsByHost() {
+      return getVmsByHost();
+   }
+
    @PostMapping(VmOperations.CREATE_VM)
    public VmCreateResponse restCreateVm(
          @RequestBody VmCreateRequest vmCreateRequest) {
@@ -100,10 +111,25 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
       sendBaseVmResponse(request, getVmListResponse());
    }
 
+   private void handleGetVmsByHost(Request request) {
+      sendBaseVmResponse(request, getVmsByHost());
+   }
+
    private VmListResponse getVmListResponse() {
       VmListResponse vmListResponse = new VmListResponse();
       vmListResponse.setVirtualMachines(vms.values().toArray(new VirtualMachine[0]));
       return vmListResponse;
+   }
+
+   private Map<String, List<VirtualMachine>>  getVmsByHost() {
+      Map<String, List<VirtualMachine>> result = new HashMap<>();
+      for (VirtualMachine vm : this.vms.values()) {
+           if (!result.containsKey(vm.getRuntimeInfo().getHost())) {
+              result.put(vm.getRuntimeInfo().getHost(), new ArrayList<>());
+           }
+           result.get(vm.getRuntimeInfo().getHost()).add(vm);
+      }
+      return result;
    }
 
    private void handleDeleteVm(Request request) {
@@ -238,8 +264,8 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
       return false;
    }
 
-   private void sendBaseVmResponse(Request request, BaseVmResponse baseVmResponse) {
-      Response<BaseVmResponse> resp = new Response<>(request.getId(), baseVmResponse);
+   private void sendBaseVmResponse(Request request, Object baseVmResponse) {
+      Response<Object> resp = new Response<>(request.getId(), baseVmResponse);
       if (request.getTargetUser() != null) {
          this.sendResponse(resp, request.getId(), request.getTargetUser());
       } else {
@@ -294,5 +320,6 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
       public final static String CREATE_VM = "createVm";
       public final static String DELETE_VM = "deleteVm";
       public final static String LIST_VMS = "listVms";
+      public final static String GET_VMS_BY_HOST = "getVmsByHost";
    }
 }

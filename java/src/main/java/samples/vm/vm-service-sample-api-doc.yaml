@@ -43,6 +43,32 @@ paths:
                     schema:
                         $ref: '#/definitions/VmListResponse'
 
+    /vm/getVmsByHost:
+        get:
+            tags:
+                - VmService
+            summary: Return a map with all virtual machines grouped by host
+            x-vmw-vapi-methodname: getVmsByHost
+            x-vmw-vapi-servicename: vmService
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        type: object
+                        description: A map of string to list of virtual machines
+                        additionalProperties:
+                            type: array
+                            items:
+                                $ref: '#/definitions/VirtualMachine'
+                '400':
+                    description: Bad Request, missing something
+                    schema:
+                        type: object
+                '500':
+                    description: Unexpected error.
+                    schema:
+                        type: object
+
     /vm/changeVmPowerState:
         post:
             tags:
