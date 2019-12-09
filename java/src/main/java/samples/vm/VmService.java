@@ -264,8 +264,17 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
       return false;
    }
 
-   private void sendBaseVmResponse(Request request, Object baseVmResponse) {
-      Response<Object> resp = new Response<>(request.getId(), baseVmResponse);
+   private void sendBaseVmResponse(Request request, Object payload) {
+      Response<Object> resp = new Response<>(request.getId(), payload);
+
+      if (payload instanceof BaseVmResponse) {
+         BaseVmResponse baseVmResponse = (BaseVmResponse) payload;
+         if (baseVmResponse.isError()) {
+            resp.setError(baseVmResponse.isError());
+            resp.setErrorMessage(baseVmResponse.getErrorMessage());
+         }
+      }
+
       if (request.getTargetUser() != null) {
          this.sendResponse(resp, request.getId(), request.getTargetUser());
       } else {
