@@ -29,6 +29,7 @@ import { JavaMessagingComponent } from './java-messaging/java-messaging.componen
 import { JavaLoggingComponent } from './java-logging/java-logging.component';
 import { JavaRestComponent } from './java-rest/java-rest.component';
 import { JavaPrivateChannelComponent } from './java-private-channel/java-private-channel.component';
+import { TsMultipleBrokersComponent } from './ts-multiple-brokers/ts-multiple-brokers.component';
 
 const bifrostRoutes: Routes = [
     {path: '', component: BifrostHomeComponent, pathMatch: 'true'},
@@ -47,6 +48,7 @@ const bifrostRoutes: Routes = [
     {path: 'ts/store-advanced', component: TsStoreAdvancedComponent, pathMatch: 'true'},
     {path: 'ts/making-rest-calls', component: TsRestServiceComponent, pathMatch: 'true'},
     {path: 'ts/connecting-to-fabric', component: TsConnectingToFabricComponent, pathMatch: 'true'},
+    {path: 'ts/connecting-to-multiple-brokers', component: TsMultipleBrokersComponent, pathMatch: 'true'},
     {path: 'ts/galactic-conversations', component: TsGalacticConversationsComponent, pathMatch: 'true'},
     {path: 'ts/distributed-iframes', component: TsDistributedIframesComponent, pathMatch: 'true'},
     {path: 'java/importing', component: JavaImportingComponent, pathMatch: 'true'},

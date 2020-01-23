@@ -45,6 +45,7 @@ import { JavaRestComponent } from './java-rest/java-rest.component';
 import { CloudServicesApiComponent } from './sample-code/java/cloud-services-api.component';
 import { FabricRestServiceComponent } from './sample-code/ts/restservice/fabric-restservice';
 import { JavaPrivateChannelComponent } from './java-private-channel/java-private-channel.component';
+import { TsMultipleBrokersComponent } from './ts-multiple-brokers/ts-multiple-brokers.component';
 
 @NgModule({
     declarations: [
@@ -89,7 +90,8 @@ import { JavaPrivateChannelComponent } from './java-private-channel/java-private
         JavaLoggingComponent,
         JavaRestComponent,
         FabricRestServiceComponent,
-        JavaPrivateChannelComponent
+        JavaPrivateChannelComponent,
+        TsMultipleBrokersComponent
     ],
     imports: [
         CommonModule,
