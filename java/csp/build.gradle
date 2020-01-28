@@ -216,6 +216,8 @@ void initProperties() {
     version = rootProject.file('version.txt').getText('UTF-8').trim()
     if ("snapshot".compareTo(buildType) == 0) {
         version = version + "-SNAPSHOT"
+    } else if ("release".compareTo(buildType) == 0) {
+        version = version + "-RELEASE"
     }
 
     if (System.getenv("bifrost_maven_user")?.trim()) {
