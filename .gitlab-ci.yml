@@ -50,11 +50,11 @@ build:bifrost:
   - ./gradlew assemble
   artifacts:
     paths:
-    - java/build/libs
-    - java/csp/build/libs
-    - java/rabbitmq/build/libs
-    - java/kafka/build/libs
-    - java/message-fabric/build/libs
+    - java/build
+    - java/csp/build
+    - java/rabbitmq/build
+    - java/kafka/build
+    - java/message-fabric/build
     expire_in: 1 week
   when: on_success
   only:
@@ -80,6 +80,30 @@ build:ui:
   - pushes
   - web
 
+publish:snapshots:
+  stage: publish
+  dependencies:
+    - build:bifrost
+  script:
+    - echo "Publishing snapshot version of vmw-bifrost"
+    - cd ./java
+    - ./gradlew publish -PbuildType=snapshot
+    - echo "Publishing snapshot version of vmw-bifrost-csp"
+    - cd ./csp
+    - ./gradlew publish -PbuildType=snapshot
+    - echo "Publishing snapshot version of vmw-bifrost-rabbitmq"
+    - cd ../rabbitmq
+    - ./gradlew publish -PbuildType=snapshot
+    - echo "Publishing snapshot version of vmw-bifrost-kafka"
+    - cd ../kafka
+    - ./gradlew publish -PbuildType=snapshot
+    - echo "Publishing snapshot version of vmw-bifrost-message-fabric"
+    - cd ../message-fabric
+    - ./gradlew publish -PbuildType=snapshot
+  when: on_success
+  only:
+    - master
+
 publish:bifrost:
   stage: publish
   dependencies:
@@ -87,8 +111,8 @@ publish:bifrost:
   script:
   - echo "Publishing vmw-bifrost"
   - cd ./java
-  - ./gradlew publish -PbuildType=snapshot
-  when: on_success
+  - ./gradlew publish
+  when: manual
   only:
   - master
 
@@ -99,8 +123,8 @@ publish:bifrost-csp:
   script:
   - echo "Publishing vmw-bifrost-csp"
   - cd ./java/csp
-  - ./gradlew publish -PbuildType=snapshot
-  when: on_success
+  - ./gradlew publish
+  when: manual
   only:
   - master
 
@@ -111,8 +135,8 @@ publish:bifrost-rabbitmq:
   script:
   - echo "Publishing vmw-bifrost-rabbitmq"
   - cd ./java/rabbitmq
-  - ./gradlew publish -PbuildType=snapshot
-  when: on_success
+  - ./gradlew publish
+  when: manual
   only:
   - master
 
@@ -123,8 +147,8 @@ publish:bifrost-kafka:
   script:
   - echo "Publishing vmw-bifrost-kafka"
   - cd ./java/kafka
-  - ./gradlew publish -PbuildType=snapshot
-  when: on_success
+  - ./gradlew publish
+  when: manual
   only:
   - master
 
@@ -135,8 +159,8 @@ publish:bifrost-message-fabric:
   script:
   - echo "Publishing vmw-bifrost-message-fabric"
   - cd ./java/message-fabric
-  - ./gradlew publish -PbuildType=snapshot
-  when: on_success
+  - ./gradlew publish
+  when: manual
   only:
   - master
 
