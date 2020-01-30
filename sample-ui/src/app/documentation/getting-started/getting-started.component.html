@@ -1,10 +1,10 @@
 <h1>Getting Started with the Application Fabric.</h1>
 
 <p>
-    The quickest way to get a simple app up and running is to use <strong class="emphasis">Application Fabric CLI (AF CLI)</strong> to
+    The quickest way to get a simple app up and running is to use <strong class="emphasis">EVE CLI</strong> to
     build an entire, ready to run application, that comes with a sample API contract or initializes with the OpenAPI document you provide
-    as a flag. For full documentation, head over to the <a href="https://gitlab.eng.vmware.com/autogen/appfabric-init" target="_blank">
-    README page of the AF CLI project</a>
+    as a flag. For full documentation, head over to the <a href="https://gitlab.eng.vmware.com/project-eve/eve-cli" target="_blank">
+    README page of the EVE CLI project</a>
 </p>
 <hr/>
 <div class="alert alert-info" role="alert">
@@ -24,7 +24,7 @@
 <iframe src="https://video.eng.vmware.com/videos_embed/application-fabric-getting-started" class="video"
         allowfullscreen="allowfullscreen"></iframe>
 
-<h2>Step 1: Grab the AF CLI</h2>
+<h2>Step 1: Grab the EVE CLI</h2>
 
 <p>
     Don't worry, you don't need to mount anything or set up a bunch of environmental variables. Just run the following commands
@@ -33,17 +33,15 @@
 
 <h4>macOS</h4>
 
-<pre class="code"><code class="language-shell" ngNonBindable>curl -LO https://build-artifactory.eng.vmware.com/sewing-machine-bin-dist-generic-local/appfabinit/v0.1.12/darwin/af \
-&& sudo mv af /usr/local/bin/ && sudo chmod +x /usr/local/bin/af</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>curl -LO https://build-artifactory.eng.vmware.com/eve-bin-dist-generic-local/eve-cli/v0.0.5-preview.1/darwin/eve && sudo mv eve /usr/local/bin/ && sudo chmod +x /usr/local/bin/eve</code></pre>
 
 <h4>Linux</h4>
 
-<pre class="code"><code class="language-shell" ngNonBindable>curl -LO https://build-artifactory.eng.vmware.com/sewing-machine-bin-dist-generic-local/appfabinit/v0.1.12/linux/af \
-&& sudo mv af /usr/local/bin/ && sudo chmod +x /usr/local/bin/af</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>curl -LO https://build-artifactory.eng.vmware.com/eve-bin-dist-generic-local/eve-cli/v0.0.5-preview.1/linux/eve && sudo mv eve /usr/local/bin/ && sudo chmod +x /usr/local/bin/eve</code></pre>
 
 <h4>Windows</h4>
 
-<a href="https://build-artifactory.eng.vmware.com/sewing-machine-bin-dist-generic-local/appfabinit/v0.1.12/windows/af.exe" target="_blank">Download</a>
+<a href="https://build-artifactory.eng.vmware.com/eve-bin-dist-generic-local/eve-cli/v0.0.5-preview.1/windows/eve.exe" target="_blank">Download</a>
 
 <hr/>
 <h2>Step 2: Create a new full stack fabric application</h2>
@@ -54,7 +52,7 @@
 
 <h4>Build a new full stack application named MyNewApp with a sample OpenAPI document</h4>
 
-<pre class="code"><code class="language-shell" ngNonBindable>cd ~ && af build-all --ui-name MyNewApp</code></pre>
+<pre class="code"><code class="language-shell" ngNonBindable>cd ~ && eve fabric create all --ui-name MyNewApp</code></pre>
 
 <hr/>
 <h2>Step 3: Build and deploy backend</h2>
