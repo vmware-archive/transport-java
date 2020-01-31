@@ -61,7 +61,7 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
             // API call. It is the responsibility of the derived service to reset this to null after the call returns.
 
             if (this.apihost != null) {
-                uri = this.apihost + uri;
+                uri = this.apihost + uri.replaceAll("https?://", "");;
             }
 
             Consumer restResponse = (Object payload) -> successHandler.apiSuccessHandler(
