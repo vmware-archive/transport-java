@@ -1,17 +1,14 @@
 /**
- * Copyright(c) VMware Inc. 2018
+ * Copyright(c) VMware Inc. 2018-2020
  */
 package com.vmware.bifrost.core.operations;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.vmware.bifrost.bridge.Request;
 import com.vmware.bifrost.bridge.Response;
-import com.vmware.bifrost.bus.EventBus;
-import com.vmware.bifrost.bus.EventBusImpl;
 import com.vmware.bifrost.bus.model.Message;
-import com.vmware.bifrost.bus.store.BusStoreApi;
-import com.vmware.bifrost.bus.store.StoreManager;
 import com.vmware.bifrost.bus.store.model.BusStore;
 import com.vmware.bifrost.core.AbstractService;
 import com.vmware.bifrost.core.CoreChannels;
@@ -33,6 +30,7 @@ import org.springframework.web.client.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +53,7 @@ import java.util.function.Consumer;
 public class RestService extends AbstractService<Request<RestServiceRequest>, Response> {
     private final URIMatcher uriMatcher;
     private final RestControllerInvoker controllerInvoker;
+    private final ObjectMapper mapper;
     private BusStore<String, String> baseHostStore;
     private JsonParser parser;
 
@@ -63,6 +62,7 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
         super(CoreChannels.RestService);
         this.uriMatcher = uriMatcher;
         this.controllerInvoker = controllerInvoker;
+        this.mapper = new ObjectMapper();
         parser = new JsonParser();
     }
 
@@ -279,12 +279,26 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
                     break;
             }
 
-        } catch (HttpClientErrorException exp) {
+        } catch (RestClientResponseException exp) {
 
-            this.logErrorMessage("REST Client Error, unable to complete request: ", exp.getMessage());
+            String errorMsg;
+            int errorCode;
+
+            try {
+                // try parsing the error response as Bifrost Response and extract error code and message from it
+                Response errorResponse = mapper.readValue(exp.getResponseBodyAsString(), Response.class);
+                errorMsg = errorResponse.getErrorMessage();
+                errorCode = errorResponse.getErrorCode();
+            } catch (IOException ioe) {
+                // if it's not a Bifrost response object, or some exception happened during casting, dump the entire
+                // response as a String value.
+                errorMsg = exp.getResponseBodyAsString();
+                errorCode = exp.getRawStatusCode();
+            }
+
+            this.logErrorMessage("REST Client Error, unable to complete request: ", errorMsg);
             operation.getErrorHandler().accept(
-                    new RestError("REST Client Error, unable to complete request: "
-                            + exp.getMessage(), exp.getRawStatusCode())
+                    new RestError("REST Client Error, unable to complete request: " + errorMsg, errorCode)
             );
 
         } catch (NullPointerException npe) {

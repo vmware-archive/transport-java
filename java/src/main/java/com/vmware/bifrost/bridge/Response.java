@@ -35,6 +35,8 @@ public class Response<RespP> extends AbstractFrame<RespP> {
         this.error = error;
     }
 
+    public Response() {}
+
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
         this.message = errorMessage; // make this compatible with GeneralError in TS bifrost.
