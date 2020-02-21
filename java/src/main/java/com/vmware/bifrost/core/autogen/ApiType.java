@@ -5,6 +5,9 @@ import com.vmware.bifrost.bridge.Response;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Implementation of the IApiType interface
  *
@@ -16,9 +19,12 @@ public class ApiType<RequestType extends Request, ResponseType extends Response>
     private RequestType requestType;
     @Getter @Setter
     private ResponseType responseType;
+    @Getter @Setter
+    private Map<String, String> apiHeaders;
 
     public ApiType(RequestType requestType, ResponseType responseType) {
         this.requestType = requestType;
         this.responseType = responseType;
+        this.apiHeaders = new HashMap<>();
     }
 }

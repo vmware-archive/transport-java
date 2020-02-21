@@ -61,7 +61,7 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
             // API call. It is the responsibility of the derived service to reset this to null after the call returns.
 
             if (this.apihost != null) {
-                uri = this.apihost + uri.replaceAll("https?://", "");;
+                uri = this.apihost + uri.replaceAll("https?://", "");
             }
 
             Consumer restResponse = (Object payload) -> successHandler.apiSuccessHandler(
@@ -90,6 +90,9 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
             if (message.getHeaders() != null) {
                 restOp.setHeaders(message.getHeaders().getHeadersMap());
             }
+
+            // add the parameterized headers
+            restOp.getHeaders().putAll(apiType.getApiHeaders());
 
             this.restServiceRequest(restOp);
         };
