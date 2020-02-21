@@ -1,3 +1,21 @@
+<div class="bifrost-downloads-badge">
+    <div *ngIf="bifrostTSDownloadsCount === undefined">
+        <span class="spinner spinner-inline"></span>
+    </div>
+    <div *ngIf="bifrostTSDownloadsCount !== undefined">
+        <div>
+            <clr-icon shape="star" size="84"></clr-icon>
+        </div>
+        <div class="bifrost-download-badge-label downloads-count">
+            <span>
+                <strong>{{ bifrostTSDownloadsCount | number }}</strong>
+            </span>
+        </div>
+        <div class="bifrost-download-badge-label downloads-txt">
+            <span>Downloads</span>
+        </div>
+    </div>
+</div>
 <h1>What is the Bifröst?</h1>
 <p>
     Before using the Bifröst, we should understand what it is exactly and where it fits into an application's
