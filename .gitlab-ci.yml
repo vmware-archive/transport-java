@@ -48,6 +48,8 @@ build:bifrost:
   - echo "Building vmw-bifrost-message-fabric"
   - cd ../message-fabric
   - ./gradlew assemble
+  - cd ../nats
+  - ./gradlew assemble
   artifacts:
     paths:
     - java/build
@@ -55,6 +57,7 @@ build:bifrost:
     - java/rabbitmq/build
     - java/kafka/build
     - java/message-fabric/build
+    - java/nats/build
     expire_in: 1 week
   when: on_success
   only:
@@ -99,6 +102,9 @@ publish:snapshots:
     - ./gradlew publish -PbuildType=snapshot
     - echo "Publishing snapshot version of vmw-bifrost-message-fabric"
     - cd ../message-fabric
+    - ./gradlew publish -PbuildType=snapshot
+    - cd ../nats
+    - echo "Publishing snapshot version of vmw-bifrost-nats"
     - ./gradlew publish -PbuildType=snapshot
   when: on_success
   only:
@@ -163,6 +169,18 @@ publish:bifrost-message-fabric:
   when: manual
   only:
   - master
+
+publish:bifrost-nats:
+  stage: publish
+  dependencies:
+    - build:bifrost
+  script:
+    - echo "Publishing vmw-bifrost-nats"
+    - cd ./java/nats
+    - ./gradlew publish
+  when: manual
+  only:
+    - master
 
 publish:appfabric:
   stage: publish
