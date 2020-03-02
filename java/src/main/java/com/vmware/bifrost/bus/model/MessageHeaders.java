@@ -56,7 +56,7 @@ public class MessageHeaders {
      * @return the map containing all header items.
      */
     public Map<String, Object> getHeadersMap() {
-        return Collections.unmodifiableMap(headers);
+        return headers;
     }
 
     /**
