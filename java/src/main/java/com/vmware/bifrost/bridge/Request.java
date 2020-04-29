@@ -3,6 +3,7 @@ package com.vmware.bifrost.bridge;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Map;
 import java.util.UUID;
 
 @SuppressWarnings("unchecked")
@@ -19,6 +20,16 @@ public class Request<ReqP> extends AbstractFrame {
 
     @Getter @Setter
     private Object headers;
+
+    @Getter @Setter
+    private Map<String, Object> sessionAttributes;
+
+    public <T> T getSessionAttribute(String attrKey) {
+        if (sessionAttributes == null) {
+            return null;
+        }
+        return (T)sessionAttributes.get(attrKey);
+    }
 
     @Getter @Setter
     private Boolean isRejected = false;

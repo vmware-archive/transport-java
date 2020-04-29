@@ -12,13 +12,16 @@ import com.vmware.bifrost.bus.EventBus;
 import io.reactivex.exceptions.OnErrorNotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import com.vmware.bifrost.bridge.Request;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.security.Principal;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -32,9 +35,16 @@ public class MessageController extends Loggable {
     }
 
     @MessageMapping("/{topicDestination}")
-    public void bridgeMessage(Request request, @DestinationVariable String topicDestination) throws RequestException {
+    public void bridgeMessage(Request request,
+                              @DestinationVariable String topicDestination,
+                              @Headers Map<String, Object> headers) throws RequestException {
+
         validateRequest(request);
         this.logTraceMessage("New inbound message received for channel: ", topicDestination);
+        if (headers != null) {
+            request.setSessionAttributes(
+                  (Map<String, Object>) headers.get(SimpMessageHeaderAccessor.SESSION_ATTRIBUTES));
+        }
         MessageHeaders messageHeaders = ClassMapper.CastMessageHeaders(request.getHeaders());
         if (bus.isGalacticChannel(topicDestination)) {
             // unwrap the payload and forward it to the external message broker
@@ -47,10 +57,15 @@ public class MessageController extends Loggable {
     @MessageMapping("/queue/{queueDestination}")
     public void bridgeQueueMessage(Request request,
                                    @DestinationVariable String queueDestination,
-                                   Principal principal) throws RequestException {
+                                   Principal principal,
+                                   @Headers Map<String, Object> headers) throws RequestException {
 
         validateRequest(request);
         request.setTargetUser(principal.getName());
+        if (headers != null) {
+            request.setSessionAttributes(
+                  (Map<String, Object>) headers.get(SimpMessageHeaderAccessor.SESSION_ATTRIBUTES));
+        }
         MessageHeaders messageHeaders = ClassMapper.CastMessageHeaders(request.getHeaders());
         this.logTraceMessage("New inbound message received for private channel: ", queueDestination);
         bus.sendRequestMessageToTarget(

@@ -9,12 +9,14 @@ import com.vmware.bifrost.bridge.spring.config.interceptors.AnyDestinationMatche
 import com.vmware.bifrost.bridge.spring.config.interceptors.StartsWithDestinationMatcher;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import samples.interceptors.DropStompMessageInterceptor;
 import samples.interceptors.MessageLoggerInterceptor;
@@ -39,11 +41,30 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         SocketHandshakeHandler socketHandshakeHandler = new SocketHandshakeHandler();
+
+        HandshakeInterceptor sampleHandshakeInterceptor = new HandshakeInterceptor() {
+            @Override
+            public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+                // Attributes map holds session attributes.
+                // Attributes added here later can be accessed via
+                // com.vmware.bifrost.bridge.Request.getSessionAttributes() and getSessionAttribute() methods.
+                attributes.put("remoteAddress", request.getRemoteAddress());
+                return true;
+            }
+
+            @Override
+            public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
+                // do nothing
+            }
+        };
+
         registry.addEndpoint("/bifrost")
                 .setHandshakeHandler(socketHandshakeHandler)
+                .addInterceptors(sampleHandshakeInterceptor)
                 .setAllowedOrigins("*");
         registry.addEndpoint("/fabric")
                 .setHandshakeHandler(socketHandshakeHandler)
+                .addInterceptors(sampleHandshakeInterceptor)
                 .setAllowedOrigins("*");
     }
 
