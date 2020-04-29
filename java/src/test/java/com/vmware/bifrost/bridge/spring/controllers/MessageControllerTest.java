@@ -14,8 +14,11 @@ import com.vmware.bifrost.bus.model.Message;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class MessageControllerTest {
@@ -40,7 +43,7 @@ public class MessageControllerTest {
     public void testBridgeMessageWithInvalidRequest() {
         Exception ex = null;
         try {
-            this.controller.bridgeMessage(new Request(), "channel1");
+            this.controller.bridgeMessage(new Request(), "channel1", null);
         } catch (Exception e) {
             ex = e;
         }
@@ -49,7 +52,7 @@ public class MessageControllerTest {
 
         ex = null;
         try {
-            this.controller.bridgeMessage(new Request(UUID.randomUUID(), null, null), "channel1");
+            this.controller.bridgeMessage(new Request(UUID.randomUUID(), null, null), "channel1", null);
         } catch (Exception e) {
             ex = e;
         }
@@ -60,7 +63,7 @@ public class MessageControllerTest {
             Request request = new Request();
             request.setRequest("request");
             request.setId(UUID.randomUUID());
-            this.controller.bridgeMessage(request, "channel1");
+            this.controller.bridgeMessage(request, "channel1", null);
         } catch (Exception e) {
             ex = e;
         }
@@ -76,9 +79,30 @@ public class MessageControllerTest {
 
         Request bridgeRequest = new Request(UUID.randomUUID(), "test", "request-payload");
 
-        this.controller.bridgeMessage(bridgeRequest, "channel");
+        this.controller.bridgeMessage(bridgeRequest, "channel", null);
         Assert.assertEquals(this.count, 1);
         Assert.assertEquals(this.message.getPayload(), bridgeRequest);
+    }
+
+    @Test
+    public void testBridgeMessageWithSessionAttributes() throws Exception {
+        this.bus.listenRequestStream("channel", message -> {
+            this.message = message;
+            this.count++;
+        });
+
+        Request bridgeRequest = new Request(UUID.randomUUID(), "test", "request-payload");
+
+        Map<String, Object> headers = new HashMap<>();
+        Map<String, Object> sessionAttributes = new HashMap<>();
+        sessionAttributes.put("attributeX", "valueX");
+        headers.put(SimpMessageHeaderAccessor.SESSION_ATTRIBUTES, sessionAttributes);
+        headers.put("headerX", "headerX_value");
+
+        this.controller.bridgeMessage(bridgeRequest, "channel", headers);
+        Assert.assertEquals(this.count, 1);
+        Assert.assertEquals(this.message.getPayload(), bridgeRequest);
+        Assert.assertEquals(bridgeRequest.getSessionAttribute("attributeX"), "valueX");
     }
 
     @Test
@@ -96,7 +120,7 @@ public class MessageControllerTest {
 
         Request bridgeRequest = new Request(UUID.randomUUID(), "test", "request-payload");
 
-        this.controller.bridgeMessage(bridgeRequest, "channel");
+        this.controller.bridgeMessage(bridgeRequest, "channel", null);
         Assert.assertEquals(this.count, 1);
         Assert.assertEquals("request-payload", this.message.getPayload());
     }
@@ -122,7 +146,7 @@ public class MessageControllerTest {
         Principal testPrincipal = new TestPrincipal();
         Exception ex = null;
         try {
-            this.controller.bridgeQueueMessage(new Request(), "channel1", testPrincipal);
+            this.controller.bridgeQueueMessage(new Request(), "channel1", testPrincipal, null);
         } catch (Exception e) {
             ex = e;
         }
@@ -131,7 +155,7 @@ public class MessageControllerTest {
         ex = null;
         try {
             this.controller.bridgeQueueMessage(new Request(
-                    UUID.randomUUID(), null, null), "channel1", testPrincipal);
+                    UUID.randomUUID(), null, null), "channel1", testPrincipal, null);
         } catch (Exception e) {
             ex = e;
         }
@@ -142,7 +166,7 @@ public class MessageControllerTest {
             Request request = new Request();
             request.setRequest("request");
             request.setId(UUID.randomUUID());
-            this.controller.bridgeQueueMessage(request, "channel1", testPrincipal);
+            this.controller.bridgeQueueMessage(request, "channel1", testPrincipal, null);
         } catch (Exception e) {
             ex = e;
         }
@@ -159,7 +183,7 @@ public class MessageControllerTest {
         Request bridgeRequest = new Request(UUID.randomUUID(), "test", "request-payload");
         Principal testPrincipal = new TestPrincipal();
 
-        this.controller.bridgeQueueMessage(bridgeRequest, "channel", testPrincipal);
+        this.controller.bridgeQueueMessage(bridgeRequest, "channel", testPrincipal, null);
         Assert.assertEquals(this.count, 1);
         Assert.assertEquals(this.message.getPayload(), bridgeRequest);
         Assert.assertEquals(testPrincipal.getName(), this.message.getTargetUser());

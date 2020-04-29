@@ -41,8 +41,10 @@ public class MessageController extends Loggable {
 
         validateRequest(request);
         this.logTraceMessage("New inbound message received for channel: ", topicDestination);
-        request.setSessionAttributes(
-              (Map<String, Object>)headers.get(SimpMessageHeaderAccessor.SESSION_ATTRIBUTES));
+        if (headers != null) {
+            request.setSessionAttributes(
+                  (Map<String, Object>) headers.get(SimpMessageHeaderAccessor.SESSION_ATTRIBUTES));
+        }
         MessageHeaders messageHeaders = ClassMapper.CastMessageHeaders(request.getHeaders());
         if (bus.isGalacticChannel(topicDestination)) {
             // unwrap the payload and forward it to the external message broker
@@ -60,8 +62,10 @@ public class MessageController extends Loggable {
 
         validateRequest(request);
         request.setTargetUser(principal.getName());
-        request.setSessionAttributes(
-              (Map<String, Object>)headers.get(SimpMessageHeaderAccessor.SESSION_ATTRIBUTES));
+        if (headers != null) {
+            request.setSessionAttributes(
+                  (Map<String, Object>) headers.get(SimpMessageHeaderAccessor.SESSION_ATTRIBUTES));
+        }
         MessageHeaders messageHeaders = ClassMapper.CastMessageHeaders(request.getHeaders());
         this.logTraceMessage("New inbound message received for private channel: ", queueDestination);
         bus.sendRequestMessageToTarget(
