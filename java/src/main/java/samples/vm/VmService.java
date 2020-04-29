@@ -31,6 +31,7 @@ import samples.vm.model.VmPowerOperationResponse;
 import samples.vm.model.VmPowerOperationResponseItem;
 import samples.vm.model.VmRef;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +58,10 @@ public class VmService extends AbstractService<Request<BaseVmRequest>, Response<
 
    @Override
    protected void handleServiceRequest(Request<BaseVmRequest> request, Message busMessage) throws Exception {
+      InetSocketAddress remoteAddr = request.getSessionAttribute("remoteAddress");
+      if (remoteAddr != null ) {
+         this.logDebugMessage("request from: " + remoteAddr.getHostName());
+      }
 
       switch(request.getRequest()) {
          case VmOperations.CHANGE_VM_POWER_STATE:
