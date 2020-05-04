@@ -5,6 +5,7 @@ import { APIResponse } from '@vmw/bifrost';
 import { GeneralUtil } from '@vmw/bifrost/util/util';
 import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
 import { CloudServicesStatusResponse } from './cloud-services.models';
+import { getDefaultFabricConnectionString } from '../../../../shared/utils';
 
 @Component({
     selector: 'cloudapi-service-component',
@@ -68,13 +69,13 @@ export class CloudServicesApiComponent extends BaseDocsComponent implements OnIn
 
     ngOnInit(): void {
 
-        this.connected = this.fabric.isConnected();
+        this.connected = this.fabric.isConnected(getDefaultFabricConnectionString());
 
         // extend channel to fabric.
         this.bus.markChannelAsGalactic('services-CloudServiceStatus');
 
         // make sure our component picks up connection state on boot.
-        this.fabric.whenConnectionStateChanges().subscribe(
+        this.fabric.whenConnectionStateChanges(getDefaultFabricConnectionString()).subscribe(
             (state: FabricConnectionState) => {
                 if (state === FabricConnectionState.Connected) {
                     this.connected = true;
@@ -92,7 +93,7 @@ export class CloudServicesApiComponent extends BaseDocsComponent implements OnIn
         const request = this.fabric.generateFabricRequest('');
 
         // make request.
-        this.bus.requestOnceWithId(GeneralUtil.genUUIDShort(), 'services-CloudServiceStatus', request)
+        this.bus.requestOnceWithId(request.id, 'services-CloudServiceStatus', request)
             .handle((response: APIResponse<CloudServicesStatusResponse>) => {
                 this.response = response.payload;
                 this.requestLoading = ClrLoadingState.DEFAULT;

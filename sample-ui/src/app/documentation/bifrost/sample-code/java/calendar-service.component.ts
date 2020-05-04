@@ -4,6 +4,7 @@ import { BaseDocsComponent } from '../../../base.docs.component';
 import { APIResponse } from '@vmw/bifrost';
 import { GeneralUtil } from '@vmw/bifrost/util/util';
 import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
+import { getDefaultFabricConnectionString } from '../../../../shared/utils';
 
 @Component({
     selector: 'calendar-service-component',
@@ -42,13 +43,13 @@ export class CalendarServiceComponent extends BaseDocsComponent implements OnIni
 
     ngOnInit(): void {
 
-        this.connected = this.fabric.isConnected();
+        this.connected = this.fabric.isConnected(getDefaultFabricConnectionString());
 
         // extend channel to fabric.
         this.bus.markChannelAsGalactic('calendar-service');
 
         // make sure our component picks up connection state on boot.
-        this.fabric.whenConnectionStateChanges().subscribe(
+        this.fabric.whenConnectionStateChanges(getDefaultFabricConnectionString()).subscribe(
             (state: FabricConnectionState) => {
                 if (state === FabricConnectionState.Connected) {
                     this.connected = true;

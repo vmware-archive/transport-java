@@ -2,6 +2,7 @@ import { BaseComponent } from '../models/abstractions/base.component';
 import { OnDestroy, OnInit } from '@angular/core';
 import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
 import { StoreStream } from '@vmw/bifrost';
+import { getDefaultFabricConnectionString } from '../shared/utils';
 
 export abstract class BaseDocsComponent extends BaseComponent implements OnInit, OnDestroy {
 
@@ -52,10 +53,10 @@ export abstract class BaseDocsComponent extends BaseComponent implements OnInit,
 
     public listenForConnectionStateChange(): void {
 
-        this.connected = this.fabric.isConnected();
+        this.connected = this.fabric.isConnected(getDefaultFabricConnectionString());
 
         // when connection state changes, change our view state.
-        this.connectedStateStream = this.fabric.whenConnectionStateChanges();
+        this.connectedStateStream = this.fabric.whenConnectionStateChanges(getDefaultFabricConnectionString());
         this.connectedStateStream.subscribe(
             (stateChange: FabricConnectionState) => {
                 switch (stateChange) {

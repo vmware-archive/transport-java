@@ -4,6 +4,7 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { ClrLoadingState } from '@clr/angular';
 import { BaseDocsComponent } from '../../../../base.docs.component';
+import { getDefaultFabricConnectionString } from '../../../../../shared/utils';
 
 @Component({
     selector: 'galactic-request-sample',
@@ -22,7 +23,7 @@ import { BaseDocsComponent } from '../../../../base.docs.component';
 })
 export class GalacticRequestComponent extends BaseDocsComponent implements OnInit, OnDestroy {
 
-    @Input() usePrivateChannel: boolean = false;
+    @Input() usePrivateChannel = false;
     public item: string;
     requestLoading: ClrLoadingState = ClrLoadingState.DEFAULT;
 
@@ -50,7 +51,7 @@ export class GalacticRequestComponent extends BaseDocsComponent implements OnIni
         // 2. wrapping markChannelAsGalactic() in setTimeout() fixes the problem by pushing the method execution by a
         //    tick, but it is a bad workaround and in real world it is better to use a different name for the channel
         this.bus.api.tickEventLoop(() => {
-            this.bus.markChannelAsGalactic('servbot', this.usePrivateChannel);
+            this.bus.markChannelAsGalactic('servbot', getDefaultFabricConnectionString(), this.usePrivateChannel);
         });
 
         // make sure our component picks up connection state on boot.

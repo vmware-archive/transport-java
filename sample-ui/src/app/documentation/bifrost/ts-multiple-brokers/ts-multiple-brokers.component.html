@@ -57,12 +57,12 @@ this.fabric.connect(
         .subscribe((state: FabricConnectionState) => &#123; ... &#125; );
 </code></pre>
 
-<h3>Step 2: Create galactic channels across multiple fabric endpoints</h3>
+<h3>Step 2: Mark galactic channels across multiple fabric endpoints</h3>
 <p>
     Just like you would in the previous chapter, <a routerLink="/documentation/bifrost/ts/connecting-to-fabric">
-    Connecting to the Fabric</a>, you use the same <code>bus.markChannelAsGalactic()</code> for creating a galactic
-    channel and <code>bus.markChannelAsLocal()</code> for converting it back to a local channel. A major difference and
-    caveat to keep in mind though is that when you have more than one broker session connected, you will need to
+    Connecting to the Fabric</a>, you use the same <code>bus.markChannelAsGalactic()</code> for marking a channel
+    galactic and <code>bus.markChannelAsLocal()</code> for converting it back to a local channel. A major difference
+    to keep in mind though is that when you have more than one broker session connected, you will need to
     specify the target broker endpoint, as a second parameter, that you wish to associate the channel with:
 </p>
 
@@ -77,7 +77,8 @@ this.bus.markChannelAsGalactic('channel-B',
 <p>
     If you don't specify the second parameter, Bifröst will not be able to tell which channel should be mapped to which broker
     and eventually throws an error in the console asking you to explicitly provide it. <strong>If there is only one
-    broker to connect to, you don't need to provide the second parameter</strong>, as Bifröst will automatically fill it out for you.
+    broker to connect to, however, you don't need to provide the second parameter</strong>, as Bifröst will
+    automatically fill it out for you.
 </p>
 <p>
     And that is how to talk to galactic channels mapped across different brokers!
