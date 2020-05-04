@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM openjdk:8-jdk
 VOLUME /tmp
 COPY build/libs/vmw-bifrost-boot.jar fabric-service.jar
 EXPOSE 8090
