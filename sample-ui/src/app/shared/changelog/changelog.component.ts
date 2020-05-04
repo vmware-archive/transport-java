@@ -30,4 +30,5 @@ export class ChangelogComponent {
 
     versionComparator = new VersionComparator();
     ClrDatagridSortOrder = ClrDatagridSortOrder;
+    loading = true;
 }

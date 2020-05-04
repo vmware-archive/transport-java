@@ -40,7 +40,7 @@ public class BifrostMetricsService extends AbstractService<Request<String>, Resp
     @Override
     protected void handleServiceRequest(Request request, Message busMessage) {
         switch (request.getRequest()) {
-            case Command.GetTSLibDownloadsCount:
+            case BifrostMetricsServiceCommand.GetTSLibDownloadsCount:
                 try {
                     RestOperation restOperation = new RestOperation();
                     restOperation.setId(UUID.randomUUID());
@@ -68,6 +68,6 @@ public class BifrostMetricsService extends AbstractService<Request<String>, Resp
     }
 }
 
-abstract class Command {
+abstract class BifrostMetricsServiceCommand {
     static final String GetTSLibDownloadsCount = "ts-lib-download-count";
 }
