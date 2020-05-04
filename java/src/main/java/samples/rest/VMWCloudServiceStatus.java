@@ -46,6 +46,7 @@ public class VMWCloudServiceStatus extends AbstractService<Request<String>, Resp
                 null, null,
                 "samples.rest.CloudServicesStatusResponse",
                 (Response<CloudServicesStatusResponse> resp) -> {
+                    resp.setId(req.getId());
                     this.sendResponse(resp, req.getId());
                 },
                 (Response<RestError> error) -> {

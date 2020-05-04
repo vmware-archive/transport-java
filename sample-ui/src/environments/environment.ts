@@ -3,7 +3,12 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+    fabricConn: {
+        host: 'localhost',
+        port: 4200,
+        endpoint: '/fabric'
+    },
+    production: false
 };
 
 /*

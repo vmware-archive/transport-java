@@ -10,6 +10,8 @@ import {
 } from '../constants';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 import { RestService } from '@vmw/bifrost/core/services/rest/rest.service';
+import { environment } from '@appfab/environments/environment';
+import { getDefaultFabricConnectionString } from './shared/utils';
 
 export function PreloadServiceFactory(preloadService: PreloadService) {
     return () => preloadService.initialize();
@@ -54,7 +56,7 @@ export class PreloadService {
                 this.bus.logger.info(`Connected to Application Fabric with sessionId ${sessionId}`, 'main.ts');
                 this.bus.markChannelAsGalactic(BIFROST_METRICS_SERVICE_CHANNEL);
                 this.bus.markChannelAsGalactic(BIFROST_METADATA_SERVICE_CHANNEL);
-                this.bus.fabric.getFabricVersion().subscribe(
+                this.bus.fabric.getFabricVersion(getDefaultFabricConnectionString()).subscribe(
                     (version: string) => {
                         this.versionStore.put('java', version, FabricVersionState.JavaSet);
                     }

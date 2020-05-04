@@ -10,6 +10,7 @@ import {
 import { AbstractBase } from '@vmw/bifrost/core';
 import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
 import { MessageHandler, StoreStream } from '@vmw/bifrost';
+import { getDefaultFabricConnectionString } from '../../../../../shared/utils';
 
 export interface SimpleStreamObject {
     payload: string;
@@ -46,7 +47,7 @@ export class FabricConnectionComponent extends AbstractBase implements OnInit, O
         this.bus.markChannelAsGalactic('simple-stream');
 
         // set initial state.
-        this.connected = this.fabric.isConnected();
+        this.connected = this.fabric.isConnected(getDefaultFabricConnectionString());
 
         // listen for connection state changes.
         this.listenForConnectionStateChange();
@@ -109,14 +110,14 @@ export class FabricConnectionComponent extends AbstractBase implements OnInit, O
 
     disconnect(): void {
         // disconnect.
-        this.bus.fabric.disconnect();
+        this.bus.fabric.disconnect(getDefaultFabricConnectionString());
         this.simpleStream.close();
         this.connected = false;
     }
 
     private listenForConnectionStateChange(): void {
         // when connection state changes, change our view state.
-        this.connectedStateStream = this.fabric.whenConnectionStateChanges();
+        this.connectedStateStream = this.fabric.whenConnectionStateChanges(getDefaultFabricConnectionString());
         this.connectedStateStream.subscribe(
             (stateChange: FabricConnectionState) => {
                 switch (stateChange) {

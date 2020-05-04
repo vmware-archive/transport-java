@@ -3,6 +3,7 @@ import { VERSION } from '@appfab/environments/version';
 import { StoreStream } from '@vmw/bifrost';
 import { FabricConnectionState } from '@vmw/bifrost/fabric.api';
 import { BaseDocsComponent } from '../documentation/base.docs.component';
+import { getDefaultFabricConnectionString } from '../shared/utils';
 
 @Component({
     selector: 'footer-component',
@@ -26,7 +27,7 @@ export class FooterComponent extends BaseDocsComponent implements OnInit, OnDest
 
     ngOnInit() {
         this.listenForConnectionStateChange();
-        this.connected = this.fabric.isConnected();
+        this.connected = this.fabric.isConnected(getDefaultFabricConnectionString());
         if (this.connected) {
             this.setConnected();
         }
@@ -58,7 +59,7 @@ export class FooterComponent extends BaseDocsComponent implements OnInit, OnDest
 
     listenForConnectionStateChange(): void {
         // when connection state changes, change our view state.
-        this.connectedStateStream = this.fabric.whenConnectionStateChanges();
+        this.connectedStateStream = this.fabric.whenConnectionStateChanges(getDefaultFabricConnectionString());
         this.connectedStateStream.subscribe(
             (stateChange: FabricConnectionState) => {
                 switch (stateChange) {
