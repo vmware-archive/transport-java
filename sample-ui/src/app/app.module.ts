@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -11,6 +11,7 @@ import { WelcomeComponent } from './welcome/welcome.component';
 import { SharedModule } from './shared/shared.module';
 import { ChattyChatComponent } from './documentation/bifrost/sample-code/ts/chatty-chat/chatty-chat.component';
 import { VideosModule } from './videos/videos.module';
+import { PreloadService, PreloadServiceFactory } from './preload.service';
 
 @NgModule({
     declarations: [
@@ -28,7 +29,12 @@ import { VideosModule } from './videos/videos.module';
         VideosModule,
         SharedModule
     ],
-    providers: [],
+    providers: [{
+        provide: APP_INITIALIZER,
+        useFactory: PreloadServiceFactory,
+        deps: [PreloadService],
+        multi: true
+    }],
     bootstrap: [AppComponent]
 })
 export class AppModule {

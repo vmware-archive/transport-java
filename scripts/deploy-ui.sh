@@ -68,6 +68,8 @@ docker-compose -f /tmp/docker-compose.yaml down 2>/dev/null
 # start containers
 echo
 info "Starting App Fabric containers using tag ${TARGET_TAG}..."
+export GITLAB_BIFROST_TYPESCRIPT_TOKENS_ID=${GITLAB_BIFROST_TYPESCRIPT_TOKENS_ID}
+export GITLAB_BIFROST_TYPESCRIPT_TOKENS_SECRET=${GITLAB_BIFROST_TYPESCRIPT_TOKENS_SECRET}
 docker-compose -f /tmp/docker-compose.yaml up -d
 
 # check if container is running normally
@@ -89,6 +91,7 @@ sed "s/\/appfabric\(.*\)/\/appfabric\1:${TARGET_TAG}/g" $ROOT/docker-compose.yam
 sshpass -p "${UI_HOST_PASSWORD}" scp -o StrictHostKeyChecking=no $ROOT/scripts/deploy.sh ${UI_HOST_USERNAME}@${UI_HOST}:/tmp/
 sshpass -p "${UI_HOST_PASSWORD}" scp -o StrictHostKeyChecking=no $ROOT/docker-compose-tmp.yaml ${UI_HOST_USERNAME}@${UI_HOST}:/tmp/docker-compose.yaml
 sshpass -p "${UI_HOST_PASSWORD}" ssh -o StrictHostKeyChecking=no ${UI_HOST_USERNAME}@${UI_HOST} "chmod +x /tmp/deploy.sh && bash /tmp/deploy.sh"
+sshpass -p "${UI_HOST_PASSWORD}" ssh -o StrictHostKeyChecking=no ${UI_HOST_USERNAME}@${UI_HOST} "bash rm /tmp/deploy.sh"
 rm $ROOT/scripts/deploy.sh
 set -e
 

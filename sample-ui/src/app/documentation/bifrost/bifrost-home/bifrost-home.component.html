@@ -45,5 +45,8 @@
     results in a super fast, super scalable mechanism for actors to communicate and decouple logic. The Bifröst can be extended from the UI/CLI to fabric applications, and between fabric applications.
 </p>
 <hr/>
-<h2>TypeScript Changelog</h2> Latest version is: <strong class="emphasis">{{packageJSON.default.version}}</strong>
+<h2>TypeScript Changelog</h2> Latest version is:
+<span *ngIf="changeLog === undefined" class="spinner spinner-inline"></span>
+<strong *ngIf="changeLog !== undefined" class="emphasis">{{changeLog[0]?.version}}</strong>
+
 <appfabric-changelog [changelog]="changeLog"></appfabric-changelog>

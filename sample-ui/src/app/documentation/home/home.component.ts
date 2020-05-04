@@ -1,9 +1,12 @@
 import { AfterViewChecked, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { BaseDocsComponent } from '../base.docs.component';
 import { HighlightService } from '../../local-services/highlight.service';
-import * as packageJSON from '@vmw/bifrost/package.json';
-import { BusStore, StoreStream } from '@vmw/bifrost';
-import { AppStores, FabricVersionState } from '../../../constants';
+import { APIResponse, BusStore, StoreStream } from '@vmw/bifrost';
+import {
+    AppStores,
+    BIFROST_METADATA_SERVICE_CHANNEL,
+    FabricVersionState, GET_TS_LIB_LATEST_VERSION
+} from '../../../constants';
 import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 
 @Component({
@@ -13,11 +16,12 @@ import { ServiceLoader } from '@vmw/bifrost/util/service.loader';
 })
 export class HomeComponent extends BaseDocsComponent implements OnInit, OnDestroy, AfterViewChecked {
 
-    packageJSON: any = packageJSON;
     public sewingMachineVersion;
+    public uiVersion: string;
     public javaVersion: string;
     private versionStore: BusStore<string>;
-    private versionStoreStream: StoreStream<string>;
+    private javaVersionStream: StoreStream<string>;
+    private uiVersionStream: StoreStream<string>;
 
 
     constructor(private highlightService: HighlightService, private cd: ChangeDetectorRef) {
@@ -41,17 +45,17 @@ export class HomeComponent extends BaseDocsComponent implements OnInit, OnDestro
     ngOnInit() {
         this.setBifrostTsDocsActive(false);
         this.setBifrostJavaDocsActive(false);
+        this.uiVersion = 'fetching...';
         this.javaVersion = 'fetching...';
         this.sewingMachineVersion = 'fetching...';
 
         this.disableLocalRestService();
 
-        const storeVersion = this.versionStore.get('java');
-        if (storeVersion) {
-            this.javaVersion = storeVersion;
+        if (this.versionStore.get('java')) {
+            this.javaVersion = this.versionStore.get('java');
         } else {
-            this.versionStoreStream = this.versionStore.onChange('java', FabricVersionState.JavaSet);
-            this.versionStoreStream.subscribe(
+            this.javaVersionStream = this.versionStore.onChange('java', FabricVersionState.JavaSet);
+            this.javaVersionStream.subscribe(
                 (version: string) => {
                     this.javaVersion = version;
                     this.cd.detectChanges();
@@ -59,11 +63,25 @@ export class HomeComponent extends BaseDocsComponent implements OnInit, OnDestro
             );
         }
 
+        if (this.versionStore.get('ui')) {
+            this.uiVersion = this.versionStore.get('ui');
+        } else {
+            this.bus.requestOnce(BIFROST_METADATA_SERVICE_CHANNEL,
+                this.fabric.generateFabricRequest(GET_TS_LIB_LATEST_VERSION, null))
+                .handle((version: APIResponse<string>) => {
+                    this.uiVersion = version.payload;
+                    this.cd.detectChanges();
+                });
+        }
     }
 
     ngOnDestroy(): void {
-        if (this.versionStoreStream) {
-            this.versionStoreStream.unsubscribe();
+        if (this.javaVersionStream) {
+            this.javaVersionStream.unsubscribe();
+        }
+
+        if (this.uiVersionStream) {
+            this.uiVersionStream.unsubscribe();
         }
         this.enableLocalRestService();
     }
