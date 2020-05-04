@@ -6,6 +6,9 @@ services:
     image: appfabric-service.artifactory.eng.vmware.com/appfabric-service
     container_name: appfabric-service
     hostname: appfabric-service
+    environment:
+      GITLAB_BIFROST_TYPESCRIPT_TOKENS_ID: ${GITLAB_BIFROST_TYPESCRIPT_TOKENS_ID}
+      GITLAB_BIFROST_TYPESCRIPT_TOKENS_SECRET: ${GITLAB_BIFROST_TYPESCRIPT_TOKENS_SECRET}
     ports:
       - "8090:8090"
     networks:
