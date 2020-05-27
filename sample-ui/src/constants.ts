@@ -2,7 +2,6 @@ export enum AppStores {
     Docs = 'docs',
     FabricConnection = 'stores::fabric-connection',
     Versions = 'stores::versions'
-
 }
 
 export enum FabricConnectionStoreKey {
@@ -12,6 +11,10 @@ export enum FabricConnectionStoreKey {
 export enum FabricVersionState {
     JavaSet = 'java-set',
     UiSet = 'ui-set'
+}
+
+export enum FabricConnectionStoreState {
+    ConnectionStateUpdate = 'connectionStateUpdate'
 }
 
 export const BIFROST_METRICS_SERVICE_CHANNEL = 'bifrost-metrics-service';
