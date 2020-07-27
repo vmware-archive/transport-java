@@ -263,7 +263,7 @@ public class TestServiceTest {
     }
 
     @Test
-    public void testServiceCommandOverQueueWithError() {
+    public void testServiceCommandOverQueueWithErrorResponse() {
         String serviceChannel = "test::TestService";
 
         TestServiceObjectRequest requestPayload = new TestServiceObjectRequest();
@@ -272,7 +272,7 @@ public class TestServiceTest {
         TestRequest request = new TestRequest();
         UUID id = UUID.randomUUID();
         request.setId(id);
-        request.setRequest(TestCommand.ERROR_OVERQUEUE);
+        request.setRequest(TestCommand.ERROR_RESPONSE_OVERQUEUE);
         request.setTargetUser("user-id");
         request.setPayload(requestPayload);
 
@@ -287,6 +287,35 @@ public class TestServiceTest {
                     GeneralError error = resp.getPayload();
                     Assert.assertEquals("user-id", msg.getTargetUser());
                     Assert.assertEquals("error", error.message);
+                }
+        );
+    }
+
+    @Test
+    public void testServiceCommandOverQueueWithGeneralError() {
+        String serviceChannel = "test::TestService";
+
+        TestServiceObjectRequest requestPayload = new TestServiceObjectRequest();
+        requestPayload.setRequestValue("My Little Song");
+
+        TestRequest request = new TestRequest();
+        UUID id = UUID.randomUUID();
+        request.setId(id);
+        request.setRequest(TestCommand.GENERAL_ERROR_OVERQUEUE);
+        request.setTargetUser("user-id");
+        request.setPayload(requestPayload);
+
+        bus.requestOnce(
+                serviceChannel,
+                request,
+                (Message msg) -> {
+                    Assert.fail();
+                },
+                (Message msg) -> {
+                    Response<GeneralError> resp = (Response<GeneralError>) msg.getPayload();
+                    GeneralError error = resp.getPayload();
+                    Assert.assertEquals("user-id", msg.getTargetUser());
+                    Assert.assertEquals("I'm a teapot", error.message);
                 }
         );
     }

@@ -179,6 +179,7 @@ public abstract class AbstractAutoService<RequestType extends Request, ResponseT
         Response resp = new Response(message.getId(), true);
         resp.setErrorMessage(err.message);
         resp.setErrorCode(err.errorCode);
+        resp.setPayload(err.errorObject);
         this.bus.sendErrorMessageWithId(channel, resp, message.getId());
     }
 

@@ -10,6 +10,7 @@ import com.vmware.bifrost.bus.model.Message;
 import com.vmware.bifrost.core.error.GeneralError;
 import com.vmware.bifrost.core.error.RestError;
 import com.vmware.bifrost.core.model.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -41,8 +42,12 @@ public class TestService extends AbstractService<TestRequest, TestResponse> {
                 this.handleCommandOverQueue(request, message.getId());
                 break;
 
-            case TestCommand.ERROR_OVERQUEUE:
-                this.sendErrorOverQueue(request, message.getId());
+            case TestCommand.ERROR_RESPONSE_OVERQUEUE:
+                this.sendErrorResponseOverQueue(request, message.getId());
+                break;
+
+            case TestCommand.GENERAL_ERROR_OVERQUEUE:
+                this.sendGeneralErrorOverQueue(request, message.getId());
                 break;
         }
     }
@@ -110,10 +115,15 @@ public class TestService extends AbstractService<TestRequest, TestResponse> {
         this.sendResponse(resp, id, request.getTargetUser());
     }
 
-    private void sendErrorOverQueue(TestRequest request, UUID id) {
+    private void sendErrorResponseOverQueue(TestRequest request, UUID id) {
         GeneralError err = new GeneralError();
         err.message = "error";
         Response<GeneralError> errResponse = new Response<>(id, err);
         this.sendError(errResponse, id, request.getTargetUser());
+    }
+
+    private void sendGeneralErrorOverQueue(TestRequest request, UUID id) {
+        GeneralError err = new GeneralError(HttpStatus.I_AM_A_TEAPOT.getReasonPhrase(), HttpStatus.I_AM_A_TEAPOT.toString());
+        this.sendError(err, id, request.getTargetUser());
     }
 }
