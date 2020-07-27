@@ -93,6 +93,10 @@ public abstract class AbstractService<RequestType extends Request, ResponseType 
         this.bus.sendErrorMessageWithId(this.serviceChannel, error, id);
     }
 
+    protected <E extends GeneralError> void sendError(E error, UUID id, String targetUser) {
+        this.bus.sendErrorMessageToTarget(this.serviceChannel, error, id, targetUser);
+    }
+
     protected void sendError(Response errorResponse, UUID id) {
         this.bus.sendErrorMessageWithId(this.serviceChannel, errorResponse, id);
     }

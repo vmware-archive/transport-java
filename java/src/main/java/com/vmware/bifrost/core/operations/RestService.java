@@ -32,6 +32,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -297,9 +298,20 @@ public class RestService extends AbstractService<Request<RestServiceRequest>, Re
             }
 
             this.logErrorMessage("REST Client Error, unable to complete request: ", errorMsg);
-            operation.getErrorHandler().accept(
-                    new RestError("REST Client Error, unable to complete request: " + errorMsg, errorCode)
-            );
+
+            // try parsing the errorMsg as JSON and set it as errorObject
+            Object upstreamErrorObject;
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                upstreamErrorObject = mapper.readValue(errorMsg, LinkedHashMap.class);
+            } catch (IOException e) {
+                // errorMsg is not a properly formatted JSON string in which case just stick with the string value
+                upstreamErrorObject = errorMsg;
+            }
+
+            RestError restError = new RestError("REST Client Error, unable to complete request: " + errorMsg,
+                    upstreamErrorObject, errorCode);
+            operation.getErrorHandler().accept(restError);
 
         } catch (NullPointerException npe) {
 
