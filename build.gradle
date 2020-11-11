@@ -1,204 +1,75 @@
 buildscript {
     ext {
-        //springBootVersion = '2.0.1.RELEASE'
         springBootVersion = '1.5.18.RELEASE'
+        //springBootVersion = '2.3.5.RELEASE'
     }
     repositories {
-        maven { url "http://build-squid.eng.vmware.com/nexus/content/groups/repo" }
+        mavenCentral()
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath "gradle.plugin.com.github.onslip:gradle-one-jar:1.0.5"
     }
 }
 
-// Configure latest Lombok
+// Configure Lombok
 plugins {
     id 'io.franzbecker.gradle-lombok' version '1.14'
 }
 apply plugin: 'java-library'
-apply plugin: 'maven-publish'
-apply plugin: 'eclipse'
-//apply plugin: 'org.springframework.boot'
-apply plugin: 'com.github.onslip.gradle-one-jar'
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'idea'
 apply plugin: 'jacoco'
+apply plugin: 'osgi'
 
-// bootJar is not supported in spring boot 1.5
-//bootJar {
-//    classifier = 'boot'
-//    manifest {
-//        attributes(
-//                'Main-Class': 'oldsamples.Application'
-//        )
-//    }
-//}
-
-def profiles = 'prod'
-
-group = 'com.vmware.bifrost'
+group = 'com.vmware.transport'
 sourceCompatibility = 1.8
-
-initProperties()
 
 ext.generatedResourcesOutputDir = file("$buildDir/generated-resources")
 
-task generateBifrostPropertiesFile {
-    ext.outputFile = file("$generatedResourcesOutputDir/bifrost.properties")
+initProperties()
+
+task generateTransportPropertiesFile {
+    ext.outputFile = file("$generatedResourcesOutputDir/transport.properties")
     outputs.file(outputFile)
     doLast {
-        outputFile.text = "bifrost.version=$version"
+        outputFile.text = "transport.version=$version"
     }
 }
 
 sourceSets {
     main {
         // Register the generated-resources dir on the main sourceSet.
-        output.dir generatedResourcesOutputDir, builtBy: generateBifrostPropertiesFile
+        output.dir generatedResourcesOutputDir, builtBy: generateTransportPropertiesFile
     }
 }
 
 jar {
-    enabled = true
-
-    // Exclude application, samples and oldsamples resources and classes
     from sourceSets.main.output
-    include 'com/vmware/bifrost/**/*'
-    include 'bifrost.properties'
+    include 'com/vmware/transport/**/*'
+    include 'transport.properties'
 
     manifest {
+        instruction 'Import-Package', 'org.springframework.beans', '*'
         attributes (
-                'Bundle-Name': 'Bifrost',
+                'Bundle-Name': 'Transport',
                 'Bundle-Version': version,
-                'Bundle-SymbolicName': 'com.vmware.bifrost',
-                'Import-Package': 'org.springframework.beans.factory,' +
-                        'org.springframework.beans,' +
-                        'org.springframework.beans.factory.annotation,' +
-                        'org.springframework.web.socket.config.annotation,' +
-                        'org.springframework.messaging.simp,' +
-                        'org.springframework.messaging.simp.config,' +
-                        'org.springframework.messaging.simp.stomp,' +
-                        'org.springframework.messaging.support,' +
-                        'org.springframework.messaging.handler.annotation,' +
-                        'org.springframework.context,' +
-                        'org.springframework.context.annotation,' +
-                        'org.springframework.context.event,' +
-                        'org.springframework.core,' +
-                        'org.springframework.core.io,' +
-                        'org.springframework.web.bind.annotation,' +
-                        'org.springframework.web.client,' +
-                        'org.springframework.http,' +
-                        'org.springframework.http.client,' +
-                        'org.springframework.stereotype,' +
-                        'org.springframework.util,' +
-                        'org.springframework.web.socket.messaging,' +
-                        'io.reactivex,' +
-                        'io.reactivex.disposables,' +
-                        'io.reactivex.functions,' +
-                        'io.reactivex.observers,' +
-                        'io.reactivex.disposables,' +
-                        'io.reactivex.exceptions,' +
-                        'io.reactivex.subjects,' +
-                        'com.fasterxml.jackson.databind,' +
-                        'org.slf4j,' +
-                        'org.reactivestreams',
-                'Export-Package': "com.vmware.bifrost;version=$version," +
-                        "com.vmware.bifrost.bus;version=$version," +
-                        "com.vmware.bifrost.bus.model;version=$version," +
-                        "com.vmware.bifrost.bus.store;version=$version," +
-                        "com.vmware.bifrost.bus.store.model;version=$version," +
-                        "com.vmware.bifrost.broker;version=$version," +
-                        "com.vmware.bifrost.core;version=$version," +
-                        "com.vmware.bifrost.core.error;version=$version," +
-                        "com.vmware.bifrost.core.interfaces;version=$version," +
-                        "com.vmware.bifrost.core.model;version=$version," +
-                        "com.vmware.bifrost.core.util;version=$version," +
-                        "com.vmware.bifrost.core.operations;version=$version," +
-                        "com.vmware.bifrost.bridge;version=$version," +
-                        "com.vmware.bifrost.bridge.util;version=$version," +
-                        "com.vmware.bifrost.bridge.spring;version=$version," +
-                        "com.vmware.bifrost.bridge.spring.controllers;version=$version," +
-                        "com.vmware.bifrost.bridge.spring.config.annotation;version=$version," +
-                        "com.vmware.bifrost.bridge.spring.config.interceptors;version=$version," +
-                        "com.vmware.bifrost.bridge.spring.config;version=$version," +
-                        "com.vmware.bifrost.bridge.spring.handlers;version=$version," +
-                        "com.vmware.bifrost.bridge.spring.services;version=$version"
-
+                'Bundle-SymbolicName': 'com.vmware.transport'
         )
     }
 }
 
-task buildAppJar(type: Jar) {
-    classifier "app"
-    from sourceSets.main.output
-}
-
-task buildBootJar(type: OneJar) {
-    dependsOn buildAppJar
-    baseJar = buildAppJar
-    mainClass = 'app.Application'
-    archiveName = 'vmw-bifrost-boot.jar'
-}
-
 repositories {
-    maven { url "http://build-squid.eng.vmware.com/nexus/content/groups/repo" }
-}
-
-// Maven artifact publishing using the maven-publish plugin.
-publishing {
-    publications {
-        // Publishes
-        mavenJava(MavenPublication) {
-            // Publishes a POM to maven repo.
-            from components.java
-        }
-    }
-
-    repositories {
-        maven {
-            // To publish to the build-artifactory:
-            //
-            // 1. Ensure you have write access to the bifrost-maven-local repo.
-            // 2. Update the version in "version.txt" file.
-            // 3. Run "gradlew publish" task by specifying your credentials using the
-            //    mavenUser and mavenPassword gradle properties. This can be done via:
-            //       - command line arguments - "gradlew publish -PmavenUser=user -PmavenPassword=password"
-            //       - the local gradle.properties file, usually located in USER_HOME/.gradle/gradle.properties
-            //
-            // To test you changes during development, you can publish project's jars
-            // to your maven local repo by running "gradlew publishToMavenLocal" task.
-            credentials {
-                username mavenUser
-                password mavenPassword
-            }
-            name = 'build-artifactory'
-            url = "https://build-artifactory.eng.vmware.com/artifactory/bifrost-maven-local"
-        }
-    }
+    mavenCentral()
 }
 
 dependencies {
-    implementation "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
-    runtime "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
-
     implementation "org.springframework.boot:spring-boot-starter-websocket:$springBootVersion"
     runtime "org.springframework.boot:spring-boot-starter-websocket:$springBootVersion"
 
     implementation "org.springframework.security:spring-security-web:4.2.2.RELEASE"
     runtime "org.springframework.security:spring-security-web:4.2.2.RELEASE"
 
-    implementation "org.springframework.security:spring-security-config:4.2.2.RELEASE"
-    runtime "org.springframework.security:spring-security-config:4.2.2.RELEASE"
-
     runtime "io.reactivex.rxjava2:rxjava:2.1.9"
     implementation "io.reactivex.rxjava2:rxjava:2.1.9"
-
-    implementation group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.9.4"
-    runtime group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "2.9.4"
-
-    implementation "com.fasterxml.jackson.module:jackson-module-jsonSchema:2.9.4"
-    runtime "com.fasterxml.jackson.module:jackson-module-jsonSchema:2.9.4"
 
     implementation group: "org.slf4j", name: "slf4j-api", version: "1.7.25"
     runtime group: "org.slf4j", name: "slf4j-api", version: "1.7.25"
@@ -209,29 +80,13 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.1'
     runtime 'com.google.code.gson:gson:2.8.1'
 
-    implementation 'joda-time:joda-time:2.9.9'
-    runtime 'joda-time:joda-time:2.9.9'
-
     annotationProcessor "org.projectlombok:lombok:1.18.8"
 
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.6'
-    runtime group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.6'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+    runtime group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
 
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
-    runtime group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
-    
-    // adding dependencies for rabbit relay broker,
-//    implementation group: 'io.projectreactor', name: 'reactor-core', version: '2.0.8.RELEASE'
-//    runtime group: 'io.projectreactor', name: 'reactor-core', version: '2.0.8.RELEASE'
-//
-//    implementation group: 'io.projectreactor', name: 'reactor-net', version: '2.0.8.RELEASE'
-//    runtime group: 'io.projectreactor', name: 'reactor-net', version: '2.0.8.RELEASE'
-//
-//    implementation group: 'io.netty', name: 'netty-all', version: '4.0.33.Final'
-//    runtime group: 'io.netty', name: 'netty-all', version: '4.0.33.Final'
-
+    testImplementation "org.springframework.security:spring-security-config:4.2.2.RELEASE"
     testImplementation "org.springframework.security:spring-security-test:4.2.2.RELEASE"
-    testImplementation group: 'org.springframework', name: 'spring-web', version: "4.3.21.RELEASE"
     testImplementation 'org.mockito:mockito-core:2.+'
     testImplementation 'org.powermock:powermock-module-junit4:1.7.1'
     testImplementation('com.github.tomakehurst:wiremock:2.19.0')
@@ -262,9 +117,7 @@ jacocoTestReport {
 
     afterEvaluate {
         classDirectories = files(classDirectories.files.collect {
-            fileTree(dir: it,
-                    exclude: ['oldsamples/**',
-                              'samples/**'])
+            fileTree(dir: it)
         })
     }
 }
@@ -273,15 +126,5 @@ void initProperties() {
     version = rootProject.file('version.txt').getText('UTF-8').trim()
     if ("snapshot".compareTo(buildType) == 0) {
         version = version + "-SNAPSHOT"
-    } else if ("release".compareTo(buildType) == 0) {
-        version = version + "-RELEASE"
-    }
-
-    if (System.getenv("bifrost_maven_user")?.trim()) {
-        mavenUser = System.getenv("bifrost_maven_user").trim()
-    }
-
-    if (System.getenv("bifrost_maven_password")?.trim()) {
-        mavenPassword = System.getenv("bifrost_maven_password").trim()
     }
 }
