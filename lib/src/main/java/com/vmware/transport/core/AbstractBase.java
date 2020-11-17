@@ -133,6 +133,7 @@ public abstract class AbstractBase extends Loggable implements TransportEnabled 
      * @param <Resp>           Type of the response being returned.
      * @deprecated use method with RestOperation.
      */
+    @Deprecated
     protected <Req, Resp> void restServiceRequest(
             URI uri,
             HttpMethod method,
