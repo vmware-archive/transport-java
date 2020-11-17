@@ -1,2 +1,3 @@
-rootProject.name = 'vmw-transport'
+rootProject.name = 'transport-java'
+include('lib')
 

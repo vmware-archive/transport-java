@@ -1,0 +1,78 @@
+plugins {
+    id 'org.springframework.boot' version '2.4.0'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id "io.freefair.lombok" version "5.3.0"
+    id 'java-library'
+    id 'jacoco'
+}
+
+jar.enabled = true
+
+group = 'com.vmware.transport'
+version = '0.0.1'
+
+tasks.jar {
+    from sourceSets.main.output
+    include 'com/vmware/transport/**/*'
+    include 'transport.properties'
+
+    manifest {
+        attributes (
+                'Bundle-Name': 'Transport',
+                'Bundle-Version': version,
+                'Bundle-SymbolicName': 'com.vmware.transport'
+        )
+    }
+    archiveName 'transport' + version + '.jar'
+}
+
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.security:spring-security-web'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.9'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    implementation 'com.google.code.gson:gson:2.8.1'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+
+    testImplementation 'org.springframework.security:spring-security-config'
+    testImplementation 'org.mockito:mockito-core:2.+'
+    testImplementation 'org.powermock:powermock-module-junit4:1.7.1'
+    testImplementation 'com.github.tomakehurst:wiremock:2.26.2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'junit:junit'
+    testImplementation 'org.springframework.security:spring-security-test'
+
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport // report is always generated after tests run
+    jacoco {
+        enabled = true
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.6"
+    reportsDir = file("$buildDir/coverage-reports")
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.enabled false
+        html.enabled true
+        html.destination file("${buildDir}/coverage-html")
+    }
+}
