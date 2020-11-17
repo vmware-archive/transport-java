@@ -3,14 +3,18 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.10.RELEASE'
     id "io.freefair.lombok" version "5.3.0"
     id 'java-library'
+    id 'java'
     id 'jacoco'
 }
 
+// enable jar building
 jar.enabled = true
 
+// define outputs
 group = 'com.vmware.transport'
 version = '0.0.1'
 
+// when building the jar file
 tasks.jar {
     from sourceSets.main.output
     include 'com/vmware/transport/**/*'
@@ -23,9 +27,14 @@ tasks.jar {
                 'Bundle-SymbolicName': 'com.vmware.transport'
         )
     }
-    archiveName 'transport' + version + '.jar'
+    archiveName 'transport-' + version + '.jar'
 }
 
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
 
 repositories {
     mavenCentral()
@@ -34,11 +43,12 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.security:spring-security-web'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
-    implementation 'org.springframework.security:spring-security-web'
     implementation 'io.reactivex.rxjava2:rxjava:2.1.9'
     implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
@@ -50,17 +60,25 @@ dependencies {
     testImplementation 'org.powermock:powermock-module-junit4:1.7.1'
     testImplementation 'com.github.tomakehurst:wiremock:2.26.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'junit:junit'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'junit:junit'
 
 }
 
 test {
-    useJUnitPlatform()
     finalizedBy jacocoTestReport // report is always generated after tests run
     jacoco {
         enabled = true
     }
+    testLogging {
+        showStandardStreams = false
+        afterSuite { desc, result ->
+            if (!desc.parent) { // true after all suites have executed and final result available.
+                println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+            }
+        }
+    }
+
 }
 
 jacoco {
