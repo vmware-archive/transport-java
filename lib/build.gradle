@@ -14,6 +14,10 @@ jar.enabled = true
 group = 'com.vmware.transport'
 version = '0.0.1'
 
+bootJar {
+    enabled = false
+}
+
 // when building the jar file
 tasks.jar {
     from sourceSets.main.output
