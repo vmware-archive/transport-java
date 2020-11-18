@@ -1,9 +1,9 @@
 /*
- * Copyright(c) VMware Inc. 2018
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  */
-
 package com.vmware.transport.core.operations;
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -21,7 +21,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-
     @Autowired
     public void configureGlobalSecurity(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication().withUser("admin").password("test123").roles("ADMIN");
@@ -35,9 +34,4 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/secured-admin/**").hasRole("ADMIN")
                 .and().csrf().disable();
     }
-
-//    @Bean
-//    ServletWebServerFactory servletWebServerFactory(){
-//        return new TomcatServletWebServerFactory();
-//    }
 }

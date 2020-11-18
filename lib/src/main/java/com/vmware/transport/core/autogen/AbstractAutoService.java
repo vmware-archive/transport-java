@@ -1,5 +1,9 @@
+/*
+ * Copyright 2019-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ */
 package com.vmware.transport.core.autogen;
-
 
 import com.google.gson.Gson;
 import com.vmware.transport.bridge.Request;

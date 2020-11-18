@@ -1,8 +1,9 @@
-package com.vmware.transport.bus;
-
 /*
- * Copyright(c) VMware Inc. 2017
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  */
+package com.vmware.transport.bus;
 
 import com.vmware.transport.bus.model.MessageType;
 import io.reactivex.Observable;

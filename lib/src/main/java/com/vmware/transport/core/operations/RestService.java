@@ -1,5 +1,7 @@
-/**
- * Copyright(c) VMware Inc. 2018-2020
+/*
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  */
 package com.vmware.transport.core.operations;
 
@@ -39,13 +41,13 @@ import java.util.function.Consumer;
 
 /**
  * RestService is responsible for handling UI Rest requests. It operates in two modes:
- * <p>
+ *
  * 1. As a simple REST client that translates a RestOperation object into a Rest Call to an external URI
  * 2. As a dispatch engine that checks if there are any RestController instances that serve the requested URI.
  * If there is a match, the method arguments are extracted from all the meta data provided via annotations to the
  * method, and then calls the method using the correct sequence of arguments, with the correct types, in the correct
  * order.
- * <p>
+ *
  *
  * @see com.vmware.transport.core.model.RestOperation
  */

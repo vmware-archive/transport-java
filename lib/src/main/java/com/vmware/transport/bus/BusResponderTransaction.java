@@ -1,12 +1,14 @@
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ */
 package com.vmware.transport.bus;
 
 import io.reactivex.disposables.Disposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Copyright(c) VMware Inc. 2017
- */
 public class BusResponderTransaction implements BusTransaction {
 
     private Disposable sub;

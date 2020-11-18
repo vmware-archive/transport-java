@@ -1,5 +1,8 @@
 /*
- * Copyright(c) VMware Inc. 2017-2018
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  */
 package com.vmware.transport.bridge.spring.controllers;
 

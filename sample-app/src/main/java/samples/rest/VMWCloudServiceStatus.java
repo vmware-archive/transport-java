@@ -1,7 +1,8 @@
 /*
- * Copyright(c) VMware Inc. 2019. All rights reserved.
+ * Copyright 2019-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  */
-
 package samples.rest;
 
 import com.vmware.transport.bridge.Request;

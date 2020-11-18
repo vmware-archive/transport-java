@@ -1,5 +1,7 @@
 /*
- * Copyright 2018 VMware, Inc. All rights reserved. -- VMware Confidential
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  */
 package samples.config;
 

@@ -1,12 +1,14 @@
+/*
+ * Copyright 2019-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ */
 package samples;
 
 import com.vmware.transport.bus.model.Message;
 import com.vmware.transport.core.AbstractBase;
 import org.springframework.stereotype.Component;
 
-/*
- * Copyright(c) VMware Inc. 2019
- */
 @Component
 public class HelloWorld extends AbstractBase {
 

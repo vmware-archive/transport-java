@@ -1,3 +1,8 @@
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ */
 package com.vmware.transport.bus;
 
 import com.vmware.transport.bus.model.Message;
@@ -10,9 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.function.Function;
 
-/**
- * Copyright(c) VMware Inc. 2017
- */
 public class MessageResponderImpl<T> implements MessageResponder<T> {
     private EventBus bus;
     private MessageObjectHandlerConfig config;

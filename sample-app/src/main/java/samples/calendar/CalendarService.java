@@ -1,3 +1,8 @@
+/*
+ * Copyright 2019-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ */
 package samples.calendar;
 
 import com.vmware.transport.bridge.Request;
@@ -10,9 +15,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-/*
- * Copyright(c) VMware Inc. 2019. All rights reserved.
- */
 @Component
 public class CalendarService extends AbstractService<Request<String>, Response<String>> {
 
