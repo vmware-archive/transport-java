@@ -1,12 +1,13 @@
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ */
 package com.vmware.transport.bus;
 
 import com.vmware.transport.bus.model.MessageType;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-
-/**
- * Copyright(c) VMware Inc. 2017
- */
 
 @SuppressWarnings("unchecked")
 public class BusHandlerTransaction<T> implements BusTransaction, AsObservable<T> {

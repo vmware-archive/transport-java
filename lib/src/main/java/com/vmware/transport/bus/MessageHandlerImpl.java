@@ -1,3 +1,8 @@
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ */
 package com.vmware.transport.bus;
 
 import com.vmware.transport.bus.model.Message;
@@ -10,10 +15,6 @@ import io.reactivex.functions.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-/**
- * Copyright(c) VMware Inc. 2017
- */
 @SuppressWarnings("unchecked")
 public class MessageHandlerImpl<T> implements MessageHandler<T> {
 

@@ -1,14 +1,14 @@
+/*
+ * Copyright 2017-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ */
 package com.vmware.transport.bus;
 
 import com.vmware.transport.bus.model.Message;
 import io.reactivex.disposables.Disposable;
 
 import java.util.function.Function;
-
-/*
- * Copyright(c) VMware Inc. 2017
- */
-
 
 /**
  * MessageResponder allows consumers to generate responses to incoming requests on configured send channel.

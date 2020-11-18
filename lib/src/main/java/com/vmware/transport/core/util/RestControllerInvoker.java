@@ -1,5 +1,7 @@
 /*
- * Copyright(c) VMware Inc. 2018
+ * Copyright 2018-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  */
 package com.vmware.transport.core.util;
 

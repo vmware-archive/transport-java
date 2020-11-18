@@ -1,9 +1,9 @@
-package app;
-
 /*
- * Copyright(c) VMware Inc. 2017-2018
+ * Copyright 2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
  */
-
+package app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

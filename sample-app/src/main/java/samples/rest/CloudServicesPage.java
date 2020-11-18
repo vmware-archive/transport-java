@@ -1,11 +1,13 @@
+/*
+ * Copyright 2019-2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ */
 package samples.rest;
 
 import lombok.Getter;
 import lombok.Setter;
 
-/*
- * Copyright(c) VMware Inc. 2019. All rights reserved.
- */
 public class CloudServicesPage {
 
     @Getter @Setter
