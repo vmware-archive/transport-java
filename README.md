@@ -1,4 +1,4 @@
-# Transport
+# Transport - Java
 
 Transport is a full stack, simple, fast, expandable application event bus for your applications.
 
@@ -12,7 +12,9 @@ It really comes to life when you use it to send messages, requests, responses an
 
 Channels can be extended to major brokers like Kafka or RabbitMQ, so Transport becomes an 'on/off-ramp' for your main sources of truth.
 
-###[View Transport Java Documentation](https://vmware.github.io/transport/java)
+### [View Transport Java Documentation](https://vmware.github.io/transport/java)
+
+#### [Transport Docs Repo](https://github.com/vmware/transport)
 
 ## Quick Start
 #### Run Sample App
@@ -34,6 +36,8 @@ Channels can be extended to major brokers like Kafka or RabbitMQ, so Transport b
 ```
 
 The file is output to `lib/build/libs/transport-1.0.0.jar`
+
+### [Read More Java Documentation](https://vmware.github.io/transport/java)
 
 ## Contributing
 
