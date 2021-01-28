@@ -13,7 +13,7 @@ plugins {
 jar.enabled = true
 
 // define outputs
-group = 'com.vmware.transport'
+group = 'com.vmware'
 version = '0.0.1'
 
 bootJar {
@@ -114,6 +114,8 @@ task javadocJar(type: Jar) {
 publishing {
     publications {
         transport(MavenPublication) {
+            groupId group
+            artifactId "transport"
             from components.java
 
             artifact sourcesJar
