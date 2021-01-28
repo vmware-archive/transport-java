@@ -5,6 +5,8 @@ plugins {
     id 'java-library'
     id 'java'
     id 'jacoco'
+    id 'maven-publish'
+    id 'signing'
 }
 
 // enable jar building
@@ -97,4 +99,39 @@ jacocoTestReport {
         html.enabled true
         html.destination file("${buildDir}/coverage-html")
     }
+}
+
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+publishing {
+    publications {
+        transport(MavenPublication) {
+            from components.java
+
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+// Note: signing tasks to be executed with the following env variables set appropriately
+// ORG_GRADLE_PROJECT_SIGNING_PRIVATE_KEY
+// ORG_GRADLE_PROJECT_SIGNING_PASSWORD
+signing {
+    def signingKey = project.findProperty("SIGNING_PRIVATE_KEY")
+    def signingPassword = project.findProperty("SIGNING_PASSWORD")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.transport
 }
