@@ -1,0 +1,12 @@
+plugins {
+    id 'io.codearte.nexus-staging' version '0.11.0'
+}
+
+nexusStaging {
+    packageGroup = "com.vmware"
+
+    def ossSonaTypeUsername = project.findProperty("OSS_SONATYPE_USERNAME") // ORG_GRADLE_PROJECT_OSS_SONATYPE_USERNAME
+    def ossSonaTypePassword = project.findProperty("OSS_SONATYPE_PASSWORD") // ORG_GRADLE_PROJECT_OSS_SONATYPE_PASSWORD
+    username = ossSonaTypeUsername
+    password = ossSonaTypePassword
+}

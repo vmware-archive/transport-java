@@ -122,11 +122,62 @@ publishing {
 
             artifact sourcesJar
             artifact javadocJar
+
+            pom {
+                name = 'VMware Transport'
+                description = 'Transport is a full stack, simple, fast, expandable ' +
+                        'application event bus for your applications. It provides a ' +
+                        'standardized and simple API, implemented in multiple languages, ' +
+                        'to allow any individual component inside your applications to talk ' +
+                        'to one another. This is the Java implementation of the Transport library.'
+                url = 'https://vmware.github.io/transport/'
+                scm {
+                    connection = 'scm:https://github.com/vmware/transport-java/'
+                    developerConnection = 'scm:https://github.com/vmware/transport-java/'
+                    url = 'https://github.com/vmware/transport-java/'
+                }
+                licenses {
+                    license {
+                        name = 'BSD-2 License'
+                        url = 'https://opensource.org/licenses/BSD-2-Clause'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'daveshanley'
+                        name = 'Dave Shanley'
+                        email = 'dshanley@vmware.com'
+                    }
+                    developer {
+                        id = 'jooskim'
+                        name = 'Josh Kim'
+                        email = 'kjosh@vmware.com'
+                    }
+                    developer {
+                        name = 'Stoyan Hristov'
+                        email = 'shristov@vmware.com'
+                    }
+                }
+            }
         }
     }
 
     repositories {
-        mavenCentral()
+        maven {
+            def ossSonaTypeUsername = project.findProperty("OSS_SONATYPE_USERNAME") // ORG_GRADLE_PROJECT_OSS_SONATYPE_USERNAME
+            def ossSonaTypePassword = project.findProperty("OSS_SONATYPE_PASSWORD") // ORG_GRADLE_PROJECT_OSS_SONATYPE_PASSWORD
+            name = 'SonaType'
+            credentials {
+                username ossSonaTypeUsername
+                password ossSonaTypePassword
+            }
+
+            if (project.version.endsWith("-SNAPSHOT")) {
+                url = "https://oss.sonatype.org/content/repositories/snapshots/"
+            } else {
+                url = "https://oss.sonatype.org/content/repositories/releases/"
+            }
+        }
     }
 }
 
