@@ -14,7 +14,9 @@ jar.enabled = true
 
 // define outputs
 group = 'com.vmware'
-version = '0.0.1'
+
+// build version
+buildVersion()
 
 bootJar {
     enabled = false
@@ -136,4 +138,13 @@ signing {
     def signingPassword = project.findProperty("SIGNING_PASSWORD")
     useInMemoryPgpKeys(signingKey, signingPassword)
     sign publishing.publications.transport
+}
+
+void buildVersion() {
+    version = rootProject.file('version.txt').getText('UTF-8').trim()
+    if ("snapshot".compareTo(buildType) == 0) {
+        version = version + "-SNAPSHOT"
+    } else if ("release".compareTo(buildType) == 0) {
+        version = version + "-RELEASE"
+    }
 }
