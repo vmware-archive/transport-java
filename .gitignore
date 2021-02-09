@@ -15,3 +15,5 @@ tmp
 .classpath
 .project
 lombok.config
+lib/build
+sample-app/build/
