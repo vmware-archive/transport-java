@@ -1,0 +1,63 @@
+name: Transport Release pipeline
+
+on:
+  release:
+    types:
+      - published
+
+env:
+  ORG_GRADLE_PROJECT_SIGNING_PASSWORD: ${{ secrets.ORG_GRADLE_PROJECT_SIGNING_PASSWORD }}
+  ORG_GRADLE_PROJECT_SIGNING_PRIVATE_KEY: ${{ secrets.ORG_GRADLE_PROJECT_SIGNING_PRIVATE_KEY }}
+  ORG_GRADLE_PROJECT_OSS_SONATYPE_USERNAME: ${{ secrets.ORG_GRADLE_PROJECT_OSS_SONATYPE_USERNAME }}
+  ORG_GRADLE_PROJECT_OSS_SONATYPE_PASSWORD: ${{ secrets.ORG_GRADLE_PROJECT_OSS_SONATYPE_PASSWORD }}
+
+jobs:
+  publish-local:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set up repo
+        uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Publish to local
+        run: gradle -PbuildType=release clean publishToMavenLocal
+      - name: Check artifacts
+        run: ls -la ~/.m2/repository/com/vmware/transport/*
+  publish-snapshot:
+    runs-on: ubuntu-20.04
+    needs:
+      - publish-local
+    steps:
+      - name: Set up repo
+        uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Publish snapshot
+        run: gradle clean publishTransportPublicationToSonaTypeRepository
+  publish-release:
+    runs-on: ubuntu-20.04
+    needs:
+      - publish-local
+      - publish-snapshot
+    steps:
+      - name: Set up repo
+        uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Publish release
+        run: gradle -PbuildType=release clean publishTransportPublicationToSonaTypeRepository
+  stage-to-maven-central:
+    runs-on: ubuntu-20.04
+    needs:
+      - publish-release
+    steps:
+      - name: Set up repo
+        uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Stage release to Maven Central
+        run: gradle closeAndReleaseRepository
