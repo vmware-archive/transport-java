@@ -1,0 +1,40 @@
+name: Transport Post-merge pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set up repo
+        uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Unit tests
+        run: gradle clean test jacocoTestReport
+      - uses: actions/upload-artifact@v2
+        with:
+          name: test-reports
+          path: lib/build/reports
+      - uses: actions/upload-artifact@v2
+        with:
+          name: test-coverage
+          path: lib/build/coverage-html
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Set up repo
+        uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+      - name: Build jar
+        run: gradle clean jar
+      - uses: actions/upload-artifacts@v2
+        with:
+          name: lib-jar
+          path: lib/build/libs
