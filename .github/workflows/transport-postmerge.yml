@@ -34,7 +34,7 @@ jobs:
           java-version: '11'
       - name: Build jar
         run: gradle clean jar
-      - uses: actions/upload-artifacts@v2
+      - uses: actions/upload-artifact@v2
         with:
           name: lib-jar
           path: lib/build/libs
