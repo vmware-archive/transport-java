@@ -35,7 +35,7 @@ Channels can be extended to major brokers like Kafka or RabbitMQ, so Transport b
 ./gradlew jar
 ```
 
-The file is output to `lib/build/libs/transport-1.0.0.jar`
+The file is output to `lib/build/libs/transport-1.0.0-SNAPSHOT.jar`
 
 ### [Read More Java Documentation](https://vmware.github.io/transport/java)
 
