@@ -175,7 +175,7 @@ publishing {
             if (project.version.endsWith("-SNAPSHOT")) {
                 url = "https://oss.sonatype.org/content/repositories/snapshots/"
             } else {
-                url = "https://oss.sonatype.org/content/repositories/releases/"
+                url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
             }
         }
     }
