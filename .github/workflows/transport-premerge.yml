@@ -14,6 +14,13 @@ jobs:
           java-version: '11'
       - name: Unit tests
         run: gradle clean test jacocoTestReport
+      - uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./lib/build/coverage.xml
+          flags: unittests
+          fail_ci_if_error: true
+          verbose: true
       - uses: actions/upload-artifact@v2
         with:
           name: test-reports

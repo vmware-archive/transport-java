@@ -97,7 +97,8 @@ jacoco {
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
     reports {
-        xml.enabled false
+        xml.enabled true
+        xml.destination file("${buildDir}/coverage.xml")
         html.enabled true
         html.destination file("${buildDir}/coverage-html")
     }
