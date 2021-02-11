@@ -1,5 +1,8 @@
 # Transport - Java
 
+![Transport Post-merge pipeline](https://github.com/vmware/transport-java/workflows/Transport%20Post-merge%20pipeline/badge.svg)
+[![codecov](https://codecov.io/gh/vmware/transport-java/branch/main/graph/badge.svg?token=JUYOqO7bYf)](https://codecov.io/gh/vmware/transport-java)
+
 Transport is a full stack, simple, fast, expandable application event bus for your applications.
 
 ### What does that mean?
