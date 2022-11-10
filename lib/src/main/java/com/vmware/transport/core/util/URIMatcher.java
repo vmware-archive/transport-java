@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Arrays;
+import java.util.function.Consumer;
 
 /**
  * Performs controller matching to incoming REST Requests.
@@ -101,25 +103,44 @@ public class URIMatcher {
         return result;
     }
 
+    /**
+     * Looks up the RequestMapping annotation on the controller class and populates a new StringBuilder object with
+     * the URI paths segments it finds in the annotation, then returns the StringBuilder object.
+     *
+     * @param controller controller object
+     * @return a new StringBuilder object filled with URI paths
+     */
+    private StringBuilder getControllerAnnotationValues(Object controller) {
+        StringBuilder urlBuilder = new StringBuilder();
+        RequestMapping controllerReqMapping = AnnotationUtils.findAnnotation(controller.getClass(), RequestMapping.class);
+
+        if (controllerReqMapping != null) {
+            for (String segment : controllerReqMapping.value()) {
+                urlBuilder.append(segment);
+            }
+        }
+        return urlBuilder;
+    }
+
     private URIMethodResult checkRequestMappingMethods(URI uri, RequestMethod requestMethod,
                                                               Object controller, Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
-
             Method method = methods.get(methodKey);
-            RequestMapping annotation = AnnotationUtils.findAnnotation(method, RequestMapping.class);
-            if(annotation != null && annotation.path().length > 0) {
-                String uriString = annotation.path()[0];
-                RequestMethod annotationMethod = annotation.method()[0];
+            StringBuilder urlBuilder = getControllerAnnotationValues(controller);
+            Consumer<String> appendToUrlBuilder = urlBuilder::append;
+            RequestMapping requestMapping = AnnotationUtils.findAnnotation(method, RequestMapping.class);
+
+            if (requestMapping != null && requestMapping.path().length > 0) {
+                Arrays.stream(requestMapping.path()).forEach(appendToUrlBuilder);
+                RequestMethod annotationMethod = requestMapping.method()[0];
 
                 result = checkForControllerMatch(uri, requestMethod, controller, true,
-                        result, method, annotationMethod, uriString);
-
-            } else {
-                continue;
+                        result, method, annotationMethod, urlBuilder.toString());
+                if (result != null) {
+                    break;
+                }
             }
-
-            if(result != null) break;
         }
         return result;
     }
@@ -128,16 +149,20 @@ public class URIMatcher {
                                                             Object controller, Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
-
             Method method = methods.get(methodKey);
-            PatchMapping mappingAnnotation =  AnnotationUtils.findAnnotation(method, PatchMapping.class);
-            if(mappingAnnotation != null) {
-                String uriSring = mappingAnnotation.value()[0];
+            StringBuilder urlBuilder = getControllerAnnotationValues(controller);
+            Consumer<String> appendToUrlBuilder = urlBuilder::append;
+            PatchMapping patchMapping = AnnotationUtils.findAnnotation(method, PatchMapping.class);
 
+            if (patchMapping != null && patchMapping.value().length > 0) {
+                Arrays.stream(patchMapping.value()).forEach(appendToUrlBuilder);
+            }
+            if (urlBuilder.length() > 0) {
                 result = checkForControllerMatch(uri, requestMethod, controller, false, result,
-                        method, null, uriSring);
-            } else {
-                continue;
+                        method, null, urlBuilder.toString());
+            }
+            if (result != null) {
+                break;
             }
         }
         return result;
@@ -147,16 +172,20 @@ public class URIMatcher {
                                                           Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
-
             Method method = methods.get(methodKey);
-            GetMapping mappingAnnotation =  AnnotationUtils.findAnnotation(method, GetMapping.class);
-            if(mappingAnnotation != null) {
-                String uriSring = mappingAnnotation.value()[0];
+            StringBuilder urlBuilder = getControllerAnnotationValues(controller);
+            Consumer<String> appendToUrlBuilder = urlBuilder::append;
+            GetMapping getMapping = AnnotationUtils.findAnnotation(method, GetMapping.class);
 
+            if (getMapping != null && getMapping.value().length > 0) {
+                Arrays.stream(getMapping.value()).forEach(appendToUrlBuilder);
+            }
+            if (urlBuilder.length() > 0) {
                 result = checkForControllerMatch(uri, requestMethod, controller, false, result,
-                        method, null, uriSring);
-            } else {
-                continue;
+                        method, null, urlBuilder.toString());
+            }
+            if (result != null) {
+                break;
             }
         }
         return result;
@@ -166,35 +195,42 @@ public class URIMatcher {
                                                           Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
-
             Method method = methods.get(methodKey);
-            PutMapping mappingAnnotation =  AnnotationUtils.findAnnotation(method, PutMapping.class);
-            if(mappingAnnotation != null) {
-                String uriSring = mappingAnnotation.value()[0];
+            StringBuilder urlBuilder = getControllerAnnotationValues(controller);
+            Consumer<String> appendToUrlBuilder = urlBuilder::append;
+            PutMapping putMapping  = AnnotationUtils.findAnnotation(method, PutMapping.class);
 
+            if (putMapping != null && putMapping.value().length > 0) {
+                Arrays.stream(putMapping.value()).forEach(appendToUrlBuilder);
+            }
+            if (urlBuilder.length() > 0) {
                 result = checkForControllerMatch(uri, requestMethod, controller, false, result,
-                        method, null, uriSring);
-            } else {
-                continue;
+                        method, null, urlBuilder.toString());
+            }
+            if (result != null) {
+                break;
             }
         }
         return result;
     }
-
     private URIMethodResult checkPostMappingMethods(URI uri, RequestMethod requestMethod, Object controller,
                                                            Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
-
             Method method = methods.get(methodKey);
-            PostMapping mappingAnnotation =  AnnotationUtils.findAnnotation(method, PostMapping.class);
-            if(mappingAnnotation != null) {
-                String uriSring = mappingAnnotation.value()[0];
+            StringBuilder urlBuilder = getControllerAnnotationValues(controller);
+            Consumer<String> appendToUrlBuilder = urlBuilder::append;
+            PostMapping postMapping = AnnotationUtils.findAnnotation(method, PostMapping.class);
 
+            if (postMapping != null && postMapping.value().length > 0) {
+                Arrays.stream(postMapping.value()).forEach(appendToUrlBuilder);
+            }
+            if (urlBuilder.length() > 0) {
                 result = checkForControllerMatch(uri, requestMethod, controller, false, result,
-                        method, null, uriSring);
-            } else {
-                continue;
+                        method, null, urlBuilder.toString());
+            }
+            if (result != null) {
+                break;
             }
         }
         return result;
@@ -204,16 +240,20 @@ public class URIMatcher {
                                                              Map<String, Method> methods) {
         URIMethodResult result = null;
         for (String methodKey : methods.keySet()) {
-
             Method method = methods.get(methodKey);
-            DeleteMapping mappingAnnotation =  AnnotationUtils.findAnnotation(method, DeleteMapping.class);
-            if(mappingAnnotation != null) {
-                String uriSring = mappingAnnotation.value()[0];
+            StringBuilder urlBuilder = getControllerAnnotationValues(controller);
+            Consumer<String> appendToUrlBuilder = urlBuilder::append;
+            DeleteMapping deleteMapping = AnnotationUtils.findAnnotation(method, DeleteMapping.class);
 
+            if (deleteMapping != null && deleteMapping.value().length > 0) {
+                Arrays.stream(deleteMapping.value()).forEach(appendToUrlBuilder);
+            }
+            if (urlBuilder.length() > 0) {
                 result = checkForControllerMatch(uri, requestMethod, controller, false, result,
-                        method, null, uriSring);
-            } else {
-                continue;
+                        method, null, urlBuilder.toString());
+            }
+            if (result != null) {
+                break;
             }
         }
         return result;
