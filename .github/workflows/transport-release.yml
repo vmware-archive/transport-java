@@ -21,7 +21,7 @@ jobs:
         with:
           java-version: '11'
       - name: Publish to local
-        run: gradle -PbuildType=release clean publishToMavenLocal
+        run: ./gradlew -PbuildType=release clean publishToMavenLocal
       - name: Check artifacts
         run: ls -la ~/.m2/repository/com/vmware/transport/*
   publish-snapshot:
@@ -35,7 +35,7 @@ jobs:
         with:
           java-version: '11'
       - name: Publish snapshot
-        run: gradle clean publishTransportPublicationToSonaTypeRepository
+        run: ./gradlew clean publishTransportPublicationToSonaTypeRepository
   publish-release:
     runs-on: ubuntu-20.04
     needs:
@@ -48,7 +48,7 @@ jobs:
         with:
           java-version: '11'
       - name: Publish release
-        run: gradle -PbuildType=release clean publishTransportPublicationToSonaTypeRepository
+        run: ./gradlew -PbuildType=release clean publishTransportPublicationToSonaTypeRepository
   stage-to-maven-central:
     runs-on: ubuntu-20.04
     needs:
@@ -60,4 +60,4 @@ jobs:
         with:
           java-version: '11'
       - name: Stage release to Maven Central
-        run: gradle closeAndReleaseRepository
+        run: ./gradlew closeAndReleaseRepository

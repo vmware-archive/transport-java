@@ -13,7 +13,7 @@ jobs:
         with:
           java-version: '11'
       - name: Unit tests
-        run: gradle clean test jacocoTestReport
+        run: ./gradlew clean test jacocoTestReport
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -38,4 +38,4 @@ jobs:
         with:
           java-version: '11'
       - name: Build jar
-        run: gradle clean jar
+        run: ./gradlew clean jar
